@@ -1285,7 +1285,7 @@ function openDay(){
   const pSi=.06+Math.max(0,S.rep)/100*.08;
   const rr=Math.random();
   if(rr<pNo)tg*=rnd(40,65)/100;else if(rr<pNo+pSi)tg*=rnd(125,145)/100;
-  if(S.day===1)tg=rnd(85,110); // primo giorno di rodaggio
+  if(S.day===1)tg=rnd(50,70); // primo giorno di rodaggio
   if(S.up.locale)tg*=2.5;
   S.today.target=Math.round(clamp(tg,20,S.up.locale?500:200));
   computeInteg();scheduleEvents();
