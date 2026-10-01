@@ -1277,7 +1277,9 @@ function openDay(){
   S.counter=null;S.tray={};RT.last=null;RT.ovLog=RT.ovFin=RT.ovRap=0;
   if(S.speed===0)S.speed=1;
   if(S.day>=5&&S.rincari<6&&chance(.1))rincaro();
-  let tg=rnd(40,190)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
+  // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
+  const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
+  let tg=rnd(40,140)*repF*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
   if(S.day===1)tg=rnd(50,70); // primo giorno di rodaggio
   if(S.up.locale)tg*=2.5;
   S.today.target=Math.round(clamp(tg,30,S.up.locale?500:200));
