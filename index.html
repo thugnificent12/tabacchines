@@ -501,14 +501,17 @@ const SALECAT={sig:'tab',tab:'tab',gra:'gra',val:'val',ban:'ban',sga:'tab',gio:'
 
 /* servizi e lotterie: si incassa solo la provvigione */
 const SV={
- lot:{name:'Lotto',fee:()=>r2(pick([1,2,3,5,5,10,20])*.08)},
- sup:{name:'SuperEnalotto',fee:()=>r2(pick([2,3,5,5,10,15])*.08)},
- del:{name:'10eLotto',fee:()=>r2(pick([1,2,2,3,5,10])*.08)},
- ric:{name:'Ricarica telefonica',gate:'srvRic',fee:()=>r2(pick([5,10,10,15,20,25])*.05)},
- pag:{name:'Pagamento bollettino',gate:'srvPag',fee:()=>1.10},
- sco:{name:'Scommessa sportiva',gate:'scommesse',fee:()=>r2(pick([2,5,5,10,20,50])*.08)},
- vir:{name:'Scommessa virtuale',gate:'virtuali',fee:()=>r2(pick([1,2,3,5,10])*.10)}
+ lot:{name:'Lotto',rate:.08,amt:()=>pick([1,2,3,5,5,10,20]),say:a=>`una giocata da ${a} € al Lotto`},
+ sup:{name:'SuperEnalotto',rate:.08,amt:()=>pick([2,3,5,5,10,15]),say:a=>`una schedina da ${a} € del SuperEnalotto`},
+ del:{name:'10eLotto',rate:.08,amt:()=>pick([1,2,2,3,5,10]),say:a=>`una giocata da ${a} € al 10eLotto`},
+ ric:{name:'Ricarica telefonica',gate:'srvRic',rate:.05,amt:()=>pick([5,10,10,15,20,25,50]),say:a=>`una ricarica da ${a} €`},
+ pag:{name:'Pagamento bollettino',gate:'srvPag',fixed:1.10,amt:()=>ri(25,150)+2,say:a=>`di pagare un bollettino (${a} €, commissione compresa)`},
+ sco:{name:'Scommessa sportiva',gate:'scommesse',rate:.08,amt:()=>pick([2,5,5,10,20,50]),say:a=>`una scommessa da ${a} € sulla partita`},
+ vir:{name:'Scommessa virtuale',gate:'virtuali',rate:.10,amt:()=>pick([1,2,3,5,10]),say:a=>`una scommessa da ${a} € sulle virtuali`},
+ vgv:{name:'Pagamento vincita Gratta e Vinci',payout:1,amt:()=>+pickW({5:40,10:30,20:18,50:9,100:3}),say:a=>`di riscuotere una vincita da ${a} € al Gratta e Vinci`}
 };
+const svFee=(id,a)=>SV[id].fixed!=null?SV[id].fixed:r2(a*SV[id].rate);
+
 
 /* ===== volti ===== */
 const SKIN=['#F3D2B6','#EBC09C','#DDA67D','#C78C62','#A56C47','#7C4E32'];
@@ -573,7 +576,7 @@ const TOUR_S=['Müller','Dupont','Smith','Jansen','Tanaka','Novak','Larsen','O\'
 
 /* wants(c,p): c raccoglie righe, p è la persona */
 function wantU(c,id,q=1){const g=SV[id]?SV[id].gate:PD[id].gate;if(g&&!(typeof S!=='undefined'&&S&&S.up&&S.up[g]))return;want(c,id,q);}
-function want(c,id,q=1){const ex=c.lines.find(l=>l.id===id);if(ex){if(!SV[id])ex.q+=q;return;}c.lines.push({id,q});}
+function want(c,id,q=1){const ex=c.lines.find(l=>l.id===id);if(ex){if(!SV[id])ex.q+=q;return;}c.lines.push(SV[id]?{id,q:1,amt:SV[id].amt()}:{id,q});}
 function brandOf(p){return PD[p.brand]?p.brand:BRANDS[0].id;}
 const TYPES={
  pendolare:{role:'Pendolare',g:.5,pat:100,
@@ -691,10 +694,10 @@ const UPG=[
 ];
 const UPD={};UPG.forEach(u=>UPD[u.id]=u);
 const LOANS=[{amt:10000,n:120,rata:92},{amt:20000,n:180,rata:123},{amt:50000,n:365,rata:152}];
-const CATL={tab:'Tabacchi',gra:'Gratta e Vinci',val:'Valori e trasporti',ban:'Banco',srv:'Lotterie e servizi',man:'Mance',cred:'Crediti incassati',int:'Interessi libretto',fin:'Finanziamenti ricevuti',vin:'Vincite del tabaccaio',gio:'Giornali',bar:'Bar, alcolici e snack',cbd:'Cannabis light',slot:'Slot e distributore',vizi:'Vizi del tabaccaio',
+const CATL={tab:'Tabacchi',gra:'Gratta e Vinci',val:'Valori e trasporti',ban:'Banco',srv:'Lotterie e servizi (incassato)',man:'Mance',cred:'Crediti incassati',int:'Interessi libretto',fin:'Finanziamenti ricevuti',vin:'Vincite del tabaccaio',vers:'Versamenti al concessionario',prem:'Vincite pagate ai clienti',rimb:'Rimborsi delle vincite',gio:'Giornali',bar:'Bar, alcolici e snack',cbd:'Cannabis light',slot:'Slot e distributore',vizi:'Vizi del tabaccaio',
  merce:'Acquisto merce',boll:'Bollette',canoni:'Canoni terminali',tasse:'Tasse e contributi',prof:'Commercialista e assicurazione',pos:'Commissioni POS',rate:'Rate del finanziamento',upg:'Migliorie',furti:'Furti e rapine',multe:'Multe e imprevisti'};
-const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred','vin','int','fin'];
-const EXP=['merce','boll','canoni','tasse','prof','pos','rate','upg','vizi','furti','multe'];
+const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','cred','vin','int','fin'];
+const EXP=['merce','vers','prem','boll','canoni','tasse','prof','pos','rate','upg','vizi','furti','multe'];
 const NEU=['giro','credito','autoc'];
 const RANKS=[[0,'Garzone di Bottega'],[8000,'Tabaccaio in Prova'],[15000,'Titolare con Insegna'],[30000,'Notabile del Quartiere'],[60000,'Barone delle Cartine']];
 const QP=['Il commercialista approva, il che è sospetto.','Abbassi la saracinesca con la soddisfazione di chi ha venduto quattordici cartine.','Giornata onesta: nessuno ti ha chiesto che numeri escono al Lotto.','Il fumatore è una creatura abitudinaria, ed è il tuo migliore amico.'];
@@ -845,11 +848,10 @@ const SAY={
   gaz:q=>q===1?'la gazzetta':`${nw(q)} gazzette`,
   spo:q=>q===1?'il quotidiano sportivo':`${nw(q)} copie del quotidiano sportivo`,
   enm:q=>q===1?'il settimanale di enigmistica':`${nw(q)} copie dell'enigmistica`,
-  sco:()=>'una scommessa sulla partita',vir:()=>'una scommessa sulle virtuali',
-  lot:()=>'una giocata al Lotto',sup:()=>'una schedina del SuperEnalotto',del:()=>'una giocata al 10eLotto',
-  ric:()=>'una ricarica telefonica',pag:()=>'di pagare un bollettino'
+
 };
 function sayLine(l){
+  if(SV[l.id]){if(l.amt==null)l.amt=SV[l.id].amt();return SV[l.id].say(l.amt);}
   if(SAY[l.id])return SAY[l.id](l.q);
   const d=PD[l.id];
   if(d.cat==='sig')return l.q===1?`un pacchetto di ${d.name}`:`${nw(l.q)} pacchetti di ${d.name}`;
@@ -875,6 +877,7 @@ function spawnCustomer(forcedType){
   const ctx={lines:[]};
   T.wants(ctx,p);
   if(isSunday(S.day)&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
+  if(['signora','nonno','operaio','cumenda','studente'].includes(p.type)&&chance(.1))want(ctx,'vgv');
   if(!ctx.lines.length)want(ctx,brandOf(p));
   const pat=T.pat*2*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
@@ -920,8 +923,13 @@ function deliver(credit){
     if(extra>0)wrong.push(`${extra}× ${SV[id]?SV[id].name:PD[id].name}`);
     if(SV[id]){
       if(ok>0){
+        const ln=c.lines.find(l=>l.id===id);const a=ln&&ln.amt!=null?ln.amt:SV[id].amt();
         if(credit){noCred.push(SV[id].name);}
-        else{const f=SV[id].fee();byCat.srv=(byCat.srv||0)+f;total+=f;got++;T.okItems++;}
+        else if(SV[id].payout){
+          if(S.cash<a){missing.push(`contanti per pagare la vincita da ${fmt(a)}`);}
+          else{S.cash=r2(S.cash-a);T.prize=r2((T.prize||0)+a);tx('prem',-a,`Vincita Gratta e Vinci pagata a ${name} (rimborsata in serata)`);got++;T.okItems++;RT.floatAmt=(RT.floatAmt||0);}
+        }
+        else{const f=svFee(id,a);byCat.srv=(byCat.srv||0)+a;total+=a;T.gioc=r2((T.gioc||0)+a);T.gfee=r2((T.gfee||0)+f);got++;T.okItems++;}
       }
       if(short>0){if(!svAvail(id))missing.push(SV[id].name);else forgot.push(SV[id].name);}
       continue;
@@ -1228,7 +1236,7 @@ function billsFor(d){
   if(g===16)b.push({cat:'tasse',amt:380,label:'Contributi INPS (F24)'});
   if(g===25)b.push({cat:'prof',amt:r2(150*pdisc),label:'Commercialista'});
   if(g===28){b.push({cat:'tasse',amt:70+40*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2(45*pdisc),label:'Assicurazione della bottega'});}
-  if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
+  if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
   return b;
 }
 function upcoming(n){
@@ -1276,6 +1284,8 @@ function closeDay(){
   if(left){T.lost+=left;addRep(-.4*left);log(`Abbassi la saracinesca con ${left} clienti ancora dentro. Escono brontolando.`,'bad');}
   S.queue=[];S.counter=null;S.tray={};
   const charges=[];
+  if(T.prize>0){S.cash=r2(S.cash+T.prize);tx('rimb',T.prize,'Rimborso delle vincite Gratta e Vinci pagate oggi');}
+  if(T.gioc>0){charges.push({cat:'vers',amt:r2(T.gioc-T.gfee),label:`Versamento giocate e servizi (incassati ${fmt(T.gioc)}, tua provvigione ${fmt(T.gfee)})`});}
   if(T.sales>0){const pos=r2(T.sales*(S.up.registratore?.003:.006));charges.push({cat:'pos',amt:pos,label:'Commissioni POS'});}
   if(S.up.slot){const v=r2(Math.max(5,T.served)*rnd(.15,.35)*S.up.slot);S.cash=r2(S.cash+v);tx('slot',v,'Incasso delle slot machine');}
   if(S.up.distrib){const v=r2(rnd(15,45));S.cash=r2(S.cash+v);tx('slot',v,'Distributore automatico h24');}
@@ -1376,7 +1386,7 @@ function setTab(name){
 let PCAT='sig';
 function clearQueueDom(){RT.qSig='';RT.ctrSig='';}
 const PCATS={sig:['sig'],gra:['gra'],val:['val'],ban:['tab','ban'],alt:['sga','gio','alc','cbd','bar']};
-const SVTAG={lot:'LOTTO',sup:'SUPER ENALOTTO',del:'10eLOTTO',ric:'RICARICA',pag:'BOLLETTINO',sco:'SCOMMESSE',vir:'VIRTUALI'};
+const SVTAG={vgv:'PAGA VINCITA',lot:'LOTTO',sup:'SUPER ENALOTTO',del:'10eLOTTO',ric:'RICARICA',pag:'BOLLETTINO',sco:'SCOMMESSE',vir:'VIRTUALI'};
 let SG={};
 function buildStockGrid(){
   const g=$('#stockgrid');g.innerHTML='';SG={};
@@ -1425,7 +1435,7 @@ function gridClick(e){
   if(r==='locked')toast(LOTS.includes(id)&&S.lotDownUntil>S.t?`${SV[id].name}: il terminale è bloccato.`:`${SV[id].name}: non lo fai ancora. Si attiva in Bottega.`,'warn');
   render(true);
 }
-function trayTotal(){let t=0,sv=0;for(const id in S.tray){if(SV[id])sv+=S.tray[id];else t+=S.price[id]*S.tray[id];}return{t:r2(t),sv};}
+function trayTotal(){let t=0;const c=S.counter;for(const id in S.tray){if(SV[id]){const ln=c&&c.lines.find(l=>l.id===id);const a=ln&&ln.amt!=null?ln.amt:0;t+=SV[id].payout?-a:a;}else t+=S.price[id]*S.tray[id];}return{t:r2(t),sv:0};}
 function renderCounter(){
   const c=S.counter,box=$('#ctr');
   const sig=[S.phase,c?c.id:0,c?moodOf(c):'',c?anyAvail(c):'',S.t>=closeT(),RT.ctrVer,S.freeze>0,RT.last?RT.last.name+RT.last.reply:'',c?getP(c).debt:0,S.t>=closeT()].join('|');
@@ -1440,7 +1450,7 @@ function renderCounter(){
     const ids=Object.keys(S.tray);
     h+=`<div class="tray">${ids.length?ids.map(id=>`<span class="tchip"><button class="tq-b" data-rm="${id}" aria-label="Togli uno">−</button><span>${S.tray[id]}× ${esc(SV[id]?SV[id].name:PD[id].name)}</span><button class="tq-b" data-add="${id}" aria-label="Aggiungi uno">+</button></span>`).join(''):'<span class="muted">Sul banco non c\'è ancora niente. Tocca nello scaffale qui sotto i prodotti che chiede (se servono due pezzi, tocca due volte), poi premi «Consegna».</span>'}</div>`;
     const tt=trayTotal();
-    const tot=ids.length?` · ${fmt(tt.t)}${tt.sv?' + servizi':''}`:'';
+    const tot=ids.length?(tt.t<0?` · dai al cliente ${fmt(-tt.t)}`:` · incassi ${fmt(tt.t)}`):'';
     h+='<div class="ctr-acts">';
     if(c.creditAsk)h+=`<button class="btn gold" data-a="credit">Segna a credito${tot}</button><button class="btn alt" data-a="refuse">Fatti pagare</button>`;
     else h+=`<button class="btn gold" data-a="give">${giveLabel(c,tot)}</button>`;
