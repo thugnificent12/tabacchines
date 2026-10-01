@@ -916,11 +916,7 @@ const EVENTS=[
  {id:'calzini',w:2,run(){
   openModal({html:`<h3>Il venditore di calzini</h3><p>Entra con una valigia aperta e l'accento di Torre del Greco: «Calzini di spugna, tre paia cinque euro, roba bbuona, fatta a San Giuseppe Vesuviano! Guardate che qualità, signò!» Intanto si appoggia all'espositore delle caramelle.</p>`,actions:[
    {label:'Compra un paio di calzini per levarlo di mezzo (5 €)',cls:'alt',fn(){payForced(5);tx('multe',-5,'Calzini del venditore ambulante');log('Compri dei calzini che non ti servivano. Lui se ne va contento, e l\'espositore è intatto.','info');}},
-   {label:'Mandalo via',cls:'gold',fn(){
-    if(chance(S.up.telecamere?.2:.5)){const pool=['acc','cam','sna','cpo','car'].filter(id=>S.stock[id]>0);const t=[];for(let i=0;i<2&&pool.length;i++){const id=pick(pool);const n=Math.min(S.stock[id],ri(2,5));S.stock[id]-=n;t.push(`${n}× ${PD[id].name}`);}
-      log(`Il venditore di calzini se ne va offeso. Dopo un po' ti accorgi che dall'espositore mancano ${t.join(', ')||'un paio di cose'}.`,'bad');toast('Il venditore di calzini ha alleggerito l\'espositore.','bad');}
-    else log('Il venditore campano di calzini sbuffa «e che maniere!» e va a provarci dal barbiere.','info');
-   }}]});
+   {label:'Mandalo via',cls:'gold',fn(){log('Il venditore campano di calzini richiude la valigia e se ne va.','info');}}]});
  }},
  {id:'tecnico',w:1.5,ok:()=>S.cash>200,run(){
   openModal({html:`<h3>Il tecnico dei terminali</h3><p>«Buongiorno, sono il tecnico del Lotto, devo fare l'aggiornamento al terminale. Mi fa passare dietro al banco? Ci metto un attimo.» Ha una polo blu senza scritte e un cacciavite in mano.</p>`,actions:[
@@ -1513,7 +1509,7 @@ function resetGame(){
 }
 function chooseOwner(){
   let sel=null,edited=false;
-  const html=`<h3>Chi ha sposato Ines?</h3><p>Scegli chi sei e, se vuoi, cambia il nome. <b>Dopo non potrai più cambiare né l'uno né l'altro.</b></p><div class="owners">${OWNERS.filter(o=>!o.hidden).map(o=>`<button class="owner" data-o="${o.id}" aria-pressed="false">${faceHtml(o.face)}<b>${o.name}</b><small>${o.desc}</small><em>${o.perk}</em><em class="mal">${o.malus||'Nessun vizio'}</em></button>`).join('')}</div><label for="oname" style="display:block;font-weight:600;margin-top:10px">Il tuo nome</label><div class="amtrow" style="margin-top:4px"><input id="oname" type="text" maxlength="18" autocomplete="off" placeholder="Prima scegli un personaggio" style="font-family:var(--f-body)"></div>`;
+  const html=`<h3>Scegli il tuo personaggio</h3><p>Scegli chi sei e, se vuoi, cambia il nome. <b>Dopo non potrai più cambiare né l'uno né l'altro.</b></p><div class="owners">${OWNERS.filter(o=>!o.hidden).map(o=>`<button class="owner" data-o="${o.id}" aria-pressed="false">${faceHtml(o.face)}<b>${o.name}</b><small>${o.desc}</small><em>${o.perk}</em><em class="mal">${o.malus||'Nessun vizio'}</em></button>`).join('')}</div><label for="oname" style="display:block;font-weight:600;margin-top:10px">Il tuo nome</label><div class="amtrow" style="margin-top:4px"><input id="oname" type="text" maxlength="18" autocomplete="off" placeholder="Prima scegli un personaggio" style="font-family:var(--f-body)"></div>`;
   openModal({html,noFocus:true,actions:[{label:'Scegli un personaggio',cls:'gold',disabled:true,keep:true,fn(){if(!sel)return;const nm=($('#oname').value||'').trim().slice(0,18)||OWD[sel].name;closeModal();startGame(sel,nm);}}],
     after(sh){
       const go=sh.querySelector('.macts button'),inp=sh.querySelector('#oname');
