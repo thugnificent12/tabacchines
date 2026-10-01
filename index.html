@@ -420,7 +420,8 @@ const PRODUCTS=[
  {id:'g20',cat:'gra',name:'Gratta e Vinci 20 €',price:20,tag:'20 €'},
  {id:'bol',cat:'val',name:'Marca da bollo 16 €',price:16,aggio:.04,tag:'BOLLO'},
  {id:'fra',cat:'val',name:'Francobollo 1,30 €',price:1.30,aggio:.06,tag:'POSTA'},
- {id:'bus',cat:'val',name:'Biglietto bus 1,50 €',price:1.50,aggio:.08,tag:'BUS'},
+ {id:'trr',cat:'val',name:'Biglietto treno per Reggio 2,30 €',price:2.30,aggio:.07,tag:'TRENO RC'},
+ {id:'trs',cat:'val',name:'Biglietto treno per Scilla 1,40 €',price:1.40,aggio:.07,tag:'TRENO SCILLA'},
  {id:'acc',cat:'ban',name:'Accendino',free:1,cost:.70,price:2,tag:'ACCEND.'},
  {id:'cam',cat:'ban',name:'Caramelle alla menta',free:1,cost:.55,price:1.50,tag:'MENTA'},
  {id:'sna',cat:'ban',name:'Snack',free:1,cost:.50,price:1.50,tag:'SNACK'},
@@ -518,13 +519,13 @@ function brandOf(p){return PD[p.brand]?p.brand:BRANDS[0].id;}
 const TYPES={
  pendolare:{role:'Pendolare',g:.5,pat:70,
   quotes:['«Ho il treno tra due minuti. Due.»','«Il solito, ma di corsa.»','«Lo scontrino lo tengo, la fretta pure.»'],
-  wants:(c,p)=>{if(chance(.7))want(c,brandOf(p),chance(.2)?2:1);if(chance(.45))want(c,'bus',ri(1,2));if(chance(.12))want(c,'cam');if(chance(.12))want(c,'ric');if(chance(.1))want(c,'del');}},
+  wants:(c,p)=>{if(chance(.7))want(c,brandOf(p),chance(.2)?2:1);if(chance(.45))want(c,chance(.75)?'trr':'trs',ri(1,2));if(chance(.12))want(c,'cam');if(chance(.12))want(c,'ric');if(chance(.1))want(c,'del');}},
  signora:{role:'Pensionata',g:1,pat:150,old:1,
   quotes:['«Oggi sento che è la volta buona.»','«Mi dia quello vicino a quello che ha vinto ieri.»','«Lo gratto con la moneta di mia nonna.»','«Ha visto che tempo, signora mia?»'],
   wants:(c,p)=>{if(chance(.6))want(c,pick(['g2','g2','g3','g5']),ri(1,3));if(chance(.35))want(c,'lot');if(chance(.2))want(c,'sup');if(chance(.15))want(c,'fra',ri(1,3));if(chance(.15))want(c,'cam');if(chance(.2))want(c,'pag');}},
  studente:{role:'Studente',g:.5,pat:60,
-  quotes:['«Ho tutto in monetine da dieci centesimi.»','«Il bus passa tra poco, faccia presto.»','«Mi fa uno sconto studenti? No? Ok.»'],
-  wants:(c,p)=>{if(chance(.55))want(c,'bus',ri(1,2));if(chance(.3))want(c,'sna');if(chance(.25))want(c,'bib');if(chance(.25))want(c,'cam');if(chance(.2))want(c,'car');if(chance(.2))want(c,'acc');if(chance(.25))want(c,'ric');if(chance(.25))want(c,brandOf(p));}},
+  quotes:['«Ho tutto in monetine da dieci centesimi.»','«Il treno per Reggio parte tra cinque minuti, faccia presto.»','«Mi fa uno sconto studenti? No? Ok.»'],
+  wants:(c,p)=>{if(chance(.55))want(c,chance(.6)?'trr':'trs',ri(1,2));if(chance(.3))want(c,'sna');if(chance(.25))want(c,'bib');if(chance(.25))want(c,'cam');if(chance(.2))want(c,'car');if(chance(.2))want(c,'acc');if(chance(.25))want(c,'ric');if(chance(.25))want(c,brandOf(p));}},
  geometra:{role:'Professionista',g:.4,pat:110,
   quotes:['«Mi serve per una pratica. Sì, ancora.»','«Questo è l\'ultimo modulo. Lo dico da marzo.»','«Il notaio aspetta, il catasto pure.»'],
   wants:(c,p)=>{if(chance(.75))want(c,'bol',ri(1,3));if(chance(.4))want(c,'pag');if(chance(.25))want(c,'fra',ri(1,4));if(chance(.3))want(c,brandOf(p));}},
@@ -542,7 +543,7 @@ const TYPES={
   wants:(c,p)=>{want(c,brandOf(p));want(c,'g2');if(chance(.5))want(c,'lot');}},
  turista:{role:'Turista',g:.5,pat:100,
   quotes:['«Scusi, dov\'è il Colosseo? No, ok.»','«Is this a pharmacy? No? Un biglietto, please.»','«Quanto costa una cartolina? Due? Facciamo dieci.»'],
-  wants:(c,p)=>{want(c,'bus',ri(1,3));if(chance(.6))want(c,'cpo',ri(1,4));if(chance(.5))want(c,'fra',ri(1,4));if(chance(.35))want(c,'bib');if(chance(.2))want(c,'pow');if(chance(.25))want(c,'sna');}}
+  wants:(c,p)=>{want(c,chance(.7)?'trs':'trr',ri(1,3));if(chance(.6))want(c,'cpo',ri(1,4));if(chance(.5))want(c,'fra',ri(1,4));if(chance(.35))want(c,'bib');if(chance(.2))want(c,'pow');if(chance(.25))want(c,'sna');}}
 };
 const RESIDENT_TYPES={pendolare:60,signora:45,studente:45,geometra:30,nonno:35,operaio:45,cumenda:15,chiacchierone:5};
 
@@ -647,6 +648,7 @@ function load(){
     if(m.phase==='open')m.speed=0;
     if(!m.ownerName)m.ownerName=OWD[m.owner].name;
     if(!m.tray)m.tray={};if(m.counter===undefined)m.counter=null;
+    const fixL=c=>{if(!c)return;c.lines.forEach(l=>{if(!PD[l.id]&&!SV[l.id])l.id='trr';});c.say=sayRequest(c.lines);};m.queue.forEach(fixL);fixL(m.counter);for(const k in m.tray)if(!PD[k]&&!SV[k])delete m.tray[k];
     m.queue.forEach(c=>{if(!c.say)c.say=sayRequest(c.lines);});if(m.counter&&!m.counter.say)m.counter.say=sayRequest(m.counter.lines);
     if(!m.calabro){m.people.forEach(pp=>{if(pp.id>=0){const f=pp.f?pick(FN_F):pick(FN_M);pp.name=`${f} ${pick(SURN)}`;}});m.calabro=1;}
     m.people.forEach(pp=>{if(!PD[pp.brand]){const w={};BRANDS.forEach(b=>w[b.id]=b.pop);pp.brand=pickW(w);}});
@@ -670,7 +672,8 @@ const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
 const rankName=()=>{const v=patrimonio();let n=RANKS[0][1];for(const[t,x]of RANKS)if(v>=t)n=x;return n;};
 const addRep=d=>{S.rep=clamp(S.rep+d*(d>0&&perk('ines')?1.4:1),-100,100);};
-const svAvail=id=>!SV[id].gate||S.up[SV[id].gate]>0;
+const LOTS=['lot','sup','del'];
+const svAvail=id=>(!SV[id].gate||S.up[SV[id].gate]>0)&&!(LOTS.includes(id)&&S.lotDownUntil>S.t);
 const jackpot=()=>S.jackpotUntil>S.t;
 const getP=c=>c.pid!=null&&c.pid>=0?S.people[c.pid]:c.tp;
 function hourCurve(t){
@@ -728,7 +731,8 @@ const SAY={
   car:q=>q===1?'cartine e filtri':`${nw(q)} confezioni di cartine`,
   bol:q=>q===1?'una marca da bollo da 16':`${nw(q)} marche da bollo da 16`,
   fra:q=>q===1?'un francobollo':`${nw(q)} francobolli`,
-  bus:q=>q===1?'un biglietto del bus':`${nw(q)} biglietti del bus`,
+  trr:q=>q===1?'un biglietto del treno per Reggio':`${nw(q)} biglietti del treno per Reggio`,
+  trs:q=>q===1?'un biglietto del treno per Scilla':`${nw(q)} biglietti del treno per Scilla`,
   acc:q=>q===1?'un accendino':`${nw(q)} accendini`,
   cam:q=>q===1?'le caramelle alla menta':`${nw(q)} pacchetti di caramelle alla menta`,
   sna:q=>q===1?'uno snack':`${nw(q)} snack`,
@@ -908,6 +912,24 @@ const EVENTS=[
     else{const take=r2(Math.min(S.cash*.5,1800));S.cash=r2(S.cash-take);tx('furti',-take,'Rapina di Tony Manduci');addRep(-1);log(`L\'allarme non parte. Tony Manduci si arrabbia e prende ${fmt(take)}.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}
    }}]});
  }},
+ {id:'calzini',w:2,run(){
+  openModal({html:`<h3>Il venditore di calzini</h3><p>Entra con una valigia aperta: «Calzini di spugna, tre paia cinque euro, roba buona, di Napoli… cioè, di Taurianova.» Intanto si appoggia all'espositore delle caramelle.</p>`,actions:[
+   {label:'Compra un paio di calzini per levarlo di mezzo (5 €)',cls:'alt',fn(){payForced(5);tx('multe',-5,'Calzini del venditore ambulante');log('Compri dei calzini che non ti servivano. Lui se ne va contento, e l\'espositore è intatto.','info');}},
+   {label:'Mandalo via',cls:'gold',fn(){
+    if(chance(S.up.telecamere?.2:.5)){const pool=['acc','cam','sna','cpo','car'].filter(id=>S.stock[id]>0);const t=[];for(let i=0;i<2&&pool.length;i++){const id=pick(pool);const n=Math.min(S.stock[id],ri(2,5));S.stock[id]-=n;t.push(`${n}× ${PD[id].name}`);}
+      log(`Il venditore di calzini se ne va offeso. Dopo un po' ti accorgi che dall'espositore mancano ${t.join(', ')||'un paio di cose'}.`,'bad');toast('Il venditore di calzini ha alleggerito l\'espositore.','bad');}
+    else log('Il venditore di calzini sbuffa e va a provarci dal barbiere.','info');
+   }}]});
+ }},
+ {id:'tecnico',w:1.5,ok:()=>S.cash>200,run(){
+  openModal({html:`<h3>Il tecnico dei terminali</h3><p>«Buongiorno, sono il tecnico del Lotto, devo fare l'aggiornamento al terminale. Mi fa passare dietro al banco? Ci metto un attimo.» Ha una polo blu senza scritte e un cacciavite in mano.</p>`,actions:[
+   {label:'Fallo passare dietro al banco',cls:'alt',fn(){
+    S.lotDownUntil=S.t+ri(120,240);
+    if(chance(S.up.telecamere?.4:.7)){const take=r2(Math.min(S.cash*rnd(.15,.3),900));S.cash=r2(S.cash-take);tx('furti',-take,'Finto tecnico dei terminali');log(`Il «tecnico» armeggia col terminale, poi se ne va di fretta. Il Lotto è bloccato e dalla cassa mancano ${fmt(take)}.`,'bad');toast(`Finto tecnico: −${fmt(take)} e Lotto bloccato.`,'bad');}
+    else{log('Il «tecnico» stacca due cavi, dice che torna con il pezzo e sparisce. Il terminale del Lotto resta bloccato per qualche ora.','bad');toast('Terminale del Lotto bloccato per qualche ora.','bad');}
+   }},
+   {label:'Chiedi il tesserino e chiama l\'assistenza',cls:'gold',fn(){addRep(1);log('Chiedi il tesserino: il «tecnico» si ricorda di avere un appuntamento urgente ed esce di corsa. All\'assistenza non risulta nessun intervento.','good');toast('Il finto tecnico è scappato.','good');}}]});
+ }},
  {id:'pioggia',w:2,run(){S.mod={traffic:.6,until:S.t+150};log('Acquazzone improvviso: la gente resta a casa per un paio d\'ore.','warn');toast('Piove: meno clienti.','warn');}},
  {id:'sole',w:2,run(){S.mod={traffic:1.4,until:S.t+120};log('Primo sole della stagione: tutti fuori, e tutti con la voglia di fumare.','good');toast('Bella giornata: più clienti.','good');}},
  {id:'jackpot',w:2,run(){S.jackpotUntil=S.t+240;log('Il SuperEnalotto è a 94 milioni: la fila si riempie di sognatori.','info');toast('Jackpot alle stelle: tutti vogliono giocare.','warn');}},
@@ -1026,7 +1048,7 @@ function tick(dm){
 }
 function openDay(){
   if(S.phase==='open'||RT.modal||S.over)return;
-  S.phase='open';S.t=OPEN;S.today=newToday();S.aggD={};S.autocD=0;S.queue=[];S.freeze=0;S.mod={traffic:1,until:0};S.jackpotUntil=0;
+  S.phase='open';S.t=OPEN;S.today=newToday();S.aggD={};S.autocD=0;S.queue=[];S.freeze=0;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.lotDownUntil=0;
   if(dom(S.day)===1)S.aggM={};
   S.counter=null;S.tray={};RT.last=null;
   if(S.speed===0)S.speed=1;
@@ -1171,7 +1193,7 @@ function refreshStockGrid(){
   const tray=S.tray||{};
   for(const k in SG){
     const r=SG[k];
-    if(r.sv){const on=svAvail(r.sv);r.b.classList.toggle('lock',!on);const t=on?'Sempre disponibile':'Da attivare in Bottega';if(r.ct.textContent!==t)r.ct.textContent=t;
+    if(r.sv){const on=svAvail(r.sv);r.b.classList.toggle('lock',!on);const t=on?'Disponibile':(LOTS.includes(r.sv)&&S.lotDownUntil>S.t?'Terminale bloccato':'Da attivare in Bottega');if(r.ct.textContent!==t)r.ct.textContent=t;
       const n=tray[r.sv]||0;r.tq.hidden=!n;r.tq.textContent=n;continue;}
     const cap=capOf(k),st=S.stock[k];
     const t=`${st}/${cap}`;if(r.ct.textContent!==t)r.ct.textContent=t;
@@ -1185,10 +1207,10 @@ function gridClick(e){
   const bb=e.target.closest('button[data-buy]');if(bb){buySheet(bb.dataset.buy);return;}
   const b=e.target.closest('button.si');if(!b)return;
   const id=b.dataset.pid||b.dataset.sv;
-  if(!S.counter){if(b.dataset.pid)buySheet(id);else if(!svAvail(id))toast('Questo servizio si attiva nella sezione Bottega.','warn');else toast('Nessun cliente al banco.','warn');return;}
+  if(!S.counter){if(b.dataset.pid)buySheet(id);else if(!svAvail(id))toast(LOTS.includes(id)&&S.lotDownUntil>S.t?'Il terminale del Lotto è bloccato.':'Questo servizio si attiva nella sezione Bottega.','warn');else toast('Nessun cliente al banco.','warn');return;}
   const r=trayAdd(id);
   if(r==='out')toast(`${PD[id].name}: finito. Compralo con il +.`,'bad');
-  if(r==='locked')toast(`${SV[id].name}: non lo fai ancora. Si attiva in Bottega.`,'warn');
+  if(r==='locked')toast(LOTS.includes(id)&&S.lotDownUntil>S.t?`${SV[id].name}: il terminale è bloccato.`:`${SV[id].name}: non lo fai ancora. Si attiva in Bottega.`,'warn');
   render(true);
 }
 function trayTotal(){let t=0,sv=0;for(const id in S.tray){if(SV[id])sv+=S.tray[id];else t+=S.price[id]*S.tray[id];}return{t:r2(t),sv};}
