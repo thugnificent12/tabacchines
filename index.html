@@ -1571,7 +1571,7 @@ function resetGame(){
 }
 function chooseOwner(){
   let sel=null;const D=drawTraits();
-  const html=`<h3>Scegli il tuo personaggio</h3><p>Pregi e difetti sono estratti a sorte a ogni nuova partita. <b>Una volta scelto, il personaggio non si cambia più.</b></p><div class="owners">${OWNERS.map(o=>`<button class="owner" data-o="${o.id}" aria-pressed="false">${ownerHtml(o)}<b>${esc(o.name)}</b><em>${esc(D[o.id].perk)}</em><em class="mal">${esc(D[o.id].malus)}</em></button>`).join('')}</div>`;
+  const html=`<h3>Scegli il tuo personaggio</h3><div class="owners">${OWNERS.map(o=>`<button class="owner" data-o="${o.id}" aria-pressed="false">${ownerHtml(o)}<b>${esc(o.name)}</b><em>${esc(D[o.id].perk)}</em><em class="mal">${esc(D[o.id].malus)}</em></button>`).join('')}</div><p class="muted" style="font-size:13px;margin:10px 0 0;text-align:center">Pregi e difetti sono estratti a sorte a ogni nuova partita.</p>`;
   openModal({html,noFocus:true,actions:[{label:'Scegli un personaggio',cls:'gold',disabled:true,keep:true,fn(){if(!sel)return;closeModal();startGame(sel,D[sel]);}}],
     after(sh){
       const go=sh.querySelector('.macts button');
