@@ -417,14 +417,21 @@ function pickW(o){let tot=0;for(const k in o)tot+=o[k];let r=Math.random()*tot;f
 
 /* ===== calendario ===== */
 const OPEN=420; // 07:00 tutti i giorni
-const closeOf=d=>((d-1)%7)===6?780:1200; // domenica 13:00, altrimenti 20:00
-const isSunday=d=>((d-1)%7)===6;
+/* calendario reale: il giorno 1 è la data in cui si inizia a giocare */
+const todayISO=()=>{const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;};
+function dateOf(d){const st=(typeof S!=='undefined'&&S&&S.start)||todayISO();const [y,m,dd]=st.split('-').map(Number);return new Date(y,m-1,dd+(d-1),12);}
+const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const MESI_S=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const dateTxt=d=>{const x=dateOf(d);return `${x.getDate()} ${MESI[x.getMonth()]} ${x.getFullYear()}`;};
+const dateShort=d=>{const x=dateOf(d);return `${x.getDate()} ${MESI_S[x.getMonth()]}`;};
+const isLastOfMonth=d=>dateOf(d+1).getDate()===1;
+const closeOf=d=>isSunday(d)?780:1200; // domenica 13:00, altrimenti 20:00
+const isSunday=d=>dateOf(d).getDay()===0;
 const GMS=0.5; // minuti di gioco al secondo a velocità 1×
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const DAYS_S=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
-const dom=d=>((d-1)%30)+1;
-const monthOf=d=>Math.floor((d-1)/30)+1;
-const wd=d=>(d-1)%7;
+const dom=d=>dateOf(d).getDate();
+const wd=d=>(dateOf(d).getDay()+6)%7;
 
 /* ===== prodotti =====
    Le marche sono inventate. "motto" è la scritta sul pacchetto. */
@@ -716,7 +723,7 @@ function newState(owner,tr){
   const people=[];let id=0;
   for(const t in RESIDENT_TYPES)for(let i=0;i<RESIDENT_TYPES[t];i++)people.push(makePerson(t,id++));
   const bw={};BRANDS.forEach(b=>bw[b.id]=b.pop);
-  return{v:2,billMode:'m',calabro:1,counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:5000,deposit:0,rep:0,speed:1,stock,price,
+  return{v:2,start:todayISO(),billMode:'m',calabro:1,counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:5000,deposit:0,rep:0,speed:1,stock,price,
     up:{insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0,locale:0,scommesse:0,virtuali:0,caffe:0,snackbar:0,giornali:0,alcol:0,ghiaccio:0,umidor:0,sigaripremium:0,cbd:0,tv:0,slot:0,condiz:0,distrib:0},
     people,queue:[],nid:1,today:newToday(),aggD:{},aggM:{},aggA:{},tx:[],history:[],log:[],
     freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,invested:0,loan:null,debtDays:0,over:false,intro:false};
@@ -735,6 +742,7 @@ function fromObj(s){
     m.today=Object.assign(newToday(),s.today);
     if(m.phase==='open')m.speed=0;
     if(!m.ownerName)m.ownerName=OWD[m.owner].name;
+    if(!m.start){const n=new Date();n.setDate(n.getDate()-(m.day-1));m.start=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
     if(!m.pk){const o=OWD[m.owner];m.pk=o.pk;m.perkTxt=o.perk;m.vz=o.vz;m.malusTxt=o.malus;}
     if(!m.tray)m.tray={};if(m.counter===undefined)m.counter=null;
     const fixL=c=>{if(!c)return;c.lines.forEach(l=>{if(!PD[l.id]&&!SV[l.id])l.id='trr';});c.say=sayRequest(c.lines);};m.queue.forEach(fixL);fixL(m.counter);for(const k in m.tray)if(!PD[k]&&!SV[k])delete m.tray[k];
@@ -1087,9 +1095,9 @@ const EVENTS=[
   const g=grabGoods(ri(2,4),5);if(!g.got.length){log('Entrano i Maranza, trovano gli scaffali vuoti e se ne vanno delusi.','warn');return;}
   log(`Arrivano i Maranza in tre su un monopattino solo, col borsello a tracolla. Mentre uno chiede «quanto costa tutto?», spariscono ${g.txt} (valore ${fmt(g.val)}).`,'bad');toast('I Maranza hanno svuotato uno scaffale.','bad');
  }},
+ {id:'manduci',w:.6,ok:()=>S.day>=10&&S.cash>150,run(){rapina('Tony Manduci',false);}},
  {id:'avellina',w:.7,ok:()=>S.day>=10&&S.cash>150,run(){
   if(foiled('Gianluca Avellina'))return;
-  if(chance(.5)){rapina('Gianluca Avellina',false);return;}
   if(S.up.telecamere&&chance(.5)){log('Gianluca Avellina chiede un accendino, guarda la telecamera, la saluta e se ne va.','good');return;}
   const take=r2(Math.min(S.cash*rnd(.05,.12),250));S.cash=r2(S.cash-take);tx('furti',-take,'Gianluca Avellina: mano lesta in cassa');
   log(`Gianluca Avellina chiede un accendino e intanto non toglie gli occhi dalla cassa. Quando se ne va mancano ${fmt(take)}.`,'bad');toast(`Gianluca Avellina: −${fmt(take)} dalla cassa.`,'bad');
@@ -1237,7 +1245,7 @@ function billsFor(d){
   if(g===16)b.push({cat:'tasse',amt:250,label:'Contributi INPS (F24)'});
   if(g===25)b.push({cat:'prof',amt:r2(100*pdisc),label:'Commercialista'});
   if(g===28){b.push({cat:'tasse',amt:45+30*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2(30*pdisc),label:'Assicurazione della bottega'});}
-  if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
+  if(isLastOfMonth(d)){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
   return b;
 }
 function upcoming(n){
@@ -1295,16 +1303,16 @@ function closeDay(){
   let fromDep=0;
   for(const c of charges){fromDep+=payForced(c.amt);tx(c.cat,-c.amt,c.label);}
   if(S.loan){S.loan.left--;if(S.loan.left<=0){log('Hai pagato l\'ultima rata del finanziamento. La banca ti manda un calendario.','good');S.loan=null;}}
-  if(dom(S.day)===30&&S.deposit>0){const i=r2(S.deposit*(perk('interest')?.006:.003));S.deposit=r2(S.deposit+i);tx('int',i,'Interessi del libretto postale');}
+  if(isLastOfMonth(S.day)&&S.deposit>0){const i=r2(S.deposit*(perk('interest')?.006:.003));S.deposit=r2(S.deposit+i);tx('int',i,'Interessi del libretto postale');}
   if(fromDep>0)log(`La cassa non bastava: ${fmt(fromDep)} addebitati sul libretto postale.`,'warn');
   S.rep=clamp(S.rep*.93,-100,100);
   const net=aggSum(S.aggD);
   const debt=-(S.cash+S.deposit);
   if(debt>10000)S.debtDays++;else S.debtDays=0;
-  const r={day:S.day,dayName:DAYS[wd(S.day)],agg:Object.assign({},S.aggD),net,served:T.served,lost:T.lost+T.turned+T.refused,missed:T.missed,credit:T.credit,target:T.target,rep:Math.round(S.rep),cash:S.cash,deposit:S.deposit,autoc:S.autocD,quote:pick(net>=0?QP:QN)};
-  S.history.push({day:r.day,name:DAYS_S[wd(r.day)],served:r.served,lost:r.lost,net});
+  const r={day:S.day,dayName:`${DAYS[wd(S.day)]} ${dateTxt(S.day)}`,agg:Object.assign({},S.aggD),net,served:T.served,lost:T.lost+T.turned+T.refused,missed:T.missed,credit:T.credit,target:T.target,rep:Math.round(S.rep),cash:S.cash,deposit:S.deposit,autoc:S.autocD,quote:pick(net>=0?QP:QN)};
+  S.history.push({day:r.day,name:`${DAYS_S[wd(r.day)]} ${dateShort(r.day)}`,served:r.served,lost:r.lost,net});
   if(S.history.length>14)S.history.shift();
-  log(`Chiusura del giorno ${r.day}: saldo della giornata ${sgn(net)}.`,net>=0?'good':'bad');
+  log(`Chiusura di ${DAYS[wd(r.day)].toLowerCase()} ${dateTxt(r.day)}: saldo della giornata ${sgn(net)}.`,net>=0?'good':'bad');
   S.day++;S.phase='closed';S.t=OPEN;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.freeze=0;RT.events=[];
   const lose=S.debtDays>=30&&S.rep<=-100;
   if(lose)S.over=true;
@@ -1655,14 +1663,14 @@ function renderRiep(){
    +`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Perdi la partita se resti in rosso di oltre 10.000 € (cassa più libretto) per 30 giorni di fila con la reputazione a −100.${debt>0?` Oggi sei in rosso di ${fmt(debt)}.`:''}</p>`;
   const up=upcoming(6);
   const bs=$('#billBox');if(RT.billSig!==S.billMode){RT.billSig=S.billMode;bs.innerHTML=`<p style="margin:0 0 6px;font-size:13.5px">Come vuoi pagare luce, telefono, gas e acqua?</p>${billSeg('billSeg')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">L'importo totale è lo stesso: cambia solo quando paghi. Settimanale = ogni domenica sera, giornaliero = ogni sera.</p>`;}
-  $('#dueList').innerHTML=up.map(b=>`<div class="minirow"><span>${/del giorno/.test(b.label)?'Ogni sera':`Giorno ${b.d} (${DAYS_S[wd(b.d)]})`} · ${b.label}</span><b class="mono neg">${fmt(b.amt)}</b></div>`).join('')+(S.loan?`<div class="minirow"><span>Ogni sera · rata del finanziamento</span><b class="mono neg">${fmt(S.loan.rata)}</b></div>`:'')+'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Ogni sera si pagano anche le commissioni POS (0,6% delle vendite). Niente affitto: i muri sono di famiglia.</p>';
+  $('#dueList').innerHTML=up.map(b=>`<div class="minirow"><span>${/del giorno/.test(b.label)?'Ogni sera':`${DAYS_S[wd(b.d)]} ${dateShort(b.d)}`} · ${b.label}</span><b class="mono neg">${fmt(b.amt)}</b></div>`).join('')+(S.loan?`<div class="minirow"><span>Ogni sera · rata del finanziamento</span><b class="mono neg">${fmt(S.loan.rata)}</b></div>`:'')+'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Ogni sera si pagano anche le commissioni POS (0,6% delle vendite). Niente affitto: i muri sono di famiglia.</p>';
   $('#histT').innerHTML='<thead><tr><th style="text-align:left">Giorno</th><th>Serviti</th><th>Persi</th><th style="text-align:right">Saldo</th></tr></thead><tbody>'+
     (S.history.slice().reverse().map(h=>`<tr><td style="padding:5px 0;border-top:1px solid var(--line)">${h.day} · ${h.name}</td><td class="mono" style="text-align:center;border-top:1px solid var(--line)">${h.served}</td><td class="mono" style="text-align:center;border-top:1px solid var(--line)">${h.lost}</td><td class="mono ${h.net>=0?'pos':'neg'}" style="text-align:right;border-top:1px solid var(--line)">${sgn(h.net)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nessuna giornata chiusa.</td></tr>')+'</tbody>';
 }
 function renderTx(){
   if(RT.txSeen===RT.txVer+'|'+TXF)return;RT.txSeen=RT.txVer+'|'+TXF;
   const f=S.tx.filter(x=>TXF==='all'||(TXF==='neu'?NEU.includes(x.cat):!NEU.includes(x.cat)&&(TXF==='in'?x.amt>0:x.amt<0))).slice(0,150);
-  $('#txList').innerHTML=f.map(x=>{const neu=NEU.includes(x.cat);return `<li><time>G${x.d} ${hhmm(x.t)}</time><span>${esc(x.label)}${x.cat!=='vendita'&&CATL[x.cat]?` <span class="muted" style="font-size:12px">· ${CATL[x.cat]}</span>`:''}</span><b class="${neu?'neu':x.amt>=0?'pos':'neg'}">${neu?fmt(x.amt):sgn(x.amt)}</b></li>`;}).join('')||'<li><span class="muted">Nessuna transazione.</span></li>';
+  $('#txList').innerHTML=f.map(x=>{const neu=NEU.includes(x.cat);return `<li><time>${dateShort(x.d)} ${hhmm(x.t)}</time><span>${esc(x.label)}${x.cat!=='vendita'&&CATL[x.cat]?` <span class="muted" style="font-size:12px">· ${CATL[x.cat]}</span>`:''}</span><b class="${neu?'neu':x.amt>=0?'pos':'neg'}">${neu?fmt(x.amt):sgn(x.amt)}</b></li>`;}).join('')||'<li><span class="muted">Nessuna transazione.</span></li>';
 }
 function renderCred(){
   const ds=S.people.filter(p=>p.debt>0||p.lent>0).sort((a,b)=>b.debt-a.debt);
@@ -1675,7 +1683,7 @@ function renderCred(){
 const HT={credito:'Credito concesso',saldo:'Saldo',acconto:'Acconto',scusa:'Scusa',rinvio:'Rimandato',rifiuto:'Credito rifiutato'};
 function debtorSheet(pid){
   const p=S.people[pid];
-  const rows=p.hist.map(h=>`<div class="minirow" style="align-items:flex-start"><span><span class="mono muted" style="font-size:11.5px">G${h.d} ${hhmm(h.t)}</span> ${HT[h.type]||h.type}${h.note?`<br><span class="muted" style="font-size:12.5px">${esc(h.note)}</span>`:''}</span><b class="mono ${h.type==='credito'?'neg':h.amt>0?'pos':''}">${h.amt?fmt(h.amt):''}</b></div>`).join('');
+  const rows=p.hist.map(h=>`<div class="minirow" style="align-items:flex-start"><span><span class="mono muted" style="font-size:11.5px">${dateShort(h.d)} ${hhmm(h.t)}</span> ${HT[h.type]||h.type}${h.note?`<br><span class="muted" style="font-size:12.5px">${esc(h.note)}</span>`:''}</span><b class="mono ${h.type==='credito'?'neg':h.amt>0?'pos':''}">${h.amt?fmt(h.amt):''}</b></div>`).join('');
   openModal({html:`<div class="shead">${faceHtml(p.face,p.debt>0?'meh':'ok')}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">${esc(p.role)} · fuma ${esc(PD[brandOf(p)].name)}</div></div></div><div class="minirow"><span>Deve ancora</span><b class="mono neg">${fmt(p.debt)}</b></div><div class="minirow"><span>Credito ricevuto in tutto</span><b class="mono">${fmt(p.lent)}</b></div><div class="minirow"><span>Restituito</span><b class="mono pos">${fmt(p.back)}</b></div><div class="rdash"></div>${rows||'<p class="muted">Nessun movimento.</p>'}`,actions:[{label:'Chiudi',cls:'alt'}]});
 }
 function renderConti(){
@@ -1691,13 +1699,13 @@ function renderHud(){
   $('#clock').textContent=open?hhmm(Math.min(S.t,1439)):'Chiuso';
   $('#dprog').style.width=open?(clamp((S.t-OPEN)/(closeT()-OPEN),0,1)*100)+'%':'0%';
   $('#speedwrap').hidden=!open;$('#openbtn').hidden=open||S.over;
-  $('#openbtn').textContent=`Apri il giorno ${S.day}`;
+  $('#openbtn').textContent=`Apri ${DAYS[wd(S.day)].toLowerCase()} ${dateShort(S.day)}`;
   $$('#speedwrap button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.speed===S.speed)));
   $('#cash').textContent=fmt(S.cash);$('#cash').className='mono'+(S.cash<0?' neg':'');
   $('#repn').textContent=(S.rep>0?'+':'')+Math.round(S.rep);
   const rb=$('#repbar');const w=Math.abs(S.rep)/2;rb.className=S.rep<0?'n':'';rb.style.left=(S.rep<0?50-w:50)+'%';rb.style.width=w+'%';
   const net=aggSum(S.aggD);$('#todayp').textContent=open?sgn(net):'—';$('#todayp').className='mono '+(open?(net>=0?'pos':'neg'):'');
-  $('#dayno').textContent='Giorno '+S.day;$('#dayname').textContent=`${DAYS[wd(S.day)]} · ${dom(S.day)}/30`;
+  $('#dayno').textContent=dateTxt(S.day);$('#dayname').textContent=`${DAYS[wd(S.day)]} · giorno ${S.day}`;
   $('#rank').textContent=S.ownerName;
   if(RT.floatAmt){floatCash(RT.floatAmt);RT.floatAmt=0;}
   const debt=-(S.cash+S.deposit),dw=$('#debtwarn');
@@ -1725,7 +1733,7 @@ function renderBanco(){
   const T=S.today;
   $('#m-served').textContent=T.served;$('#m-lost').textContent=T.lost+T.turned+T.refused;$('#m-missed').textContent=T.missed+(T.wrong||0);$('#m-cred').textContent=fmt(T.credit);
 }
-function logHtml(arr){return arr.map(l=>`<li class="${l.tone}"><time>G${l.d} ${hhmm(l.t)}</time>${esc(l.tx)}</li>`).join('');}
+function logHtml(arr){return arr.map(l=>`<li class="${l.tone}"><time>${dateShort(l.d)} ${hhmm(l.t)}</time>${esc(l.tx)}</li>`).join('');}
 function renderLogs(force){
   if(!force&&RT.logSeen===RT.logVer)return;RT.logSeen=RT.logVer;
   $('#minilog').innerHTML=logHtml(S.log.slice(0,4))||'<li>Ancora nulla da raccontare.</li>';
@@ -1751,7 +1759,7 @@ function showReport(r,lose){
   const line=(a,b,c)=>`<div class="rl ${c||''}"><span>${a}</span><span>${b}</span></div>`;
   const inc=INC.filter(k=>r.agg[k]).map(k=>line(CATL[k],fmt(r.agg[k]))).join('');
   const exp=EXP.filter(k=>r.agg[k]).map(k=>line(CATL[k],sgn(r.agg[k]))).join('');
-  const html=`<div class="rc-head"><b>IL TABACCHINES</b><small>Chiusura cassa · ${r.dayName} · giorno ${r.day}</small></div><div class="rdash"></div>`
+  const html=`<div class="rc-head"><b>IL TABACCHINES</b><small>Chiusura cassa · ${r.dayName}</small></div><div class="rdash"></div>`
    +(inc||line('Incassi',fmt(0)))+'<div class="rdash"></div>'+(exp||line('Spese',fmt(0)))+'<div class="rdash"></div>'
    +line('SALDO DEL GIORNO',sgn(r.net),'tot '+(r.net>=0?'pos':'neg'))+'<div class="rdash"></div>'
    +line('In cassa',fmt(r.cash))+line('Sul libretto',fmt(r.deposit))
@@ -1835,7 +1843,7 @@ const SLOTS=3,SLOTKEY=n=>`tabacchines.slot${n}`;
 function slotMeta(n){try{const raw=localStorage.getItem(SLOTKEY(n));if(!raw)return null;const o=JSON.parse(raw);return o&&o.meta?o.meta:null;}catch(e){return null;}}
 function slotSave(n){
   if(!S)return;
-  try{const meta={name:S.ownerName,day:S.day,cash:S.cash,dep:S.deposit,when:new Date().toISOString()};
+  try{const meta={name:S.ownerName,day:S.day,date:dateTxt(S.day),cash:S.cash,dep:S.deposit,when:new Date().toISOString()};
     localStorage.setItem(SLOTKEY(n),JSON.stringify({meta,state:S}));toast(`Partita salvata nello slot ${n}.`,'good');log(`Partita salvata nello slot ${n}.`,'info');}
   catch(e){toast('Non riesco a salvare: la memoria del browser è piena o bloccata.','bad');}
 }
@@ -1845,7 +1853,7 @@ function useState(m,src){
   if(S.phase==='open'){S.speed=0;computeInteg();}
   save();closeModal();RT.splash=false;$('#splash').hidden=true;
   initOwnerUI();buildStockGrid();setTab('banco');
-  toast(`Partita caricata ${src}: ${S.ownerName}, giorno ${S.day}.${S.phase==='open'?' È in pausa.':''}`,'good');
+  toast(`Partita caricata ${src}: ${S.ownerName}, ${dateTxt(S.day)}.${S.phase==='open'?' È in pausa.':''}`,'good');
   if(S.over)gameOver();
   return true;
 }
@@ -1882,7 +1890,7 @@ const whenTxt=iso=>{try{const d=new Date(iso);return d.toLocaleDateString('it-IT
 function slotsHtml(canSave){
   let h='';
   for(let n=1;n<=SLOTS;n++){const m=slotMeta(n);
-    h+=`<div class="loan"><div><b>Slot ${n}</b><p>${m?`${esc(m.name)} · giorno ${m.day} · in cassa ${fmt(m.cash)} · ${whenTxt(m.when)}`:'Vuoto'}</p></div><div style="display:flex;gap:6px">${canSave?`<button class="btn sm" data-slot-save="${n}">Salva</button>`:''}<button class="btn alt sm" data-slot-load="${n}" ${m?'':'disabled'}>Carica</button></div></div>`;}
+    h+=`<div class="loan"><div><b>Slot ${n}</b><p>${m?`${esc(m.name)} · ${m.date?esc(m.date):'giorno '+m.day} · in cassa ${fmt(m.cash)} · ${whenTxt(m.when)}`:'Vuoto'}</p></div><div style="display:flex;gap:6px">${canSave?`<button class="btn sm" data-slot-save="${n}">Salva</button>`:''}<button class="btn alt sm" data-slot-load="${n}" ${m?'':'disabled'}>Carica</button></div></div>`;}
   return h;
 }
 function slotsClick(e){
@@ -1912,7 +1920,7 @@ function showSplash(){
     render(true);};
   if(S&&!S.over){
     acts.innerHTML=`<button class="btn gold big" id="spGo">Continua</button><button class="btn alt big" id="spLoad">Carica partita</button><button class="btn alt big" id="spNew">Nuova partita</button>`;
-    meta.textContent=`Partita salvata: ${S.ownerName}, giorno ${S.day}, in cassa ${fmt(S.cash)}`;
+    meta.textContent=`Partita salvata: ${S.ownerName}, ${dateTxt(S.day)}, in cassa ${fmt(S.cash)}`;
     $('#spNew').addEventListener('click',e=>{const b=e.currentTarget;
       if(b.dataset.arm){RT.splash=false;sp.hidden=true;resetGame();}
       else{b.dataset.arm='1';b.textContent='Sicuro? La partita salvata si perde';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='Nuova partita';}},3500);}});
