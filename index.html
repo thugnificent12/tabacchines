@@ -303,7 +303,7 @@ body.alarm .nav button{color:#fff}
       <div class="clock" id="clock">Chiuso</div>
       <div class="dprog"><i id="dprog"></i></div>
       <div class="speed" id="speedwrap" role="group" aria-label="Velocità del gioco">
-        <button data-speed="0" aria-label="Pausa">II</button><button data-speed="0.5">½×</button><button data-speed="1">1×</button><button data-speed="2">2×</button><button data-speed="3">3×</button>
+        <button data-speed="0" aria-label="Pausa">II</button><button data-speed="1">1×</button><button data-speed="2">2×</button><button data-speed="3">3×</button>
       </div>
       <button class="btn gold sm" id="openbtn">Apri</button>
     </div>
@@ -419,7 +419,7 @@ function pickW(o){let tot=0;for(const k in o)tot+=o[k];let r=Math.random()*tot;f
 const OPEN=420; // 07:00 tutti i giorni
 const closeOf=d=>((d-1)%7)===6?780:1200; // domenica 13:00, altrimenti 20:00
 const isSunday=d=>((d-1)%7)===6;
-const GMS=1; // minuti di gioco al secondo a velocità 1×
+const GMS=0.5; // minuti di gioco al secondo a velocità 1×
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const DAYS_S=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const dom=d=>((d-1)%30)+1;
@@ -877,7 +877,7 @@ function spawnCustomer(forcedType){
   const ctx={lines:[]};
   T.wants(ctx,p);
   if(isSunday(S.day)&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
-  if(['signora','nonno','operaio','cumenda','studente'].includes(p.type)&&chance(.1))want(ctx,'vgv');
+  if(['signora','nonno','operaio','cumenda','studente'].includes(p.type)&&chance(.03))want(ctx,'vgv');
   if(!ctx.lines.length)want(ctx,brandOf(p));
   const pat=T.pat*2*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
@@ -1035,11 +1035,11 @@ function rapina(who,night){
 function overtime(dm){
   const late=S.t-closeT();
   if(!RT.ovLog){RT.ovLog=1;log('Orario di chiusura passato: servi chi è ancora dentro. Restare aperti fuori orario è rischioso.','warn');}
-  if(!RT.ovFin&&chance(dm*(.001+late*.00006))){RT.ovFin=1;
+  if(!RT.ovFin&&S.day>=5&&chance(dm*(.0004+late*.00003))){RT.ovFin=1;
     if(perk('fines')){log(`Passa la Guardia di Finanza: ${S.ownerName} spiega che stava solo finendo di servire. Se ne vanno con un richiamo.`,'info');}
-    else{const m=ri(200,500);payForced(m);tx('multe',-m,'Guardia di Finanza: apertura fuori orario');addRep(-2);log(`Passa la Guardia di Finanza e vede la saracinesca alzata fuori orario: multa di ${fmt(m)}.`,'bad');toast(`Multa della Finanza: −${fmt(m)}.`,'bad');}
+    else{const m=ri(100,250);payForced(m);tx('multe',-m,'Guardia di Finanza: apertura fuori orario');addRep(-2);log(`Passa la Guardia di Finanza e vede la saracinesca alzata fuori orario: multa di ${fmt(m)}.`,'bad');toast(`Multa della Finanza: −${fmt(m)}.`,'bad');}
   }
-  if(!RT.ovRap&&S.cash>300&&!RT.modal&&chance(dm*(.0015+late*.00006))){RT.ovRap=1;rapina(pick(Object.keys(RAPINATORI)),true);}
+  if(!RT.ovRap&&S.day>=12&&S.cash>300&&!RT.modal&&chance(dm*(.0008+late*.00004))){RT.ovRap=1;rapina(pick(Object.keys(RAPINATORI)),true);}
 }
 function refuseCredit(){
   const c=S.counter;if(!c||!c.creditAsk||RT.modal)return;
@@ -1081,21 +1081,22 @@ function grabGoods(kinds,maxN){
 }
 const foiled=who=>{if(perk('theft')&&chance(.5)){log(`${who} vede ${S.ownerName} dietro al banco, si ricorda di un vecchio favore e cambia bottega.`,'good');toast(`${who} cambia idea: c'è ${S.ownerName}.`,'good');return true;}return false;};
 const EVENTS=[
- {id:'maranza',w:2,run(){
+ {id:'maranza',w:1,ok:()=>S.day>=10,run(){
   if(foiled('i Maranza'))return;
   if(S.up.telecamere&&chance(.6)){addRep(1);log('Arrivano i Maranza in tre su un monopattino solo. Vedono le telecamere, fanno i vaghi e se ne vanno.','good');toast('Le telecamere hanno scoraggiato i Maranza.','good');return;}
   const g=grabGoods(ri(2,4),5);if(!g.got.length){log('Entrano i Maranza, trovano gli scaffali vuoti e se ne vanno delusi.','warn');return;}
   log(`Arrivano i Maranza in tre su un monopattino solo, col borsello a tracolla. Mentre uno chiede «quanto costa tutto?», spariscono ${g.txt} (valore ${fmt(g.val)}).`,'bad');toast('I Maranza hanno svuotato uno scaffale.','bad');
  }},
- {id:'avellina',w:2,ok:()=>S.cash>150,run(){
+ {id:'avellina',w:.7,ok:()=>S.day>=10&&S.cash>150,run(){
   if(foiled('Gianluca Avellina'))return;
+  if(chance(.5)){rapina('Gianluca Avellina',false);return;}
   if(S.up.telecamere&&chance(.5)){log('Gianluca Avellina chiede un accendino, guarda la telecamera, la saluta e se ne va.','good');return;}
-  const take=r2(Math.min(S.cash*rnd(.08,.18),500));S.cash=r2(S.cash-take);tx('furti',-take,'Gianluca Avellina: mano lesta in cassa');
+  const take=r2(Math.min(S.cash*rnd(.05,.12),250));S.cash=r2(S.cash-take);tx('furti',-take,'Gianluca Avellina: mano lesta in cassa');
   log(`Gianluca Avellina chiede un accendino e intanto non toglie gli occhi dalla cassa. Quando se ne va mancano ${fmt(take)}.`,'bad');toast(`Gianluca Avellina: −${fmt(take)} dalla cassa.`,'bad');
  }},
- {id:'napoletani',w:1.5,ok:()=>S.cash>100,run(){
+ {id:'napoletani',w:.8,ok:()=>S.day>=10&&S.cash>100,run(){
   if(foiled('Ciro e Gennaro'))return;
-  const take=r2(ri(2,6)*10);S.cash=r2(S.cash-take);tx('furti',-take,'Ciro e Gennaro: il trucco del resto');
+  const take=r2(ri(1,4)*10);S.cash=r2(S.cash-take);tx('furti',-take,'Ciro e Gennaro: il trucco del resto');
   log(`Entrano Ciro e Gennaro: uno chiede la strada per una via che non esiste, l'altro cambia una banconota tre volte. Alla fine il resto l'hai dato due volte: −${fmt(take)}.`,'bad');toast(`Ciro e Gennaro ti hanno confuso il resto: −${fmt(take)}.`,'bad');
  }},
  {id:'calzini',w:2,run(){
@@ -1127,13 +1128,13 @@ const EVENTS=[
  {id:'pullman',w:2,run(){let n=0;for(let i=0;i<7;i++)if(spawnCustomer('turista'))n++;log(`Si ferma un pullman di turisti: ne entrano ${n} tutti insieme.`,'warn');toast('Arriva un pullman di turisti.','warn');}},
  {id:'vincita',w:1.5,run(){S.cash=r2(S.cash+20);tx('man',20,'Mancia per una vincita al Gratta e Vinci');addRep(2);log('Un cliente vince 500 € al Gratta e Vinci e ti lascia 20 € di mancia. Ricompra subito.','good');toast('Vincita in bottega: +20 € di mancia.','good');}},
  {id:'conguaglio',w:1.5,run(){payForced(60);tx('boll',-60,'Conguaglio della luce');log('Arriva il conguaglio della luce: 60 €.','bad');toast('Conguaglio della luce: −60 €.','bad');}},
- {id:'ispettore',w:2,run(){
+ {id:'ispettore',w:1,ok:()=>S.day>=7,run(){
   openModal({html:`<h3>Ispettore dei Monopoli</h3><p>«Buongiorno. Prezzi esposti? Registri in ordine? Posso vedere?» Ha un taccuino e nessuna fretta.</p>`,actions:[
    {label:'Collabora con calma (banco fermo 25 minuti)',cls:'gold',fn(){S.freeze=25;addRep(3);log('Controllo dei Monopoli: tutto in ordine. Il banco si ferma, la reputazione sale.','good');}},
    {label:'Presenta tutto di corsa (rischioso)',cls:'alt',fn(){
     if(perk('fines')){addRep(1);log(`${S.ownerName} cita tre commi a memoria. L\'ispettore chiude il taccuino e se ne va.`,'good');}
     else if(chance(.6))log('L\'ispettore sfoglia, annuisce e se ne va. Hai avuto fortuna.','info');
-    else{payForced(150);tx('multe',-150,'Multa dei Monopoli');addRep(-4);log('L\'ispettore trova un cartello storto: multa da 150 €.','bad');toast('Multa dei Monopoli: −150 €.','bad');}
+    else{payForced(100);tx('multe',-100,'Multa dei Monopoli');addRep(-4);log('L\'ispettore trova un cartello storto: multa da 100 €.','bad');toast('Multa dei Monopoli: −100 €.','bad');}
    }}]});
  }},
  {id:'rapp',w:2,ok:()=>space('acc')>=15,run(){
@@ -1211,7 +1212,7 @@ function scheduleEvents(){
       for(let i=0;i<n;i++)list.push({id:'vizio',at:ri(OPEN+30,closeT()-30)});
     }
   }
-  if(S.day>=3&&chance(1/20))list.push({id:'rapinaG',at:ri(OPEN+60,closeT()-30)});
+  if(S.day>=12&&chance(1/20))list.push({id:'rapinaG',at:ri(OPEN+60,closeT()-30)});
   list.sort((a,b)=>a.at-b.at);RT.events=list;
 }
 function rincaro(){
@@ -1223,7 +1224,7 @@ function rincaro(){
 /* ===== scadenze ===== */
 function billsFor(d){
   const g=dom(d),b=[],disc=perk('bills')?.9:1,pdisc=perk('prof')?.5:1;
-  const luce=r2((180+50*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.ghiaccio+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib+60*S.up.locale)*disc),tel=r2(45*disc),gas=r2(70*disc);
+  const luce=r2((110+40*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.ghiaccio+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib+60*S.up.locale)*disc),tel=r2(30*disc),gas=r2(45*disc);
   const mode=S.billMode||'m';
   if(mode==='m'){
     if(g===5)b.push({cat:'boll',amt:luce,label:'Bolletta della luce'});
@@ -1232,10 +1233,10 @@ function billsFor(d){
   }else if(mode==='w'){
     if(wd(d)===6)b.push({cat:'boll',amt:r2((luce+tel+gas)*7/30),label:'Bollette della settimana (luce, telefono, gas e acqua)'});
   }else b.push({cat:'boll',amt:r2((luce+tel+gas)/30),label:'Bollette del giorno (luce, telefono, gas e acqua)'});
-  if(g===12){b.push({cat:'canoni',amt:r2((60+15*S.up.srvRic+25*S.up.srvPag+40*S.up.scommesse+20*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
-  if(g===16)b.push({cat:'tasse',amt:380,label:'Contributi INPS (F24)'});
-  if(g===25)b.push({cat:'prof',amt:r2(150*pdisc),label:'Commercialista'});
-  if(g===28){b.push({cat:'tasse',amt:70+40*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2(45*pdisc),label:'Assicurazione della bottega'});}
+  if(g===12){b.push({cat:'canoni',amt:r2((30+10*S.up.srvRic+15*S.up.srvPag+30*S.up.scommesse+15*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
+  if(g===16)b.push({cat:'tasse',amt:250,label:'Contributi INPS (F24)'});
+  if(g===25)b.push({cat:'prof',amt:r2(100*pdisc),label:'Commercialista'});
+  if(g===28){b.push({cat:'tasse',amt:45+30*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2(30*pdisc),label:'Assicurazione della bottega'});}
   if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
   return b;
 }
@@ -1376,6 +1377,10 @@ function setTab(name){
   TAB=name;
   ['banco','mag','bot','posta','conti'].forEach(t=>{$('#tab-'+t).hidden=t!==name;});
   if(name!=='banco'){$('#dock').hidden=true;document.body.classList.remove('docked');}
+  if(S&&S.phase==='open'){
+    if(name!=='banco'&&S.speed>0){RT.autoPause=S.speed;S.speed=0;}
+    else if(name==='banco'&&RT.autoPause){S.speed=RT.autoPause;RT.autoPause=null;}
+  }
   $$('.nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
   if(name==='mag')buildMag();
   if(name==='bot')buildBot();
@@ -1425,10 +1430,12 @@ function refreshStockGrid(){
   }
   $('#pkHint').textContent=S.counter?'Tocca per mettere sul banco · + per comprare':'Tocca un prodotto per comprarlo';
 }
+function resumeIfPaused(){if(S&&S.phase==='open'&&S.speed===0&&!RT.modal){S.speed=RT.autoPause||1;RT.autoPause=null;toast('Il gioco riparte.','good');render(true);return true;}return false;}
 function gridClick(e){
   const bb=e.target.closest('button[data-buy]');if(bb){buySheet(bb.dataset.buy);return;}
   const b=e.target.closest('button.si');if(!b)return;
   const id=b.dataset.pid||b.dataset.sv;
+  if(S.counter&&resumeIfPaused())return;
   if(!S.counter){if(b.dataset.pid)buySheet(id);else if(!svAvail(id))toast(LOTS.includes(id)&&S.lotDownUntil>S.t?'Il terminale del Lotto è bloccato.':'Questo servizio si attiva nella sezione Bottega.','warn');else toast('Nessun cliente al banco.','warn');return;}
   const r=trayAdd(id);
   if(r==='out')toast(`${PD[id].name}: finito. Compralo con il +.`,'bad');
@@ -1478,6 +1485,7 @@ const tabOf=id=>SV[id]?'lot':({sig:'sig',gra:'gra',val:'val',tab:'ban',ban:'ban'
 function setPCat(v){PCAT=v;$$('#pkSeg button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===v)));buildStockGrid();}
 function ctrClick(e){
   const b=e.target.closest('button');if(!b)return;
+  if(S.counter&&b.dataset.a!=='close'&&resumeIfPaused())return;
   if(b.dataset.rm){trayRemove(b.dataset.rm);render(true);return;}
   if(b.dataset.add){const id=b.dataset.add,res=trayAdd(id);if(res==='out')toast(`${PD[id].name}: non ne hai altri sullo scaffale.`,'warn');render(true);return;}
   const a=b.dataset.a;
@@ -1690,7 +1698,7 @@ function renderHud(){
   const rb=$('#repbar');const w=Math.abs(S.rep)/2;rb.className=S.rep<0?'n':'';rb.style.left=(S.rep<0?50-w:50)+'%';rb.style.width=w+'%';
   const net=aggSum(S.aggD);$('#todayp').textContent=open?sgn(net):'—';$('#todayp').className='mono '+(open?(net>=0?'pos':'neg'):'');
   $('#dayno').textContent='Giorno '+S.day;$('#dayname').textContent=`${DAYS[wd(S.day)]} · ${dom(S.day)}/30`;
-  $('#rank').textContent=`${S.ownerName} · ${rankName()}`;
+  $('#rank').textContent=S.ownerName;
   if(RT.floatAmt){floatCash(RT.floatAmt);RT.floatAmt=0;}
   const debt=-(S.cash+S.deposit),dw=$('#debtwarn');
   dw.hidden=!(debt>10000||S.debtDays>0);
