@@ -456,7 +456,7 @@ const PRODUCTS=[
  {id:'ash',cat:'sig',name:'Ash & Co.',price:8.00,color:'#262626',fam:'noir',stile:'Decadenti',motto:'Dal 1900 trasformiamo soldi in cenere.',pop:3},
  {id:'bln',cat:'sig',name:'Blue Night',price:7.00,color:'#13234D',fam:'noir',stile:'Malinconiche, da detective privato',motto:'Per chi pedina qualcuno e fuma da solo.',pop:5},
  {id:'mrl',cat:'sig',name:'Marlboro',price:6.80,color:'#C8102E',fam:'cla',stile:'Il rosso e bianco che tutti riconoscono',motto:'Rosso come il conto del cardiologo.',pop:11},
- {id:'cml',cat:'sig',name:'Camel',price:6.30,color:'#C9A24B',fam:'cla',stile:'Color sabbia, da viaggio nel deserto',motto:'Lento come un cammello, puntuale come la tosse.',pop:8},
+ {id:'cml',cat:'sig',name:'Camel Blue',price:6.30,color:'#3E78B2',fam:'cla',stile:'Azzurre, da viaggio nel deserto',motto:'Lento come un cammello, puntuale come la tosse.',pop:8},
  {id:'tri',cat:'tab',name:'Trinciato Pipa Fina 30 g',price:8.90,tag:'PIPA FINA',gate:'fumo'},
  {id:'trv',cat:'tab',name:'Trinciato Virginia Dorato 30 g',price:9.50,tag:'VIRGINIA',gate:'fumo'},
  {id:'trd',cat:'tab',name:'Trinciato Scirocco Scuro 30 g',price:9.20,tag:'SCIROCCO',gate:'fumo'},
@@ -629,20 +629,20 @@ const TYPES={
   wants:(c,p)=>{if(chance(.25))wantU(c,'pat');if(chance(.15))wantU(c,'ppc');if(chance(.12))wantU(c,'cbd');if(chance(.12))wantU(c,'vir');if(chance(.1))wantU(c,'bir');if(chance(.55))want(c,chance(.6)?'trr':'trs',ri(1,2));if(chance(.3))want(c,SNK());if(chance(.25))wantU(c,'bib');if(chance(.25))want(c,CRM());if(chance(.25))want(c,CRT());if(chance(.12))want(c,TRN());if(chance(.2))want(c,ACC());if(chance(.25))wantU(c,'ric');if(chance(.25))want(c,brandOf(p));}},
  liceale:{role:'Studente delle superiori',g:.5,pat:150,
   quotes:['«Faccia presto che suona la campanella.»','«Ho solo il resto della paghetta.»','«Mia madre ha detto di prendere anche questo.»','«Il pullman per la scuola è già lì.»'],
-  wants:(c,p)=>{if(chance(.5))want(c,chance(.65)?'trr':'trs',ri(1,2));if(chance(.4))want(c,SNK(),chance(.2)?2:1);if(chance(.35))want(c,CRM());if(chance(.25))wantU(c,'bib');if(chance(.2))wantU(c,'pat');if(chance(.2))wantU(c,'ric');if(chance(.1))wantU(c,'spo');if(chance(.08))want(c,'fra');if(!c.lines.length)want(c,SNK());}},
- turista:{role:'Lavoratore',g:.5,pat:100,
-  quotes:['«Sono di passaggio, ho la macchina fuori.»'],
-  wants:(c,p)=>{want(c,brandOf(p));if(chance(.3))want(c,'trs');}}
+  wants:(c,p)=>{if(chance(.5))want(c,chance(.65)?'trr':'trs',ri(1,2));if(chance(.4))want(c,SNK(),chance(.2)?2:1);if(chance(.35))want(c,CRM());if(chance(.25))wantU(c,'bib');if(chance(.2))wantU(c,'pat');if(chance(.2))wantU(c,'ric');if(chance(.1))wantU(c,'spo');if(chance(.08))want(c,'fra');if(chance(.3))want(c,brandOf(p));if(chance(.25))want(c,pick(['g2','g2','g3','g5']));if(!c.lines.length)want(c,SNK());}},
+ turista:{role:'Turista',g:.5,pat:120,
+  quotes:['«Scusi, dov\'è il Colosseo? No, ok.»','«Is this a pharmacy? No? Un biglietto, please.»','«Quanto costa una cartolina? Due? Facciamo dieci.»','«Bello qui. Il Bronzi di Riace, dove?»'],
+  wants:(c,p)=>{if(chance(.15))wantU(c,'bir');if(chance(.15))wantU(c,'pat');want(c,chance(.7)?'trs':'trr',ri(1,3));if(chance(.6))want(c,'cpo',ri(1,4));if(chance(.5))want(c,'fra',ri(1,4));if(chance(.35))wantU(c,'bib');if(chance(.2))wantU(c,'pow');if(chance(.25))want(c,SNK());if(chance(.2))want(c,brandOf(p));}}
 };
 const JOBS={
- pendolare:[['Impiegato','Impiegata'],['Ferroviere','Ferroviera'],['Infermiere','Infermiera'],['Insegnante','Insegnante'],['Commesso','Commessa'],['Postino','Postina'],['Bancario','Bancaria'],['Rappresentante','Rappresentante'],['Cameriere','Cameriera'],['Parrucchiere','Parrucchiera'],['Impiegato comunale','Impiegata comunale'],['Barista','Barista']],
+ pendolare:[['Impiegato','Impiegata'],['Ferroviere','Ferroviera'],['Infermiere','Infermiera'],['Insegnante','Insegnante'],['Commesso','Commessa'],['Postino','Postina'],['Bancario','Bancaria'],['Rappresentante','Rappresentante'],['Cameriere','Cameriera'],['Parrucchiere','Parrucchiera'],['Impiegato comunale','Impiegata comunale']],
  geometra:[['Geometra','Geometra'],['Avvocato','Avvocata'],['Ingegnere','Ingegnera'],['Commercialista','Commercialista'],['Architetto','Architetta'],['Farmacista','Farmacista'],['Medico di base','Medico di base'],['Agente immobiliare','Agente immobiliare']],
  operaio:[['Muratore','Muratrice'],['Elettricista','Elettricista'],['Idraulico','Idraulica'],['Camionista','Camionista'],['Meccanico','Meccanica'],['Pescatore','Pescatrice'],['Bracciante','Bracciante'],['Carpentiere','Carpentiera'],['Magazziniere','Magazziniera'],['Operaio al porto','Operaia al porto'],['Giardiniere','Giardiniera']],
  cumenda:[['Imprenditore edile','Imprenditrice edile'],['Concessionario d\'auto','Concessionaria d\'auto'],['Notaio','Notaia'],['Titolare di un lido','Titolare di un lido'],['Costruttore','Costruttrice'],['Ristoratore','Ristoratrice']],
- turista:[['Rappresentante','Rappresentante'],['Camionista','Camionista']]
 };
 function roleOf(type,female){
   if(JOBS[type]){const j=pick(JOBS[type]);return female?j[1]:j[0];}
+  if(type==='turista')return 'Turista';
   if(type==='studente')return female?'Studentessa universitaria':'Studente universitario';
   if(type==='liceale')return female?'Studentessa delle superiori':'Studente delle superiori';
   return female?'Pensionata':'Pensionato';
@@ -677,7 +677,8 @@ function makePerson(type,id){
     debt:0,lent:0,back:0,hist:[],vd:0,vc:0};
 }
 function makeTourist(){
-  const p=makePerson(pick(['pendolare','operaio']),-1);p.prone=0;return p;
+  const female=chance(.5);const p=makePerson('turista',-1);
+  p.name=`${pick(TOUR_N)} ${pick(TOUR_S)}`;p.role='Turista';p.face=genFace('turista',female);p.prone=0;return p;
 }
 
 /* ===== tabaccai ===== */
@@ -780,6 +781,7 @@ function fromObj(s){
     m.stock=Object.assign(b.stock,s.stock);m.price=Object.assign(b.price,s.price);m.up=Object.assign(b.up,s.up);
     if(!s.lic2){for(const k of ['licLot','licSup','licDel','treni','snack','caramelle','valori','fumo'])if(!s.up||s.up[k]==null)m.up[k]=1;m.lic2=1;}
     if(!m.roles2){m.people.forEach(pp=>{if(pp.id>=0)pp.role=roleOf(pp.type,!!pp.f);});if(!m.people.some(pp=>pp.type==='liceale')){let id=m.people.length;for(let i=0;i<RESIDENT_TYPES.liceale;i++)m.people.push(makePerson('liceale',id++));}m.roles2=1;}
+    m.people.forEach(pp=>{if(pp.role==='Barista')pp.role=roleOf(pp.type,!!pp.f);});
     m.today=Object.assign(newToday(),s.today);
     if(m.phase==='open')m.speed=0;
     if(!m.ownerName)m.ownerName=OWD[m.owner].name;
@@ -852,11 +854,13 @@ function pickType(){
     operaio:sun?.5:(((t>=600&&t<=660)||(t>=900&&t<=960))?2.5:((t>=720&&t<=840)?1.5:1)),
     cumenda:(.3+Math.max(0,S.rep)/200)*(sun?1.5:1),
     chiacchierone:.15,
+    turista:(t>=660&&t<=960)?.9:.35,
     liceale:sun?.3:((t<495||(t>=780&&t<=870))?3:.25)
   };
   return pickW(w);
 }
 function pickPerson(type){
+  if(type==='turista')return makeTourist();
   const pool=S.people.filter(p=>p.type===type&&!(p.vd===S.day&&p.vc>=2)&&!S.queue.some(q=>q.pid===p.id));
   let cand=pool;
   if(!cand.length)cand=S.people.filter(p=>!(p.vd===S.day&&p.vc>=2)&&!S.queue.some(q=>q.pid===p.id));
@@ -935,8 +939,8 @@ function spawnCustomer(forcedType){
   if(p.id>=0){if(p.vd!==S.day){p.vd=S.day;p.vc=0;}p.vc++;}
   const ctx={lines:[]};
   T.wants(ctx,p);
-  if(isSunday(S.day)&&p.type!=='liceale'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
-  if(['signora','nonno','operaio','cumenda','studente'].includes(p.type)&&chance(.03))want(ctx,'vgv');
+  if(isSunday(S.day)&&p.type!=='liceale'&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
+  if(['signora','nonno','operaio','cumenda','studente','liceale'].includes(p.type)&&chance(.03))want(ctx,'vgv');
   if(!ctx.lines.length)want(ctx,p.type==='liceale'?SNK():brandOf(p));
   // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
   const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
@@ -1187,7 +1191,8 @@ const EVENTS=[
  {id:'sole',w:2,run(){S.mod={traffic:1.4,until:S.t+120};log('Primo sole della stagione: tutti fuori, e tutti con la voglia di fumare.','good');toast('Bella giornata: più clienti.','good');}},
  {id:'jackpot',w:2,run(){S.jackpotUntil=S.t+240;log('Il SuperEnalotto è a 94 milioni: la fila si riempie di sognatori.','info');toast('Jackpot alle stelle: tutti vogliono giocare.','warn');}},
  {id:'chiacchierone',w:2,run(){if(spawnCustomer('chiacchierone')){log('È entrato il Chiacchierone. Ti racconterà del cinema che non c\'è più.','warn');toast('Il Chiacchierone blocca il banco.','warn');}}},
- {id:'pullman',w:2,ok:()=>!isSunday(S.day),run(){let n=0;for(let i=0;i<6;i++)if(spawnCustomer('liceale'))n++;log(`Escono da scuola tutti insieme: entrano ${n} ragazzi delle superiori.`,'warn');toast('Arriva una classe delle superiori.','warn');}},
+ {id:'pullman',w:2,run(){let n=0;for(let i=0;i<7;i++)if(spawnCustomer('turista'))n++;log(`Si ferma un pullman di turisti: ne entrano ${n} tutti insieme.`,'warn');toast('Arriva un pullman di turisti.','warn');}},
+ {id:'scuola',w:1.5,ok:()=>!isSunday(S.day),run(){let n=0;for(let i=0;i<6;i++)if(spawnCustomer('liceale'))n++;log(`Escono da scuola tutti insieme: entrano ${n} ragazzi delle superiori.`,'warn');toast('Arriva una classe delle superiori.','warn');}},
  {id:'vincita',w:1.5,run(){S.cash=r2(S.cash+20);tx('man',20,'Mancia per una vincita al Gratta e Vinci');addRep(2);log('Un cliente vince 500 € al Gratta e Vinci e ti lascia 20 € di mancia. Ricompra subito.','good');toast('Vincita in bottega: +20 € di mancia.','good');}},
  {id:'conguaglio',w:1.5,run(){payForced(60);tx('boll',-60,'Conguaglio della luce');log('Arriva il conguaglio della luce: 60 €.','bad');toast('Conguaglio della luce: −60 €.','bad');}},
  {id:'ispettore',w:1,ok:()=>S.day>=7,run(){
@@ -1750,7 +1755,7 @@ const HT={credito:'Credito concesso',saldo:'Saldo',acconto:'Acconto',scusa:'Scus
 function debtorSheet(pid){
   const p=S.people[pid];
   const rows=p.hist.map(h=>`<div class="minirow" style="align-items:flex-start"><span><span class="mono muted" style="font-size:11.5px">${dateShort(h.d)} ${hhmm(h.t)}</span> ${HT[h.type]||h.type}${h.note?`<br><span class="muted" style="font-size:12.5px">${esc(h.note)}</span>`:''}</span><b class="mono ${h.type==='credito'?'neg':h.amt>0?'pos':''}">${h.amt?fmt(h.amt):''}</b></div>`).join('');
-  openModal({html:`<div class="shead">${faceHtml(p.face,p.debt>0?'meh':'ok')}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">${esc(p.role)}${p.type==='liceale'?'':` · fuma ${esc(PD[brandOf(p)].name)}`}</div></div></div><div class="minirow"><span>Deve ancora</span><b class="mono neg">${fmt(p.debt)}</b></div><div class="minirow"><span>Credito ricevuto in tutto</span><b class="mono">${fmt(p.lent)}</b></div><div class="minirow"><span>Restituito</span><b class="mono pos">${fmt(p.back)}</b></div><div class="rdash"></div>${rows||'<p class="muted">Nessun movimento.</p>'}`,actions:[{label:'Chiudi',cls:'alt'}]});
+  openModal({html:`<div class="shead">${faceHtml(p.face,p.debt>0?'meh':'ok')}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">${esc(p.role)} · fuma ${esc(PD[brandOf(p)].name)}</div></div></div><div class="minirow"><span>Deve ancora</span><b class="mono neg">${fmt(p.debt)}</b></div><div class="minirow"><span>Credito ricevuto in tutto</span><b class="mono">${fmt(p.lent)}</b></div><div class="minirow"><span>Restituito</span><b class="mono pos">${fmt(p.back)}</b></div><div class="rdash"></div>${rows||'<p class="muted">Nessun movimento.</p>'}`,actions:[{label:'Chiudi',cls:'alt'}]});
 }
 function renderConti(){
   $('#c-riep').hidden=CSEG!=='riep';$('#c-tx').hidden=CSEG!=='tx';$('#c-cred').hidden=CSEG!=='cred';
