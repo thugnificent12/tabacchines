@@ -339,6 +339,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
         <div class="card"><h2>Incassi</h2><div id="incList"></div></div>
         <div class="card"><h2>Spese</h2><div id="expList"></div></div>
         <div class="card"><h2>Situazione</h2><div id="sitList"></div></div>
+        <div class="card"><h2>Pagamento bollette</h2><div id="billBox"></div></div>
         <div class="card"><h2>Prossime scadenze</h2><div id="dueList"></div></div>
         <div class="card"><h2>Ultimi giorni</h2><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13.5px" id="histT"></table></div></div>
         <div class="card"><h2>Partita</h2><button class="btn alt" id="resetbtn">Nuova partita</button></div>
@@ -688,7 +689,7 @@ function newState(owner,tr){
   const people=[];let id=0;
   for(const t in RESIDENT_TYPES)for(let i=0;i<RESIDENT_TYPES[t];i++)people.push(makePerson(t,id++));
   const bw={};BRANDS.forEach(b=>bw[b.id]=b.pop);
-  return{v:2,calabro:1,counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:3000,deposit:0,rep:0,speed:1,stock,price,
+  return{v:2,billMode:'m',calabro:1,counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:3000,deposit:0,rep:0,speed:1,stock,price,
     up:{insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0,scommesse:0,virtuali:0,caffe:0,snackbar:0,giornali:0,alcol:0,ghiaccio:0,umidor:0,sigaripremium:0,cbd:0,tv:0,slot:0,condiz:0,distrib:0},
     people,queue:[],nid:1,today:newToday(),aggD:{},aggM:{},aggA:{},tx:[],history:[],log:[],
     freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,invested:0,loan:null,debtDays:0,over:false,intro:false};
@@ -812,7 +813,7 @@ const SAY={
   mez:q=>q===1?'un pacchetto di sigaretti Mezzaluna':`${nw(q)} pacchetti di sigaretti Mezzaluna`,
   ava:q=>q===1?'un Avana Riserva':`${nw(q)} Avana Riserva`,
   cor:q=>q===1?'un Gran Corona':`${nw(q)} Gran Corona`,
-  gaz:q=>q===1?'la Gazzetta del Sud':`${nw(q)} copie della Gazzetta del Sud`,
+  gaz:q=>q===1?'la gazzetta':`${nw(q)} gazzette`,
   spo:q=>q===1?'il quotidiano sportivo':`${nw(q)} copie del quotidiano sportivo`,
   enm:q=>q===1?'il settimanale di enigmistica':`${nw(q)} copie dell'enigmistica`,
   sco:()=>'una scommessa sulla partita',vir:()=>'una scommessa sulle virtuali',
@@ -959,14 +960,14 @@ const RAPINATORI={
  'Ciro e Gennaro':'entrano insieme: uno blocca la porta, l\'altro ti sorride troppo',
  'il finto tecnico del Lotto':'torna, stavolta senza cacciavite e senza sorriso'
 };
-function rapina(who){
+function rapina(who,night){
   if(foiled(who[0].toUpperCase()+who.slice(1)))return;
   const cam=S.up.telecamere?.3:0,Who=who[0].toUpperCase()+who.slice(1);
-  openModal({html:`<h3>Rapina fuori orario!</h3><p>La saracinesca è ancora alzata e ${who} ${RAPINATORI[who]}. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
-   {label:'Consegna l\'incasso senza storie',cls:'alt',fn(){const take=r2(Math.min(S.cash*.35,1200));S.cash=r2(S.cash-take);tx('furti',-take,`Rapina fuori orario: ${who}`);log(`${Who} se ne va con ${fmt(take)}. Almeno nessuno si è fatto male.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}},
+  openModal({html:`<h3>${night?'Rapina fuori orario!':'Rapina!'}</h3><p>${night?'La saracinesca è ancora alzata e ':''}${night?who:Who} ${RAPINATORI[who]}. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
+   {label:'Consegna l\'incasso senza storie',cls:'alt',fn(){const take=r2(Math.min(S.cash*.35,1200));S.cash=r2(S.cash-take);tx('furti',-take,`${night?'Rapina fuori orario':'Rapina'}: ${who}`);log(`${Who} se ne va con ${fmt(take)}. Almeno nessuno si è fatto male.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}},
    {label:'Premi l\'allarme sotto il banco',cls:'gold',fn(){
     if(chance(.45+cam)){addRep(3);log(`Suona l'allarme: ${who} scappa senza prendere niente.`,'good');toast(`Allarme! ${Who} è scappato.`,'good');}
-    else{const take=r2(Math.min(S.cash*.5,1800));S.cash=r2(S.cash-take);tx('furti',-take,`Rapina fuori orario: ${who}`);addRep(-1);log(`L'allarme non parte. ${Who} si arrabbia e prende ${fmt(take)}.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}
+    else{const take=r2(Math.min(S.cash*.5,1800));S.cash=r2(S.cash-take);tx('furti',-take,`${night?'Rapina fuori orario':'Rapina'}: ${who}`);addRep(-1);log(`L'allarme non parte. ${Who} si arrabbia e prende ${fmt(take)}.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}
    }}]});
 }
 /* fuori orario: più resti aperto, più rischi */
@@ -977,7 +978,7 @@ function overtime(dm){
     if(perk('fines')){log(`Passa la Guardia di Finanza: ${S.ownerName} spiega che stava solo finendo di servire. Se ne vanno con un richiamo.`,'info');}
     else{const m=ri(200,500);payForced(m);tx('multe',-m,'Guardia di Finanza: apertura fuori orario');addRep(-2);log(`Passa la Guardia di Finanza e vede la saracinesca alzata fuori orario: multa di ${fmt(m)}.`,'bad');toast(`Multa della Finanza: −${fmt(m)}.`,'bad');}
   }
-  if(!RT.ovRap&&S.cash>300&&!RT.modal&&chance(dm*(.0015+late*.00006))){RT.ovRap=1;rapina(pick(Object.keys(RAPINATORI)));}
+  if(!RT.ovRap&&S.cash>300&&!RT.modal&&chance(dm*(.0015+late*.00006))){RT.ovRap=1;rapina(pick(Object.keys(RAPINATORI)),true);}
 }
 function refuseCredit(){
   const c=S.counter;if(!c||!c.creditAsk||RT.modal)return;
@@ -1031,16 +1032,6 @@ const EVENTS=[
   if(foiled('Ciro e Gennaro'))return;
   const take=r2(ri(2,6)*10);S.cash=r2(S.cash-take);tx('furti',-take,'Ciro e Gennaro: il trucco del resto');
   log(`Entrano Ciro e Gennaro: uno chiede la strada per una via che non esiste, l'altro cambia una banconota tre volte. Alla fine il resto l'hai dato due volte: −${fmt(take)}.`,'bad');toast(`Ciro e Gennaro ti hanno confuso il resto: −${fmt(take)}.`,'bad');
- }},
- {id:'manduci',w:1,ok:()=>S.day>=3&&S.cash>300,run(){
-  if(foiled('Tony Manduci'))return;
-  const cam=S.up.telecamere?.3:0;
-  openModal({html:`<h3>Rapina!</h3><p>Entra <b>Tony Manduci</b> col casco ancora in testa e una mano in tasca. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
-   {label:'Consegna l\'incasso senza storie',cls:'alt',fn(){const take=r2(Math.min(S.cash*.35,1200));S.cash=r2(S.cash-take);tx('furti',-take,'Rapina di Tony Manduci');log(`Tony Manduci se ne va con ${fmt(take)}. Almeno nessuno si è fatto male.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}},
-   {label:'Premi l\'allarme sotto il banco',cls:'gold',fn(){
-    if(chance(.45+cam)){addRep(3);log('Suona l\'allarme: Tony Manduci scappa senza prendere niente. Il quartiere ne parla per una settimana.','good');toast('Allarme! Tony Manduci è scappato.','good');}
-    else{const take=r2(Math.min(S.cash*.5,1800));S.cash=r2(S.cash-take);tx('furti',-take,'Rapina di Tony Manduci');addRep(-1);log(`L\'allarme non parte. Tony Manduci si arrabbia e prende ${fmt(take)}.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}
-   }}]});
  }},
  {id:'calzini',w:2,run(){
   openModal({html:`<h3>Il venditore di calzini</h3><p>Entra con una valigia aperta e l'accento di Torre del Greco: «Calzini di spugna, tre paia cinque euro, roba bbuona, fatta a San Giuseppe Vesuviano! Guardate che qualità, signò!» Intanto si appoggia all'espositore delle caramelle.</p>`,actions:[
@@ -1139,6 +1130,7 @@ function runVice(){
   }
 }
 EVD.vizio={run:runVice};
+EVD.rapinaG={run(){if(S.cash>150)rapina(pick(Object.keys(RAPINATORI)),false);}};
 function scheduleEvents(){
   const n=S.day===1?1:pick([1,2,2,3]);let pool=EVENTS.filter(e=>!e.ok||e.ok());const list=[];
   for(let i=0;i<n&&pool.length;i++){
@@ -1154,6 +1146,7 @@ function scheduleEvents(){
       for(let i=0;i<n;i++)list.push({id:'vizio',at:ri(OPEN+30,closeT()-30)});
     }
   }
+  if(S.day>=3&&chance(1/20))list.push({id:'rapinaG',at:ri(OPEN+60,closeT()-30)});
   list.sort((a,b)=>a.at-b.at);RT.events=list;
 }
 function rincaro(){
@@ -1165,19 +1158,26 @@ function rincaro(){
 /* ===== scadenze ===== */
 function billsFor(d){
   const g=dom(d),b=[],disc=perk('bills')?.9:1,pdisc=perk('prof')?.5:1;
-  if(g===5)b.push({cat:'boll',amt:r2((180+50*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.ghiaccio+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib)*disc),label:'Bolletta della luce'});
-  if(g===12){b.push({cat:'boll',amt:r2(45*disc),label:'Telefono e internet'});b.push({cat:'canoni',amt:r2((60+15*S.up.srvRic+25*S.up.srvPag+40*S.up.scommesse+20*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
+  const luce=r2((180+50*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.ghiaccio+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib)*disc),tel=r2(45*disc),gas=r2(70*disc);
+  const mode=S.billMode||'m';
+  if(mode==='m'){
+    if(g===5)b.push({cat:'boll',amt:luce,label:'Bolletta della luce'});
+    if(g===12)b.push({cat:'boll',amt:tel,label:'Telefono e internet'});
+    if(g===20)b.push({cat:'boll',amt:gas,label:'Gas e acqua'});
+  }else if(mode==='w'){
+    if(wd(d)===6)b.push({cat:'boll',amt:r2((luce+tel+gas)*7/30),label:'Bollette della settimana (luce, telefono, gas e acqua)'});
+  }else b.push({cat:'boll',amt:r2((luce+tel+gas)/30),label:'Bollette del giorno (luce, telefono, gas e acqua)'});
+  if(g===12){b.push({cat:'canoni',amt:r2((60+15*S.up.srvRic+25*S.up.srvPag+40*S.up.scommesse+20*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
   if(g===16)b.push({cat:'tasse',amt:380,label:'Contributi INPS (F24)'});
-  if(g===20)b.push({cat:'boll',amt:r2(70*disc),label:'Gas e acqua'});
   if(g===25)b.push({cat:'prof',amt:r2(150*pdisc),label:'Commercialista'});
   if(g===28){b.push({cat:'tasse',amt:70,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2(45*pdisc),label:'Assicurazione della bottega'});}
-  if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','srv','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
+  if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
   return b;
 }
 function upcoming(n){
   const out=[];
   for(let d=S.day;d<S.day+31&&out.length<n;d++){
-    for(const b of billsFor(d)){if(d===S.day&&S.phase==='closed'&&false)continue;out.push(Object.assign({d},b));}
+    for(const b of billsFor(d)){if(/del giorno/.test(b.label)&&out.some(x=>x.label===b.label))continue;out.push(Object.assign({d},b));}
   }
   return out.slice(0,n);
 }
@@ -1550,6 +1550,9 @@ function loanClick(e){
 
 /* conti */
 function aggOf(){return PER==='d'?S.aggD:PER==='m'?S.aggM:S.aggA;}
+const BMODE={m:'Mensile',w:'Settimanale',d:'Giornaliero'};
+function billSeg(id){return `<div class="seg" id="${id}" role="group" aria-label="Pagamento bollette">${Object.entries(BMODE).map(([k,v])=>`<button data-bm="${k}" aria-pressed="${(S.billMode||'m')===k}">${v}</button>`).join('')}</div>`;}
+function billSegClick(e){const b=e.target.closest('button[data-bm]');if(!b)return;S.billMode=b.dataset.bm;$$('button[data-bm]',b.parentNode).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));log(`Bollette: d'ora in poi pagamento ${BMODE[S.billMode].toLowerCase()}.`,'info');RT.billSig='';save();render(true);}
 function renderRiep(){
   const a=aggOf();let ti=0,te=0;
   const inc=INC.filter(k=>a[k]).map(k=>{ti+=a[k];return `<div class="minirow"><span>${CATL[k]}</span><b class="mono pos">${fmt(a[k])}</b></div>`;}).join('');
@@ -1568,7 +1571,8 @@ function renderRiep(){
   ].map(r=>`<div class="minirow"><span>${r[0]}</span><b class="mono ${r[2]}">${r[1]}</b></div>`).join('')
    +`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Perdi la partita se resti in rosso di oltre 10.000 € (cassa più libretto) per 30 giorni di fila con la reputazione a −100.${debt>0?` Oggi sei in rosso di ${fmt(debt)}.`:''}</p>`;
   const up=upcoming(6);
-  $('#dueList').innerHTML=up.map(b=>`<div class="minirow"><span>Giorno ${b.d} (${DAYS_S[wd(b.d)]}) · ${b.label}</span><b class="mono neg">${fmt(b.amt)}</b></div>`).join('')+(S.loan?`<div class="minirow"><span>Ogni sera · rata del finanziamento</span><b class="mono neg">${fmt(S.loan.rata)}</b></div>`:'')+'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Ogni sera si pagano anche le commissioni POS (0,6% delle vendite). Niente affitto: i muri sono di famiglia.</p>';
+  const bs=$('#billBox');if(RT.billSig!==S.billMode){RT.billSig=S.billMode;bs.innerHTML=`<p style="margin:0 0 6px;font-size:13.5px">Come vuoi pagare luce, telefono, gas e acqua?</p>${billSeg('billSeg')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">L'importo totale è lo stesso: cambia solo quando paghi. Settimanale = ogni domenica sera, giornaliero = ogni sera.</p>`;}
+  $('#dueList').innerHTML=up.map(b=>`<div class="minirow"><span>${/del giorno/.test(b.label)?'Ogni sera':`Giorno ${b.d} (${DAYS_S[wd(b.d)]})`} · ${b.label}</span><b class="mono neg">${fmt(b.amt)}</b></div>`).join('')+(S.loan?`<div class="minirow"><span>Ogni sera · rata del finanziamento</span><b class="mono neg">${fmt(S.loan.rata)}</b></div>`:'')+'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Ogni sera si pagano anche le commissioni POS (0,6% delle vendite). Niente affitto: i muri sono di famiglia.</p>';
   $('#histT').innerHTML='<thead><tr><th style="text-align:left">Giorno</th><th>Serviti</th><th>Persi</th><th style="text-align:right">Saldo</th></tr></thead><tbody>'+
     (S.history.slice().reverse().map(h=>`<tr><td style="padding:5px 0;border-top:1px solid var(--line)">${h.day} · ${h.name}</td><td class="mono" style="text-align:center;border-top:1px solid var(--line)">${h.served}</td><td class="mono" style="text-align:center;border-top:1px solid var(--line)">${h.lost}</td><td class="mono ${h.net>=0?'pos':'neg'}" style="text-align:right;border-top:1px solid var(--line)">${sgn(h.net)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nessuna giornata chiusa.</td></tr>')+'</tbody>';
 }
@@ -1684,7 +1688,7 @@ function startGame(owner,tr){
   S=newState(owner,tr);
   log(`${S.ownerName} ha sposato Ines e ha ereditato il suo tabacchino. I muri sono di famiglia: niente affitto, tutto il resto sì.`,'info');
   initOwnerUI();buildStockGrid();setTab('banco');save();
-  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>Ogni giorno entrano da 40 a 160 clienti, a caso. Ognuno passa al massimo due volte al giorno.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. Hanno pazienza, ma non infinita (gli anziani hanno più fretta, i giovani sono più tranquilli): la barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Il + su ogni prodotto serve a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}]});
+  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>Ogni giorno entrano da 40 a 160 clienti, a caso. Ognuno passa al massimo due volte al giorno.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. Hanno pazienza, ma non infinita (gli anziani hanno più fretta, i giovani sono più tranquilli): la barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Il + su ogni prodotto serve a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul><p style="margin:4px 0 6px;font-weight:600">Come vuoi pagare le bollette?</p>${billSeg('introBill')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Si può cambiare quando vuoi da Conti.</p>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}],after(sh){sh.querySelector('#introBill').addEventListener('click',billSegClick);}});
 }
 function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=`<img src="${PORTS[o.img]}" alt="">`;$('#ownerFace').classList.add('px');RT.ctrSig='';}
 
@@ -1715,6 +1719,7 @@ function init(){
   $('#depBtn').addEventListener('click',()=>{deposit(parseFloat($('#amt').value));render(true);});
   $('#witBtn').addEventListener('click',()=>{withdraw(parseFloat($('#amt').value));render(true);});
   segBind('#contiSeg',v=>{CSEG=v;});segBind('#perSeg',v=>{PER=v;});segBind('#txSeg',v=>{TXF=v;});
+  $('#billBox').addEventListener('click',billSegClick);
   $('#credList').addEventListener('click',e=>{const b=e.target.closest('.drow');if(b)debtorSheet(+b.dataset.pid);});
   $('#resetbtn').addEventListener('click',e=>{
     const b=e.currentTarget;
