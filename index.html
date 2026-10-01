@@ -641,7 +641,7 @@ const OWNERS=[
  {id:'dottore',name:'il Dottore',img:1,desc:'Non si sa di cosa sia dottore. Lui nemmeno.',pk:'prof',perk:'Commercialista e assicurazione a metà prezzo',vz:'early',malus:'Ogni tanto chiude prima per andare in montagna'},
  {id:'toto',name:'Totò',img:2,desc:'Barba curata e sorriso da cliente abituale.',pk:'err',perk:'Gli sbagli al banco costano metà reputazione',vz:'snack',malus:'Sgranocchia 2-4 snack al giorno dagli scaffali'},
  {id:'salah',name:'Salah',img:3,desc:'Casco da cantiere, sigaro e nessuna fretta.',pk:'merce',perk:'Merce scontata del 4%',vz:'leave',malus:'Ogni tanto «esce un attimo»: banco fermo e cassa incustodita'},
- {id:'enzino',name:'Enzino',img:4,desc:'Cappello di paglia e canotta da basket in ogni stagione.',pk:'queue',perk:'In bottega entrano 4 persone in più',vz:'gamble',malus:'Vizio del gioco: ogni giorno gratta e gioca a Lotto e SuperEnalotto'},
+ {id:'enzino',name:'Enzino',img:4,desc:'Cappello di paglia e canotta da basket in ogni stagione.',pk:'queue',perk:'Clienti più pazienti del 20%',vz:'gamble',malus:'Vizio del gioco: ogni giorno gratta e gioca a Lotto e SuperEnalotto'},
  {id:'pietro',name:'Pietro',img:5,desc:'Sempre con un calice in mano e la vista mare.',pk:'interest',perk:'Interessi del libretto doppi e rate del finanziamento −10%',vz:'prosecco',malus:'Beve 1-2 calici di prosecco al giorno, e dopo il secondo a volte sbaglia il resto'},
  {id:'frank',name:'Frank',img:6,desc:'Il sorriso più largo del quartiere.',pk:'rep',perk:'Reputazione guadagnata +40%',vz:'coffee',malus:'Offre il caffè a mezzo quartiere: 5-15 € al giorno'},
  {id:'dedda',name:'Dedda',img:7,desc:'Lupo di mare a tempo pieno, tabaccaio a tempo perso.',pk:'traffic',perk:'Il 10% di clienti in più: fa pubblicità al porto',vz:'boat',malus:'Ogni tanto scappa in barca per un\'ora: banco fermo'},
@@ -663,7 +663,7 @@ const UPG=[
  {id:'insegna',grp:'neg',name:'Insegna luminosa',max:3,cost:[800,1800,3500],desc:'Più luce, più clienti. Più bolletta, ma quella arriva dopo.',eff:l=>`affluenza +${l*8}%, luce +${l*50} €/mese`},
  {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[600,1400,2800],desc:'Tabacchi in alto, gratta e vinci in basso. Merce in vista, clienti in più.',eff:l=>`+${l*4}% clienti`},
  {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[700],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
- {id:'sedie',grp:'neg',name:'Sedie per la coda',max:2,cost:[500,1200],desc:'Chi aspetta seduto non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%, in bottega ${l*3} persone in più`},
+ {id:'sedie',grp:'neg',name:'Sedie per la coda',max:2,cost:[500,1200],desc:'Chi aspetta seduto non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%`},
  {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[900],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
  {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[1200],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
  {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[700],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
@@ -764,11 +764,11 @@ const jackpot=()=>S.jackpotUntil>S.t;
 const getP=c=>c.pid!=null&&c.pid>=0?S.people[c.pid]:c.tp;
 function hourCurve(t){
   const h=t/60;
-  if(isSunday(S.day)){if(h<9)return 1.0;if(h<11)return 1.3;return 1.5;}
-  if(h<9)return 1.6;if(h<12)return .9;if(h<14)return 1.3;if(h<16)return .6;if(h<17.5)return .95;if(h<19.5)return 1.6;return 1.0;
+  if(isSunday(S.day)){if(h<9)return 1.0;if(h<11)return 1.15;return 1.25;}
+  if(h<9)return 1.25;if(h<12)return .95;if(h<14)return 1.15;if(h<16)return .8;if(h<17.5)return 1.0;if(h<19.5)return 1.25;return 1.0;
 }
 function priceFactor(id){const d=PD[id];if(!d.free)return 1;return clamp(Math.pow(d.ref/S.price[id],1.7),0,1.5);}
-const queueCap=()=>S.up.locale?50:Math.min(20,10+3*S.up.sedie+(perk('queue')?4:0));
+const queueCap=()=>S.up.locale?50:20;
 function tx(cat,amt,label,neutral){
   amt=r2(amt);
   S.tx.unshift({d:S.day,t:Math.floor(S.t),cat,amt,label});if(S.tx.length>300)S.tx.length=300;
@@ -872,7 +872,7 @@ function spawnCustomer(forcedType){
   T.wants(ctx,p);
   if(isSunday(S.day)&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
   if(!ctx.lines.length)want(ctx,brandOf(p));
-  const pat=T.pat*2*(1+.25*S.up.sedie)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
+  const pat=T.pat*2*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
     quote:pick(T.quotes),creditAsk:false,asked:false,reply:null};
   if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.ask=pick(ASKCRED);}
@@ -880,8 +880,13 @@ function spawnCustomer(forcedType){
 }
 function spawnTick(dm){
   if(S.t>=closeT())return;
-  let x=S.today.target*hourCurve(S.t)/RT.integ*dm*(S.mod.until>S.t?S.mod.traffic:1);
-  while(x>0){if(Math.random()<Math.min(1,x))spawnCustomer();x-=1;}
+  // arrivi uno alla volta, a distanza: mai più di un cliente ogni due minuti e mezzo
+  if(S.nextArr==null||S.nextArr<S.t-60)S.nextArr=S.t+rnd(1,4);
+  if(S.t<S.nextArr)return;
+  spawnCustomer();
+  const rate=S.today.target*hourCurve(S.t)/RT.integ*(S.mod.until>S.t?S.mod.traffic:1);
+  const mean=1/Math.max(rate,.001);
+  S.nextArr=S.t+Math.max(2.5,-Math.log(1-Math.random())*mean);
 }
 function computeInteg(){let s=0;for(let t=OPEN;t<closeT();t++)s+=hourCurve(t);RT.integ=s||1;}
 
@@ -1245,7 +1250,7 @@ function tick(dm){
 }
 function openDay(){
   if(S.phase==='open'||RT.modal||S.over)return;
-  S.phase='open';S.t=OPEN;S.today=newToday();S.aggD={};S.autocD=0;S.queue=[];S.freeze=0;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.lotDownUntil=0;
+  S.phase='open';S.t=OPEN;S.nextArr=null;S.today=newToday();S.aggD={};S.autocD=0;S.queue=[];S.freeze=0;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.lotDownUntil=0;
   if(dom(S.day)===1)S.aggM={};
   S.counter=null;S.tray={};RT.last=null;RT.ovLog=RT.ovFin=RT.ovRap=0;
   if(S.speed===0)S.speed=1;
