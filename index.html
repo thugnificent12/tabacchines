@@ -887,7 +887,7 @@ function spawnCustomer(forcedType){
   if(isSunday(S.day)&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
   if(['signora','nonno','operaio','cumenda','studente'].includes(p.type)&&chance(.03))want(ctx,'vgv');
   if(!ctx.lines.length)want(ctx,brandOf(p));
-  const pat=T.pat*.65*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
+  const pat=T.pat*.7*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
     quote:pick(T.quotes),creditAsk:false,asked:false,reply:null};
   if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.ask=pick(ASKCRED);}
@@ -994,7 +994,7 @@ function patienceTick(dm){
   }
   const c=S.counter;
   if(c&&c.pat!=null){
-    c.pat-=dm*1.6;
+    c.pat-=dm*1.4;
     if(c.pat<=0){
       const p=getP(c);S.today.lost++;addRep(-.6);
       log(`${p.name} si stufa al banco e se ne va senza comprare.`,'bad');toast(`${p.name} se n'è andato: troppa attesa.`,'bad');
