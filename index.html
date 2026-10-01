@@ -1863,7 +1863,8 @@ function slotsClick(e){
   if(ld){const n=+ld;if(S&&!RT.splash&&!b.dataset.arm){b.dataset.arm='1';b.textContent='Sicuro?';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='Carica';}},3000);return;}slotLoad(n);return;}
   const a=b.dataset.bk;if(a==='dl')downloadBackup();if(a==='cp')copyBackup();if(a==='file')importFromFile();if(a==='code')importFromCode();
 }
-const BK_BTNS=canExport=>`<div class="twobtn" style="margin-top:10px">${canExport?'<button class="btn alt sm" data-bk="dl">Scarica file di backup</button><button class="btn alt sm" data-bk="cp">Copia codice di backup</button>':''}<button class="btn alt sm" data-bk="file">Carica da file</button><button class="btn alt sm" data-bk="code">Incolla codice</button></div>`;
+const CAN_DL=(()=>{try{return !/claude|anthropic/i.test(location.hostname)&&!window.claude;}catch(e){return false;}})();
+const BK_BTNS=canExport=>`<div class="twobtn" style="margin-top:10px">${canExport?(CAN_DL?'<button class="btn alt sm" data-bk="dl">Scarica file di backup</button>':'')+'<button class="btn alt sm" data-bk="cp">Copia codice di backup</button>':''}<button class="btn alt sm" data-bk="file">Carica da file</button><button class="btn alt sm" data-bk="code">Incolla codice</button></div>`;
 function renderSlots(){
   const box=$('#slotBox');if(!box)return;
   const sig=[1,2,3].map(n=>JSON.stringify(slotMeta(n))).join('|');if(RT.slotSig===sig)return;RT.slotSig=sig;
