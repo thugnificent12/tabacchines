@@ -1413,7 +1413,7 @@ function gridClick(e){
 function trayTotal(){let t=0,sv=0;for(const id in S.tray){if(SV[id])sv+=S.tray[id];else t+=S.price[id]*S.tray[id];}return{t:r2(t),sv};}
 function renderCounter(){
   const c=S.counter,box=$('#ctr');
-  const sig=[S.phase,c?c.id:0,c?moodOf(c):'',S.t>=closeT(),RT.ctrVer,S.freeze>0,RT.last?RT.last.name+RT.last.reply:'',c?getP(c).debt:0,S.t>=closeT()].join('|');
+  const sig=[S.phase,c?c.id:0,c?moodOf(c):'',c?anyAvail(c):'',S.t>=closeT(),RT.ctrVer,S.freeze>0,RT.last?RT.last.name+RT.last.reply:'',c?getP(c).debt:0,S.t>=closeT()].join('|');
   if(RT.ctrSig===sig)return;RT.ctrSig=sig;
   let h='';
   if(c){
@@ -1428,7 +1428,7 @@ function renderCounter(){
     const tot=ids.length?` · ${fmt(tt.t)}${tt.sv?' + servizi':''}`:'';
     h+='<div class="ctr-acts">';
     if(c.creditAsk)h+=`<button class="btn gold" data-a="credit">Segna a credito${tot}</button><button class="btn alt" data-a="refuse">Fatti pagare</button>`;
-    else h+=`<button class="btn gold" data-a="give">Consegna${tot}</button>`;
+    else h+=`<button class="btn gold" data-a="give">${giveLabel(c,tot)}</button>`;
     if(p.debt>0&&!c.asked)h+=`<button class="btn alt" data-a="ask">Chiedi il saldo</button>`;
     if(ids.length)h+=`<button class="btn alt" data-a="clear">Svuota</button>`;
     if(S.t>=closeT())h+=`<button class="btn red" data-a="close">Chiudi ora</button>`;
@@ -1455,7 +1455,7 @@ function ctrClick(e){
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.rm){trayRemove(b.dataset.rm);render(true);return;}
   const a=b.dataset.a;
-  if((a==='give'||a==='credit')&&!Object.keys(S.tray).length){
+  if((a==='give'||a==='credit')&&!Object.keys(S.tray).length&&anyAvail(S.counter)){
     toast('Prima metti sul banco quello che chiede: tocca i prodotti nello scaffale qui sotto, poi «Consegna».','warn');
     const g=$('#stockgrid');if(g){g.scrollIntoView({behavior:'smooth',block:'center'});g.classList.remove('hint');void g.offsetWidth;g.classList.add('hint');}
     return;
@@ -1673,14 +1673,17 @@ function renderHud(){
   const bm=$('#b-mag');bm.hidden=low===0;bm.textContent=low;
   const bb=$('#b-banco');bb.hidden=TAB==='banco'||S.queue.length===0;bb.textContent=S.queue.length;
 }
+/* c'è almeno una cosa richiesta che si può davvero dare? */
+function anyAvail(c){return !!c&&c.lines.some(l=>SV[l.id]?svAvail(l.id):S.stock[l.id]>0);}
+function giveLabel(c,tot){const empty=!Object.keys(S.tray).length;return empty&&!anyAvail(c)?'Non ce l\'ho':'Consegna'+(tot||'');}
 function renderDock(){
   const d=$('#dock'),c=S.counter,show=!!c&&TAB==='banco'&&!RT.splash;
   d.hidden=!show;document.body.classList.toggle('docked',show);if(!show)return;
   const ids=Object.keys(S.tray),n=ids.reduce((a,k)=>a+S.tray[k],0),tt=trayTotal();
-  const sig=[c.id,RT.ctrVer,c.creditAsk].join('|');if(d._sig===sig)return;d._sig=sig;
+  const sig=[c.id,RT.ctrVer,c.creditAsk,anyAvail(c)].join('|');if(d._sig===sig)return;d._sig=sig;
   const p=getP(c);
   d.innerHTML=`<div class="dk-txt"><div class="dk-say">${esc(c.say)}</div><b>${esc(p.name.split(' ')[0])}</b> · ${n?`${n} pezz${n===1?'o':'i'} sul banco · ${fmt(tt.t)}${tt.sv?' + servizi':''}`:'banco vuoto: tocca i prodotti che ha chiesto'}</div>`+
-   (c.creditAsk?`<button class="btn gold sm" data-a="credit">Segna a credito</button><button class="btn alt sm" data-a="refuse">Fatti pagare</button>`:`<button class="btn gold sm" data-a="give">Consegna</button>`);
+   (c.creditAsk?`<button class="btn gold sm" data-a="credit">Segna a credito</button><button class="btn alt sm" data-a="refuse">Fatti pagare</button>`:`<button class="btn gold sm" data-a="give">${giveLabel(c)}</button>`);
 }
 function renderBanco(){
   if(RT.autoTab){const t=tabOf(RT.autoTab);RT.autoTab=null;if(t!==PCAT)setPCat(t);}
