@@ -139,15 +139,19 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .si.lock{opacity:.5}
 .tile.lot{background:#2F6B3F;color:#fff}
 .tile.sga{background:#6B4226;color:#F3D9B1}.tile.gio{background:#EDE6D6;color:#2A2A2A}.tile.alc{background:#7A1F2B;color:#fff}.tile.cbd{background:#3F7A3A;color:#fff}.tile.bar{background:#4A3426;color:#F5E6B8}
-.pseg button{min-width:0;font-size:12.5px;padding:0 3px}
-.pseg button[data-v="sig"]{flex:1.4}
+#pkSeg.pseg{display:grid;grid-template-columns:repeat(3,1fr)}
+.pseg button{min-width:0;font-size:13px;padding:0 4px;border-top:1px solid var(--line)}
+.pseg button:nth-child(-n+3){border-top:0}
 .ctr-head{display:flex;gap:12px;align-items:center}
 .ctr-head .face{width:58px;height:58px}
 .say{background:var(--surface2);border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:15.5px;line-height:1.35;margin-top:10px}
 .say.ask{border-left:3px solid var(--accent);font-size:14px}
 .tray{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:36px;align-items:center}
 .tray .muted{font-size:13px}
-.tchip{border:1px solid var(--sign);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 10px;font:600 13px var(--f-body);cursor:pointer}
+.tchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sign);background:var(--surface);color:var(--fg);border-radius:999px;padding:3px;font:600 13px var(--f-body)}
+.tchip span{padding:0 2px}
+.tq-b{width:30px;height:30px;border-radius:50%;border:0;background:var(--surface2);color:var(--fg);font:600 17px/1 var(--f-mono);cursor:pointer;display:grid;place-items:center;padding:0}
+.tq-b:active{background:var(--line)}
 .ctr-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .ctr-acts .btn.gold{flex:1 1 160px}
 .qrow{display:flex;flex-wrap:wrap;gap:8px}
@@ -668,7 +672,7 @@ const UPG=[
  {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[1200],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
  {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[700],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
  {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[800],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
- {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[15000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'+50% clienti al giorno, in bottega fino a 50 persone, luce +60 €/mese, TARI +40 €/mese'},
+ {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[15000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese'},
  {id:'scommesse',grp:'srv',name:'Licenza scommesse sportive',max:1,cost:[2500],desc:'Schedine, quote e discussioni sul rigore che non c\'era.',eff:()=>'provvigione 8% sulle giocate, canone 40 €/mese'},
  {id:'virtuali',grp:'srv',name:'Schermo per scommesse virtuali',max:1,cost:[1500],desc:'Cavalli finti, partite finte, soldi veri.',eff:()=>'provvigione 10%, +3% clienti, canone 20 €/mese'},
  {id:'caffe',grp:'rep',name:'Macchina del caffè',max:1,cost:[1200],desc:'Il caffè del tabacchino: non sarà il bar, ma è sempre caldo.',eff:()=>'sblocca il caffè (cialde a scaffale), luce +15 €/mese'},
@@ -856,7 +860,7 @@ const OPENERS=['Buongiorno! Mi dà ','Mi dà ','Salve, vorrei ','Per cortesia, '
 function sayRequest(lines){
   const parts=lines.map(sayLine);
   const txt=parts.length===1?parts[0]:parts.slice(0,-1).join(', ')+' e '+parts[parts.length-1];
-  return `«${pick(OPENERS)}${txt}.»`;
+  return `«${pick(OPENERS)}${txt}${txt.endsWith('.')?'':'.'}»`;
 }
 function spawnCustomer(forcedType){
   S.today.arrived++;
@@ -886,7 +890,7 @@ function spawnTick(dm){
   spawnCustomer();
   const rate=S.today.target*hourCurve(S.t)/RT.integ*(S.mod.until>S.t?S.mod.traffic:1);
   const mean=1/Math.max(rate,.001);
-  S.nextArr=S.t+Math.max(2.5,-Math.log(1-Math.random())*mean);
+  S.nextArr=S.t+Math.max(S.up.locale?1:2.5,-Math.log(1-Math.random())*mean);
 }
 function computeInteg(){let s=0;for(let t=OPEN;t<closeT();t++)s+=hourCurve(t);RT.integ=s||1;}
 
@@ -938,6 +942,7 @@ function deliver(credit){
   else if(missing.length)reply=pick(['«Finito? Peccato, andrò da un\'altra parte.»','«Non ce l\'ha? Va bene, pazienza.»']);
   else reply=pick(NICE);
   if(credit&&total>0){
+    if(p.never===undefined)p.never=chance(.2);
     p.debt=r2(p.debt+total);p.lent=r2(p.lent+total);T.credit=r2(T.credit+total);
     personHist(p,'credito',total,`${got} articoli`);tx('credito',total,`Segnato a credito: ${name}`,true);addRep(.3);
     log(`Segni ${fmt(total)} sul conto di ${name}. Ora ti deve ${fmt(p.debt)}.`,'warn');
@@ -949,7 +954,7 @@ function deliver(credit){
     RT.floatAmt=(RT.floatAmt||0)+total;
     if(perfect&&chance(perk('tips')?.22:.1)){const tip=r2(rnd(.2,1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
   }
-  if(!credit&&p&&p.debt>0&&chance(p.hon*.12)){
+  if(!credit&&p&&p.debt>0&&!p.never&&chance(p.hon*.12)){
     const pay=r2(Math.min(p.debt,Math.max(5,p.debt*rnd(.3,1))));
     p.debt=r2(p.debt-pay);p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);tx('cred',pay,`${name} salda di sua iniziativa`);personHist(p,'saldo',pay,'Di sua iniziativa');
     log(`${name}, già che c'è, ti ridà ${fmt(pay)} del suo conto.`,'good');
@@ -1043,7 +1048,7 @@ function askDebt(){
   const c=S.counter;if(!c||c.asked||RT.modal)return;
   const p=getP(c);if(!p||p.debt<=0)return;
   c.asked=true;RT.ctrVer++;
-  const h=clamp(p.hon+(perk('debtors')?.15:0),0,1),r=Math.random();
+  const h=p.never?0:clamp(p.hon+(perk('debtors')?.15:0),0,1),r=p.never?.22+Math.random()*.78:Math.random();
   if(r<h*.55){
     const pay=p.debt;p.debt=0;p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);tx('cred',pay,`${p.name} salda il conto`);personHist(p,'saldo',pay,'Saldato tutto');
     c.reply=`«Ha ragione, ecco qua.» Salda ${fmt(pay)}.`;addRep(.1);log(`${p.name} salda tutto: ${fmt(pay)}.`,'good');
@@ -1255,16 +1260,14 @@ function openDay(){
   S.counter=null;S.tray={};RT.last=null;RT.ovLog=RT.ovFin=RT.ovRap=0;
   if(S.speed===0)S.speed=1;
   if(S.day>=5&&S.rincari<6&&chance(.1))rincaro();
-  let tg=rnd(40,160)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
+  let tg=rnd(40,190)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
   if(S.day===1)tg=rnd(50,70); // primo giorno di rodaggio
-  if(S.up.locale)tg*=1.5;
-  S.today.target=Math.round(clamp(tg,30,S.up.locale?260:170));
+  if(S.up.locale)tg*=2.5;
+  S.today.target=Math.round(clamp(tg,30,S.up.locale?500:200));
   computeInteg();scheduleEvents();
   if(vizio()==='late'&&chance(.3)){const m=ri(60,120);S.freeze=m;log(`${S.ownerName} arriva tardi: «avevo un'udienza». La saracinesca si alza con ${m} minuti di ritardo.`,'warn');}
-  const tgt=S.today.target;
-  const f=tgt<60?'Giornata fiacca, si sente.':tgt<110?'Una giornata normale, dicono i piccioni.':tgt<140?'Il quartiere è in movimento: giornata piena.':'C\'è qualcosa nell\'aria: oggi entrano tutti.';
-  log(`${DAYS[wd(S.day)]}, ore 07:00. Alzi la saracinesca${isSunday(S.day)?' (oggi si chiude alle 13)':''}. ${f}`,'info');
-  RT.forecast=f;
+  log(`${S.ownerName} ha alzato la saracinesca.`,'info');
+  RT.forecast='';
   save();
 }
 function closeDay(){
@@ -1435,7 +1438,7 @@ function renderCounter(){
     if(c.creditAsk)h+=`<div class="say ask">${esc(c.ask)}</div>`;
     if(c.reply)h+=`<div class="reply">${esc(c.reply)}</div>`;
     const ids=Object.keys(S.tray);
-    h+=`<div class="tray">${ids.length?ids.map(id=>`<button class="tchip" data-rm="${id}" aria-label="Togli uno">${S.tray[id]}× ${esc(SV[id]?SV[id].name:PD[id].name)} ✕</button>`).join(''):'<span class="muted">Sul banco non c\'è ancora niente. Tocca nello scaffale qui sotto i prodotti che chiede (se servono due pezzi, tocca due volte), poi premi «Consegna».</span>'}</div>`;
+    h+=`<div class="tray">${ids.length?ids.map(id=>`<span class="tchip"><button class="tq-b" data-rm="${id}" aria-label="Togli uno">−</button><span>${S.tray[id]}× ${esc(SV[id]?SV[id].name:PD[id].name)}</span><button class="tq-b" data-add="${id}" aria-label="Aggiungi uno">+</button></span>`).join(''):'<span class="muted">Sul banco non c\'è ancora niente. Tocca nello scaffale qui sotto i prodotti che chiede (se servono due pezzi, tocca due volte), poi premi «Consegna».</span>'}</div>`;
     const tt=trayTotal();
     const tot=ids.length?` · ${fmt(tt.t)}${tt.sv?' + servizi':''}`:'';
     h+='<div class="ctr-acts">';
@@ -1450,7 +1453,7 @@ function renderCounter(){
     if(S.phase!=='open')tx='Bottega chiusa. Controlla scaffale e conti, poi alza la saracinesca.';
     else if(S.freeze>0)tx='Banco fermo per qualche minuto.';
     else if(S.t>=closeT())tx='Orario di chiusura. Non entra più nessuno.';
-    else tx=`Nessuno al banco. ${RT.forecast||''}`;
+    else tx='Nessuno al banco.';
     h+=`<div class="ctr-head">${ownerHtml(o)}<div><div class="cname">${esc(S.ownerName)}</div><div class="crole">${tx}</div></div></div>`;
   }
   const L=RT.last;
@@ -1466,6 +1469,7 @@ function setPCat(v){PCAT=v;$$('#pkSeg button').forEach(x=>x.setAttribute('aria-p
 function ctrClick(e){
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.rm){trayRemove(b.dataset.rm);render(true);return;}
+  if(b.dataset.add){const id=b.dataset.add,res=trayAdd(id);if(res==='out')toast(`${PD[id].name}: non ne hai altri sullo scaffale.`,'warn');render(true);return;}
   const a=b.dataset.a;
   if((a==='give'||a==='credit')&&!Object.keys(S.tray).length&&anyAvail(S.counter)){
     toast('Prima metti sul banco quello che chiede: tocca i prodotti nello scaffale qui sotto, poi «Consegna».','warn');
@@ -1762,7 +1766,7 @@ function startGame(owner,tr){
   S=newState(owner,tr);
   log(`${S.ownerName} ha sposato Ines e ha ereditato il suo tabacchino. I muri sono di famiglia: niente affitto, tutto il resto sì.`,'info');
   initOwnerUI();buildStockGrid();setTab('banco');save();
-  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>Ogni giorno entrano da 40 a 160 clienti, a caso. Ognuno passa al massimo due volte al giorno.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. Hanno pazienza, ma non infinita (gli anziani hanno più fretta, i giovani sono più tranquilli): la barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Il + su ogni prodotto serve a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul><p style="margin:4px 0 6px;font-weight:600">Come vuoi pagare le bollette?</p>${billSeg('introBill')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Si può cambiare quando vuoi da Conti.</p>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}],after(sh){sh.querySelector('#introBill').addEventListener('click',billSegClick);}});
+  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. La barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Sul banco usa − e + per cambiare le quantità. Il + nell'angolo di ogni prodotto dello scaffale serve invece a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul><p style="margin:4px 0 6px;font-weight:600">Come vuoi pagare le bollette?</p>${billSeg('introBill')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Si può cambiare quando vuoi da Conti.</p>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}],after(sh){sh.querySelector('#introBill').addEventListener('click',billSegClick);}});
 }
 function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=`<img src="${PORTS[o.img]}" alt="">`;$('#ownerFace').classList.add('px');RT.ctrSig='';}
 
