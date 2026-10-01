@@ -499,8 +499,7 @@ const PRODUCTS=[
  {id:'olo',cat:'cbd',name:'Olio CBD 10 ml',free:1,cost:12,price:25,tag:'OLIO CBD',gate:'cbd'},
  {id:'caf',cat:'bar',name:'Caffè',free:1,cost:.25,price:1,tag:'CAFFÈ',gate:'caffe'},
  {id:'pat',cat:'bar',name:'Patatine classiche',free:1,cost:.45,price:1.50,tag:'PATATINE',gate:'snackbar'},
- {id:'ppc',cat:'bar',name:'Patatine piccanti',free:1,cost:.50,price:1.60,tag:'PICCANTI',gate:'snackbar'},
- {id:'ghi',cat:'bar',name:'Busta di ghiaccio',free:1,cost:.30,price:1.50,tag:'GHIACCIO',gate:'ghiaccio'}
+ {id:'ppc',cat:'bar',name:'Patatine piccanti',free:1,cost:.50,price:1.60,tag:'PICCANTI',gate:'snackbar'}
 ];
 const CATDEF={
  sig:{label:'Sigarette',aggio:.10,cap:40,start:15,lot:10,lotName:'stecca'},
@@ -517,7 +516,7 @@ const CATDEF={
 const PD={};
 PRODUCTS.forEach(p=>{const c=CATDEF[p.cat];p.aggio=p.aggio!=null?p.aggio:c.aggio;p.cap=p.cap||c.cap;p.start=p.start!=null?p.start:c.start;p.lot=p.lot||c.lot;p.ref=p.price;PD[p.id]=p;});
 PD.g10.cap=40;PD.g10.lot=10;PD.g20.cap=20;PD.g20.lot=5;PD.g20.start=6;PD.g10.start=12;
-PD.caf.cap=100;PD.caf.lot=50;PD.ghi.cap=20;PD.vin.cap=12;PD.vin.lot=6;PD.cor.cap=10;PD.ava.cap=10;PD.olo.cap=10;PD.olo.lot=5;
+PD.caf.cap=100;PD.caf.lot=50;PD.vin.cap=12;PD.vin.lot=6;PD.cor.cap=10;PD.ava.cap=10;PD.olo.cap=10;PD.olo.lot=5;
 PD.bol.cap=20;PD.bol.lot=5;PD.bol.start=6;PD.pow.cap=12;PD.pow.lot=4;PD.pow.start=0;PD.bib.start=0;for(const k of ['tri','trv','trd']){PD[k].cap=20;PD[k].lot=5;}PD.acm.lot=5;PD.acr.lot=5;
 const BRANDS=PRODUCTS.filter(p=>p.cat==='sig');
 const SALECAT={sig:'tab',tab:'tab',gra:'gra',val:'val',ban:'ban',sga:'tab',gio:'gio',alc:'bar',cbd:'cbd',bar:'bar'};
@@ -621,7 +620,7 @@ const TYPES={
   wants:(c,p)=>{if(chance(.3))wantU(c,'caf');if(chance(.2))wantU(c,'gaz');if(chance(.75))want(c,'bol',ri(1,3));if(chance(.4))wantU(c,'pag');if(chance(.25))want(c,'fra',ri(1,4));if(chance(.3))want(c,brandOf(p));}},
  operaio:{role:'Lavoratore',g:.15,pat:95,
   quotes:['«Ho dieci minuti di pausa. Dieci.»','«Il solito. Lei sa.»','«Un attimo, che il camion è in doppia fila.»'],
-  wants:(c,p)=>{if(chance(.35))wantU(c,'caf');if(chance(.25))wantU(c,'bir');if(chance(.25))wantU(c,'sco');if(chance(.15))wantU(c,'pat');if(chance(.05))wantU(c,'ghi');if(chance(.1))wantU(c,'spo');if(chance(.7))want(c,chance(.25)?TRN():brandOf(p));if(chance(.15))want(c,CRT());if(chance(.3))want(c,ACC());if(chance(.3))want(c,pick(['g2','g5']));if(chance(.3))wantU(c,'bib');if(chance(.25))want(c,SNK());if(chance(.2))want(c,'del');}},
+  wants:(c,p)=>{if(chance(.35))wantU(c,'caf');if(chance(.25))wantU(c,'bir');if(chance(.25))wantU(c,'sco');if(chance(.15))wantU(c,'pat');if(chance(.1))wantU(c,'spo');if(chance(.7))want(c,chance(.25)?TRN():brandOf(p));if(chance(.15))want(c,CRT());if(chance(.3))want(c,ACC());if(chance(.3))want(c,pick(['g2','g5']));if(chance(.3))wantU(c,'bib');if(chance(.25))want(c,SNK());if(chance(.2))want(c,'del');}},
  cumenda:{role:'Lavoratore',g:.25,pat:90,
   quotes:['«Tenga il resto. No, il resto lo voglio.»','«Un gratta da venti. Anzi due, per scaramanzia.»','«L\'autista aspetta fuori. Faccia presto.»'],
   wants:(c,p)=>{if(chance(.35))wantU(c,'ava');if(chance(.2))wantU(c,'cor');if(chance(.2))wantU(c,'vin');if(chance(.2))wantU(c,'sco');if(chance(.08))wantU(c,'olo');want(c,pick(['g10','g20']),ri(1,2));if(chance(.7))want(c,pick(['mon','ash','sil','chr','mrl']),ri(1,2));if(chance(.35))want(c,'sup');if(chance(.15))want(c,'acr');if(chance(.15))wantU(c,'pow');}},
@@ -715,28 +714,27 @@ const UPG=[
  {id:'caramelle',grp:'base',name:'Barattolo delle caramelle',max:1,cost:[10],desc:'Menta, liquirizia e gommose. Il resto in caramelle non vale più.',eff:()=>'sblocca 3 tipi di caramelle'},
  {id:'valori',grp:'base',name:'Valori bollati e cartoline',max:1,cost:[80],desc:'Marche da bollo, francobolli e cartoline di Reggio per i pochi che scrivono ancora.',eff:()=>'sblocca bolli, francobolli e cartoline'},
  {id:'fumo',grp:'base',name:'Accendini, cartine e trinciati',max:1,cost:[50],desc:'Per chi le sigarette se le arrotola da sé, e per chi perde sempre l\'accendino.',eff:()=>'sblocca 3 accendini, 3 tipi di cartine e filtri, 3 trinciati'},
- {id:'insegna',grp:'neg',name:'Insegna luminosa',max:3,cost:[800,1800,3500],desc:'Più luce, più clienti. Più bolletta, ma quella arriva dopo.',eff:l=>`affluenza +${l*8}%, luce +${l*50} €/mese`},
- {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[600,1400,2800],desc:'Tabacchi in alto, gratta e vinci in basso. Merce in vista, clienti in più.',eff:l=>`+${l*4}% clienti`},
- {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[700],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
- {id:'sedie',grp:'neg',name:'Sedie per la coda',max:2,cost:[500,1200],desc:'Chi aspetta seduto non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%`},
- {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[900],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
- {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[1200],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
+ {id:'insegna',grp:'neg',name:'Insegna luminosa',max:3,cost:[400,900,1750],desc:'Più luce, più clienti. Più bolletta, ma quella arriva dopo.',eff:l=>`affluenza +${l*8}%, luce +${l*50} €/mese`},
+ {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[300,700,1400],desc:'Tabacchi in alto, gratta e vinci in basso. Merce in vista, clienti in più.',eff:l=>`+${l*4}% clienti`},
+ {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[500],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
+ {id:'sedie',grp:'neg',name:'Sedie e tavolini fuori',max:2,cost:[500,1200],desc:'Due tavolini sul marciapiede: chi aspetta si siede, fuma e non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%`},
+ {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[700],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
+ {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[1000],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
  {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[700],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
- {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[800],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
- {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[15000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese'},
+ {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[300],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
+ {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[20000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese'},
  {id:'scommesse',grp:'srv',name:'Licenza scommesse sportive',max:1,cost:[2500],desc:'Schedine, quote e discussioni sul rigore che non c\'era.',eff:()=>'provvigione 8% sulle giocate, canone 40 €/mese'},
  {id:'virtuali',grp:'srv',name:'Schermo per scommesse virtuali',max:1,cost:[1500],desc:'Cavalli finti, partite finte, soldi veri.',eff:()=>'provvigione 10%, +3% clienti, canone 20 €/mese'},
- {id:'caffe',grp:'rep',name:'Macchina del caffè',max:1,cost:[1200],desc:'Il caffè del tabacchino: non sarà il bar, ma è sempre caldo.',eff:()=>'sblocca il caffè (cialde a scaffale), luce +15 €/mese'},
- {id:'snackbar',grp:'rep',name:'Scaffale patatine',max:1,cost:[500],desc:'Patatine classiche e piccanti, per chi aspetta il treno.',eff:()=>'sblocca le patatine'},
- {id:'giornali',grp:'rep',name:'Scaffale per i giornali',max:1,cost:[700],desc:'Il quotidiano, lo sportivo e l\'enigmistica dei pensionati.',eff:()=>'sblocca i giornali (aggio 19%)'},
+ {id:'caffe',grp:'rep',name:'Macchina del caffè',max:1,cost:[800],desc:'Il caffè del tabacchino: non sarà il bar, ma è sempre caldo.',eff:()=>'sblocca il caffè (cialde a scaffale), luce +15 €/mese'},
+ {id:'snackbar',grp:'rep',name:'Scaffale patatine',max:1,cost:[200],desc:'Patatine classiche e piccanti, per chi aspetta il treno.',eff:()=>'sblocca le patatine'},
+ {id:'giornali',grp:'rep',name:'Scaffale per i giornali',max:1,cost:[500],desc:'Il quotidiano, lo sportivo e l\'enigmistica dei pensionati.',eff:()=>'sblocca i giornali (aggio 19%)'},
  {id:'alcol',grp:'rep',name:'Licenza alcolici',max:1,cost:[1800],desc:'Birra, vino della casa e amaro in mignon.',eff:()=>'sblocca birra, vino e amaro'},
- {id:'ghiaccio',grp:'rep',name:'Macchina del ghiaccio',max:1,cost:[600],desc:'D\'estate vale oro. D\'inverno fa rumore.',eff:()=>'sblocca le buste di ghiaccio, luce +10 €/mese'},
  {id:'umidor',grp:'rep',name:'Scaffale per i sigari',max:1,cost:[1500],desc:'Legno, umidità controllata e un profumo che resta addosso.',eff:()=>'sblocca sigari e sigaretti'},
  {id:'sigaripremium',grp:'rep',name:'Sigari particolari',max:1,cost:[2500],req:'umidor',desc:'Avana e Gran Corona per chi vuole farsi notare.',eff:()=>'sblocca i sigari di pregio'},
  {id:'cbd',grp:'rep',name:'Scaffale cannabis light',max:1,cost:[1200],desc:'Rende bene, ma ogni tanto passa un controllo.',eff:()=>'sblocca cannabis light e olio CBD, possibili controlli'},
- {id:'tv',grp:'svago',name:'TV con le partite',max:1,cost:[800],desc:'Con la partita accesa, l\'attesa passa prima.',eff:()=>'+5% clienti (+10% la domenica), pazienza +10%, luce +10 €/mese'},
- {id:'slot',grp:'svago',name:'Slot machine',max:2,cost:[3000,3500],desc:'Lucine, musichetta e qualche euro ogni sera.',eff:l=>`incasso serale da ${l} macchin${l>1?'e':'a'}, luce +${15*l} €/mese`},
- {id:'condiz',grp:'svago',name:'Condizionatore',max:1,cost:[900],desc:'In bottega si sta bene: la gente aspetta volentieri.',eff:()=>'pazienza +15%, luce +20 €/mese'},
+ {id:'tv',grp:'svago',name:'TV con le partite',max:1,cost:[500],desc:'Con la partita accesa, l\'attesa passa prima.',eff:()=>'+5% clienti (+10% la domenica), pazienza +10%, luce +10 €/mese'},
+ {id:'slot',grp:'svago',name:'Slot machine',max:2,cost:[1800,2100],desc:'Lucine, musichetta e qualche euro ogni sera.',eff:l=>`incasso serale da ${l} macchin${l>1?'e':'a'}, luce +${15*l} €/mese`},
+ {id:'condiz',grp:'svago',name:'Condizionatore',max:1,cost:[700],desc:'In bottega si sta bene: la gente aspetta volentieri.',eff:()=>'pazienza +15%, luce +20 €/mese'},
  {id:'distrib',grp:'svago',name:'Distributore automatico h24',max:1,cost:[2500],desc:'Vende sigarette anche quando dormi.',eff:()=>'incasso notturno di 15-45 € al giorno, luce +15 €/mese'},
  {id:'srvPag',grp:'srv',name:'Pagamento bollettini',max:1,cost:[1500],desc:'Bollette, bollettini, F24. Tutti in coda, nessuno col contante giusto.',eff:()=>'1,10 € a pratica, canone 25 €/mese'}
 ];
@@ -1288,7 +1286,7 @@ function rincaro(){
 /* ===== scadenze ===== */
 function billsFor(d){
   const g=dom(d),b=[],disc=perk('bills')?.9:1,pdisc=perk('prof')?.5:1;
-  const luce=r2((110+40*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.ghiaccio+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib+60*S.up.locale)*disc),tel=r2(30*disc),gas=r2(45*disc);
+  const luce=r2((110+40*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib+60*S.up.locale)*disc),tel=r2(30*disc),gas=r2(45*disc);
   const mode=S.billMode||'m';
   if(mode==='m'){
     if(g===5)b.push({cat:'boll',amt:luce,label:'Bolletta della luce'});
@@ -1466,7 +1464,7 @@ const SVTAG={vgv:'PAGA VINCITA',lot:'LOTTO',sup:'SUPER ENALOTTO',del:'10eLOTTO',
 let SG={};
 function buildStockGrid(){
   const g=$('#stockgrid');g.innerHTML='';SG={};
-  if(PCAT==='alt'&&!PRODUCTS.some(p=>PCATS.alt.includes(p.cat)&&visible(p.id))){g.innerHTML='<p class="muted" style="grid-column:1/-1;margin:0;font-size:13px">Qui compaiono sigari, giornali, alcolici, cannabis light, caffè, patatine e ghiaccio, appena li compri nella sezione Bottega.</p>';RT.gridSig=gridSig();return;}
+  if(PCAT==='alt'&&!PRODUCTS.some(p=>PCATS.alt.includes(p.cat)&&visible(p.id))){g.innerHTML='<p class="muted" style="grid-column:1/-1;margin:0;font-size:13px">Qui compaiono sigari, giornali, alcolici, cannabis light, caffè, patatine, appena li compri nella sezione Bottega.</p>';RT.gridSig=gridSig();return;}
   if(PCAT==='lot'){
     for(const id in SV){
       const w=el('div','sitem');const b=el('button','si');b.type='button';b.dataset.sv=id;
