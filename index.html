@@ -128,6 +128,29 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .si .mb i{display:block;height:100%;background:var(--sign)}
 .si.low{border-color:var(--warn)} .si.low .mb i{background:var(--warn)}
 .si.out{border-color:var(--bad);border-width:2px;padding:5px} .si.out .ct{color:var(--bad)}
+.sitem{position:relative;min-width:0;display:grid}
+.sbuy{position:absolute;top:-7px;right:-7px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 17px/1 var(--f-mono);cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.15);padding:0}
+.tq{position:absolute;top:-7px;left:-7px;box-shadow:0 2px 6px rgba(0,0,0,.2);background:var(--accent);color:var(--accentfg);font:600 12px/20px var(--f-mono);border-radius:999px;min-width:22px;padding:0 6px;text-align:center;pointer-events:none}
+.si.lock{opacity:.5}
+.tile.lot{background:#2F6B3F;color:#fff}
+.pseg button{min-width:0;font-size:12.5px;padding:0 3px}
+.ctr-head{display:flex;gap:12px;align-items:center}
+.ctr-head .face{width:58px;height:58px}
+.say{background:var(--surface2);border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:15.5px;line-height:1.35;margin-top:10px}
+.say.ask{border-left:3px solid var(--accent);font-size:14px}
+.tray{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:36px;align-items:center}
+.tray .muted{font-size:13px}
+.tchip{border:1px solid var(--sign);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 10px;font:600 13px var(--f-body);cursor:pointer}
+.ctr-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ctr-acts .btn.gold{flex:1 1 160px}
+.qrow{display:flex;flex-wrap:wrap;gap:8px}
+.qp{display:grid;justify-items:center;gap:3px;width:54px;font-size:11px;color:var(--muted);text-align:center;line-height:1.1;overflow:hidden}
+.qp .face{width:40px;height:40px}
+.qp.debt .face{box-shadow:0 0 0 2px var(--bad)}
+.lastres{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
+.lastres .face{width:34px;height:34px}
+.tag{display:inline-block;font:600 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;border-radius:6px;padding:1px 6px;margin-right:4px}
+.tag.ok{background:var(--good);color:#fff} .tag.ko{background:var(--bad);color:#fff} .tag.mid{background:var(--accent);color:var(--accentfg)}
 .pack{height:46px;border-radius:5px;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:4px 5px 3px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
 .pack b{font:400 10.5px/1.05 var(--f-display);letter-spacing:.02em}
 .pack i{font-style:normal;font-size:6.5px;line-height:1.1;background:#fff;color:#111;padding:1px 2px;border-radius:1px;text-transform:uppercase;font-weight:700;letter-spacing:.02em}
@@ -262,16 +285,13 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   </div>
   <main>
     <section class="tab" id="tab-banco">
+      <div class="card ctr" id="ctr"></div>
       <div class="card">
-        <div class="counter-top"><div class="face" id="ownerFace2"></div><div class="pstatus" id="pstatus">Bottega chiusa.</div></div>
-        <div class="svbar"><i id="svbar"></i></div>
+        <h2>Scaffale <small id="pkHint"></small></h2>
+        <div class="seg pseg" id="pkSeg" role="group" aria-label="Reparto"><button data-v="sig" aria-pressed="true">Sigarette</button><button data-v="gra" aria-pressed="false">Gratta</button><button data-v="lot" aria-pressed="false">Lotterie</button><button data-v="val" aria-pressed="false">Valori</button><button data-v="ban" aria-pressed="false">Banco</button></div>
+        <div class="sgrid" id="stockgrid" style="margin-top:10px"></div>
       </div>
-      <div class="queue" id="queue"></div>
-      <div class="card empty" id="qempty"><b>Nessuno in coda</b><span id="qemptytx"></span></div>
-      <div class="card">
-        <h2>Scorte <small>Tocca un prodotto per comprarlo</small></h2>
-        <div class="sgrid" id="stockgrid"></div>
-      </div>
+      <div class="card"><h2>In coda <small id="qcount"></small></h2><div class="qrow" id="queue"></div></div>
       <div class="card">
         <h2>Oggi in bottega</h2>
         <div class="minirow"><span>Clienti serviti</span><b class="mono" id="m-served">0</b></div>
@@ -486,9 +506,9 @@ function faceSVG(f,mood){
 }
 
 /* ===== tipi di cliente ===== */
-const FN_M=['Aldo','Gennaro','Salvatore','Peppino','Franco','Mario','Luigi','Ciro','Antonio','Vincenzo','Raffaele','Sergio','Bruno','Enzo','Gianni','Tonino','Pasquale','Marco','Luca','Davide','Simone','Matteo','Alessio','Nicola','Carmine','Rocco','Michele','Fabio','Stefano','Gigi','Ottavio','Lino'];
-const FN_F=['Pina','Rosetta','Concetta','Assunta','Carmela','Teresa','Lucia','Anna','Maria','Giulia','Chiara','Sara','Federica','Martina','Patrizia','Rita','Nunzia','Filomena','Graziella','Ilaria','Elisa','Valentina','Marisa','Gina','Ornella','Tiziana'];
-const SURN=['Esposito','Russo','Romano','Colombo','Ricci','Marino','Greco','Bruno','Gallo','Conti','De Luca','Mancini','Costa','Giordano','Rizzo','Lombardi','Moretti','Barbieri','Fontana','Santoro','Mariani','Rinaldi','Caruso','Ferrara','Galli','Martini','Leone','Longo','Gentile','Vitale','Serra','Coppola','De Santis','D\'Angelo','Marchetti','Parisi','Villa','Ferri','Fabbri','Bianco','Grasso','Messina','Sala','De Rosa','Gatti','Palumbo','Sanna','Farina','Monti','Cattaneo','Morelli','Amato','Silvestri','Mazza','Testa','Carbone','Barone','Caputo','Guerra','Palmieri','Fiore','Basile','Piras','Neri','Pagano','Sorrentino','Orlando','Brambilla','Fumagalli','Scognamiglio'];
+const FN_M=['Domenico','Giuseppe','Antonino','Francesco','Rocco','Carmelo','Saverio','Demetrio','Natale','Santo','Pasquale','Vincenzo','Bruno','Fortunato','Filippo','Paolo','Giovanni','Salvatore','Michele','Consolato','Antonio','Nicola','Pietro','Sebastiano','Mimmo','Peppe','Ciccio','Nino','Mattia','Andrea','Gabriele','Alessandro'];
+const FN_F=['Maria','Caterina','Concetta','Carmela','Rosa','Annunziata','Giuseppina','Domenica','Teresa','Grazia','Assunta','Antonietta','Santina','Consolata','Filomena','Francesca','Angela','Immacolata','Vincenza','Natalina','Fortunata','Serafina','Mimma','Pina','Federica','Martina','Giulia','Chiara','Ilenia','Valentina'];
+const SURN=['Romeo','Foti','Nucera','Sergi','Zema','Cuzzocrea','Barreca','Tripodi','Laganà','Polimeni','Pellicanò','Malara','Calabrò','Crucitti','Pansera','Musolino','Cotroneo','Marcianò','Familiari','Spinella','Comi','Minniti','Praticò','Siclari','Megale','Ielo','Surace','Vadalà','Repaci','Logoteta','Fallanca','Gangemi','Laface','Zumbo','Quattrone','Idone','Meduri','Arena','Scordo','Chirico','Errigo','Ficara','Iero','Latella','Mazzitelli','Nocera','Puntorieri','Richichi','Scaramuzzino','Sapone','Suraci','Stillitano','Barillà','Cama','Modafferi','Lofaro','Caridi','Cogliandro','Sgrò','Albanese','Squillaci','Bova','Neri','Battaglia','Morello','Tuscano','Marino','Pirrello','Saccà','Votano','Giordano','Lascala'];
 const TOUR_N=['Hans','Greta','Kevin','Sophie','Jan','Ingrid','Pierre','Akiko','Bob','Mary','Lars','Olga'];
 const TOUR_S=['Müller','Dupont','Smith','Jansen','Tanaka','Novak','Larsen','O\'Brien','Schmidt','Kowalski'];
 
@@ -562,9 +582,9 @@ function makeTourist(){
 const OWNERS=[
  {id:'ines',name:'Ines',desc:'La titolare. Giovane, in carne, con una risata che si sente dalla piazza. Conosce tutti per nome.',perk:'Reputazione guadagnata +40%',malus:null,
   face:{skin:'#EBC09C',hc:'#3A2418',shirt:'#0B2F63',bg:'#F5E6B8',hair:'long',ear:true,lip:'#C2566E',blush:true,wide:true}},
- {id:'nando',name:'Nando',desc:'Ex barista. Batte uno scontrino prima che tu finisca di chiederlo.',perk:'Servizio più veloce del 25%',malus:'Beve 1-2 birre al giorno, e dopo la seconda il resto a volte lo sbaglia',
+ {id:'nando',name:'Nando',desc:'Ex barista. Sa sempre cosa dire al cliente scontento.',perk:'Gli sbagli al banco costano metà reputazione: rimedia con una battuta',malus:'Beve 1-2 birre al giorno, e dopo la seconda il resto a volte lo sbaglia',
   face:{skin:'#DDA67D',hc:'#1C1C1C',shirt:'#8A3B3B',bg:'#CFE3F1',hair:'slick',must:true}},
- {id:'assunta',name:'Assunta',desc:'Racconta storie a chi aspetta. In coda nessuno si annoia.',perk:'Clienti più pazienti del 25%',malus:'Sgranocchia 2-4 snack al giorno dagli scaffali',
+ {id:'assunta',name:'Assunta',desc:'Racconta storie a chi aspetta. In coda nessuno si annoia.',perk:'In bottega entrano 4 persone in più: restano a sentire le sue storie',malus:'Sgranocchia 2-4 snack al giorno dagli scaffali',
   face:{skin:'#F3D2B6',hc:'#D7D2CB',shirt:'#6B4E8A',bg:'#F1D3D9',hair:'curly',ear:true,blush:true,old:true,glasses:true}},
  {id:'ciro',name:'Ciro',desc:'Cugino del grossista. O almeno così dice il grossista.',perk:'Merce scontata del 4%',malus:'Vizio del gioco: ogni giorno gratta e gioca a Lotto e SuperEnalotto',
   face:{skin:'#C78C62',hc:'#2B211B',shirt:'#3F6E4E',bg:'#D9EBD3',hair:'curly',beard:true}},
@@ -579,8 +599,8 @@ const OWD={};OWNERS.forEach(o=>OWD[o.id]=o);
 const UPG=[
  {id:'insegna',grp:'neg',name:'Insegna luminosa',max:3,cost:[800,1800,3500],desc:'Più luce, più clienti. Più bolletta, ma quella arriva dopo.',eff:l=>`affluenza +${l*8}%, luce +${l*50} €/mese`},
  {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[600,1400,2800],desc:'Tabacchi in alto, gratta e vinci in basso. Il Feng Shui del monopolio.',eff:l=>`capienza +${l*50}%`},
- {id:'registratore',grp:'neg',name:'Registratore di cassa nuovo',max:2,cost:[700,1600],desc:'Fa «bip» più in fretta. Il resto lo conti ancora a mente.',eff:l=>`servizio ${[0,20,35][l]}% più veloce`},
- {id:'sedie',grp:'neg',name:'Sedie per la coda',max:2,cost:[500,1200],desc:'Chi aspetta seduto aspetta meglio. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%, coda +${l*3} posti`},
+ {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[700],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
+ {id:'sedie',grp:'neg',name:'Sedie per la coda',max:2,cost:[500,1200],desc:'Chi aspetta seduto non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`in bottega entrano ${l*3} persone in più`},
  {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[900],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
  {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[1200],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
  {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[700],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
@@ -610,12 +630,12 @@ function newState(owner,oname){
   const people=[];let id=0;
   for(const t in RESIDENT_TYPES)for(let i=0;i<RESIDENT_TYPES[t];i++)people.push(makePerson(t,id++));
   const bw={};BRANDS.forEach(b=>bw[b.id]=b.pop);
-  return{v:2,owner,ownerName:oname||OWD[owner].name,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:3000,deposit:0,rep:0,speed:1,stock,price,
+  return{v:2,calabro:1,counter:null,tray:{},owner,ownerName:oname||OWD[owner].name,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:3000,deposit:0,rep:0,speed:1,stock,price,
     up:{insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0},
     people,queue:[],nid:1,today:newToday(),aggD:{},aggM:{},aggA:{},tx:[],history:[],log:[],
     freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,invested:0,loan:null,debtDays:0,over:false,intro:false};
 }
-function save(){try{const c=JSON.parse(JSON.stringify(S));c.queue.forEach(q=>{q.serving=false;});localStorage.setItem(KEY,JSON.stringify(c));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function load(){
   try{
     const raw=localStorage.getItem(KEY);if(!raw)return null;
@@ -626,13 +646,16 @@ function load(){
     m.today=Object.assign(newToday(),s.today);
     if(m.phase==='open')m.speed=0;
     if(!m.ownerName)m.ownerName=OWD[m.owner].name;
+    if(!m.tray)m.tray={};if(m.counter===undefined)m.counter=null;
+    m.queue.forEach(c=>{if(!c.say)c.say=sayRequest(c.lines);});if(m.counter&&!m.counter.say)m.counter.say=sayRequest(m.counter.lines);
+    if(!m.calabro){m.people.forEach(pp=>{if(pp.id>=0){const f=pp.f?pick(FN_F):pick(FN_M);pp.name=`${f} ${pick(SURN)}`;}});m.calabro=1;}
     m.people.forEach(pp=>{if(!PD[pp.brand]){const w={};BRANDS.forEach(b=>w[b.id]=b.pop);pp.brand=pickW(w);}});
     if(!PD[m.ownerBrand])m.ownerBrand=BRANDS[0].id;
     return m;
   }catch(e){return null;}
 }
 let S=load();
-const RT={modal:false,events:[],lastSave:0,logVer:0,txVer:0,turnLogT:-999,counter:{cust:null,left:0,total:1},integ:1};
+const RT={modal:false,events:[],lastSave:0,logVer:0,txVer:0,ctrVer:0,turnLogT:-999,integ:1,last:null};
 
 /* ===== calcoli ===== */
 const perk=id=>S&&S.owner===id;
@@ -656,7 +679,7 @@ function hourCurve(t){
   if(h<9)return 1.6;if(h<12)return .9;if(h<14)return 1.3;if(h<16)return .6;if(h<17.5)return .95;if(h<19.5)return 1.6;return 1.0;
 }
 function priceFactor(id){const d=PD[id];if(!d.free)return 1;return clamp(Math.pow(d.ref/S.price[id],1.7),0,1.5);}
-const queueCap=()=>8+3*S.up.sedie;
+const queueCap=()=>10+3*S.up.sedie+(perk('assunta')?4:0);
 function tx(cat,amt,label,neutral){
   amt=r2(amt);
   S.tx.unshift({d:S.day,t:Math.floor(S.t),cat,amt,label});if(S.tx.length>300)S.tx.length=300;
@@ -697,11 +720,42 @@ function pickPerson(type){
   const w={};cand.forEach(p=>{w[p.id]=p.reg*(p.debt>60&&p.hon<.4?.3:1);});
   return S.people[+pickW(w)];
 }
+/* frasi delle richieste */
+const NUMW=['','un','due','tre','quattro','cinque','sei','sette','otto','nove','dieci'];
+const nw=n=>NUMW[n]||String(n);
+const SAY={
+  tri:q=>q===1?'un trinciato Pipa Fina':`${nw(q)} trinciati Pipa Fina`,
+  car:q=>q===1?'cartine e filtri':`${nw(q)} confezioni di cartine`,
+  bol:q=>q===1?'una marca da bollo da 16':`${nw(q)} marche da bollo da 16`,
+  fra:q=>q===1?'un francobollo':`${nw(q)} francobolli`,
+  bus:q=>q===1?'un biglietto del bus':`${nw(q)} biglietti del bus`,
+  acc:q=>q===1?'un accendino':`${nw(q)} accendini`,
+  cam:q=>q===1?'le caramelle alla menta':`${nw(q)} pacchetti di caramelle alla menta`,
+  sna:q=>q===1?'uno snack':`${nw(q)} snack`,
+  cpo:q=>q===1?'una cartolina':`${nw(q)} cartoline`,
+  bib:q=>q===1?'una bibita in lattina':`${nw(q)} bibite in lattina`,
+  pow:q=>q===1?'un powerbank':`${nw(q)} powerbank`,
+  lot:()=>'una giocata al Lotto',sup:()=>'una schedina del SuperEnalotto',del:()=>'una giocata al 10eLotto',
+  ric:()=>'una ricarica telefonica',pag:()=>'di pagare un bollettino'
+};
+function sayLine(l){
+  if(SAY[l.id])return SAY[l.id](l.q);
+  const d=PD[l.id];
+  if(d.cat==='sig')return l.q===1?`un pacchetto di ${d.name}`:`${nw(l.q)} pacchetti di ${d.name}`;
+  if(d.cat==='gra')return `${l.q===1?'un':nw(l.q)} Gratta e Vinci da ${d.price} €`;
+  return `${nw(l.q)} ${d.name}`;
+}
+const OPENERS=['Buongiorno! Mi dà ','Mi dà ','Salve, vorrei ','Per cortesia, ','Allora… mi dà ','Mi faccia ','Buongiorno, vorrei '];
+function sayRequest(lines){
+  const parts=lines.map(sayLine);
+  const txt=parts.length===1?parts[0]:parts.slice(0,-1).join(', ')+' e '+parts[parts.length-1];
+  return `«${pick(OPENERS)}${txt}.»`;
+}
 function spawnCustomer(forcedType){
   S.today.arrived++;
   if(S.queue.length>=queueCap()){
     S.today.turned++;addRep(-.15);
-    if(S.t-RT.turnLogT>40){RT.turnLogT=S.t;log('Coda piena: qualcuno guarda dentro, sospira e tira dritto.','warn');}
+    if(S.t-RT.turnLogT>40){RT.turnLogT=S.t;log('Bottega piena: qualcuno guarda dentro, sospira e tira dritto.','warn');}
     return null;
   }
   const type=forcedType||pickType();
@@ -711,10 +765,9 @@ function spawnCustomer(forcedType){
   T.wants(ctx,p);
   if(isSunday(S.day)&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
   if(!ctx.lines.length)want(ctx,brandOf(p));
-  let pat=T.pat*(1+.25*S.up.sedie)*(perk('assunta')?1.25:1)*rnd(.85,1.15);
-  const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,pat,patMax:pat,mult:T.mult||1,serving:false,
+  const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),
     quote:pick(T.quotes),creditAsk:false,asked:false,reply:null};
-  if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.quote=pick(ASKCRED);}
+  if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.ask=pick(ASKCRED);}
   S.queue.push(c);return c;
 }
 function spawnTick(dm){
@@ -724,82 +777,94 @@ function spawnTick(dm){
 }
 function computeInteg(){let s=0;for(let t=OPEN;t<closeT();t++)s+=hourCurve(t);RT.integ=s||1;}
 
-/* ===== banco ===== */
-function svcTime(c){
-  let t=.8;for(const l of c.lines)t+=SV[l.id]?.5:.3+.1*(l.q-1);
-  return t*c.mult*[1,.8,.65][S.up.registratore]*(perk('nando')?.75:1);
-}
+/* ===== banco: il giocatore sceglie e consegna ===== */
 function personHist(p,type,amt,note){if(!p||p.id<0)return;p.hist.unshift({d:S.day,t:Math.floor(S.t),type,amt:r2(amt),note});if(p.hist.length>40)p.hist.length=40;}
-function serve(id,credit){
-  if(RT.modal||S.phase!=='open')return false;
-  const ctr=RT.counter,c=S.queue.find(q=>q.id===id);
-  if(!c||c.serving)return false;
-  if(ctr.cust||S.freeze>0)return false;
-  c.serving=true;c.credit=!!credit;ctr.cust=c;ctr.total=ctr.left=svcTime(c);return true;
+function callNext(){
+  if(S.counter||!S.queue.length||S.freeze>0||S.phase!=='open')return;
+  S.counter=S.queue.shift();S.tray={};RT.ctrVer=(RT.ctrVer||0)+1;
 }
-function finishServe(){
-  const ctr=RT.counter,c=ctr.cust;ctr.cust=null;
-  const i=S.queue.indexOf(c);if(i>=0)S.queue.splice(i,1);
-  settle(c);
+function trayAdd(id){
+  const c=S.counter;if(!c)return 'none';
+  if(SV[id]){if(!svAvail(id))return 'locked';S.tray[id]=(S.tray[id]||0)+1;RT.ctrVer++;return 'ok';}
+  const have=S.tray[id]||0;if(S.stock[id]-have<=0)return 'out';
+  S.tray[id]=have+1;RT.ctrVer++;return 'ok';
 }
-function settle(c){
-  const T=S.today,p=getP(c);
-  const byCat={};let total=0,got=0,miss=[];
-  for(const l of c.lines){
-    if(SV[l.id]){
-      if(c.credit){continue;}
-      if(!svAvail(l.id)){miss.push(SV[l.id].name);addRep(-.1);T.missed++;continue;}
-      const f=SV[l.id].fee();byCat.srv=(byCat.srv||0)+f;total+=f;got++;addRep(.02);T.okItems++;continue;
+function trayRemove(id){if(S.tray[id]){S.tray[id]--;if(!S.tray[id])delete S.tray[id];RT.ctrVer++;}}
+const pen=d=>d*(perk('nando')?.5:1);
+const NICE=['«Perfetto, grazie!»','«Lei sì che è precisa. Arrivederci!»','«Tutto giusto, alla prossima.»','«Grazie, buona giornata!»','«Così mi piace. Salutamu!»'];
+function deliver(credit){
+  const c=S.counter;if(!c||RT.modal)return null;
+  const T=S.today,p=getP(c),name=p?p.name:'Cliente';
+  const W={};c.lines.forEach(l=>W[l.id]=(W[l.id]||0)+l.q);
+  const ids=new Set([...Object.keys(W),...Object.keys(S.tray)]);
+  const byCat={};let total=0,got=0;const wrong=[],forgot=[],missing=[],noCred=[];
+  for(const id of ids){
+    const give=S.tray[id]||0,q=W[id]||0,ok=Math.min(give,q),extra=give-ok,short=q-ok;
+    if(extra>0)wrong.push(`${extra}× ${SV[id]?SV[id].name:PD[id].name}`);
+    if(SV[id]){
+      if(ok>0){
+        if(credit){noCred.push(SV[id].name);}
+        else{const f=SV[id].fee();byCat.srv=(byCat.srv||0)+f;total+=f;got++;T.okItems++;}
+      }
+      if(short>0){if(!svAvail(id))missing.push(SV[id].name);else forgot.push(SV[id].name);}
+      continue;
     }
-    const n=Math.min(S.stock[l.id],l.q);
-    if(n>0){S.stock[l.id]-=n;const v=S.price[l.id]*n;const k=SALECAT[PD[l.id].cat];byCat[k]=(byCat[k]||0)+v;total+=v;got+=n;addRep(.02*n);T.okItems+=n;}
-    if(n<l.q){miss.push(PD[l.id].name);addRep(-.1*(l.q-n));T.missed+=l.q-n;}
+    if(ok>0){S.stock[id]-=ok;const v=S.price[id]*ok;const k=SALECAT[PD[id].cat];byCat[k]=(byCat[k]||0)+v;total+=v;got+=ok;T.okItems+=ok;}
+    if(short>0){if(S.stock[id]<=0)missing.push(PD[id].name);else forgot.push(PD[id].name);}
   }
   total=r2(total);
-  const name=p?p.name:'Cliente';
-  if(c.credit){
-    if(total>0){
-      p.debt=r2(p.debt+total);p.lent=r2(p.lent+total);T.credit=r2(T.credit+total);
-      personHist(p,'credito',total,`${got} articoli`);
-      tx('credito',total,`Segnato a credito: ${name}`,true);
-      addRep(.3);
-      log(`Segni ${fmt(total)} sul conto di ${name}. Ora ti deve ${fmt(p.debt)}.`,'warn');
-    }
-    T.served++;
-  }else{
-    if(total>0){
-      for(const k in byCat){const v=r2(byCat[k]);S.cash=r2(S.cash+v);for(const a of [S.aggD,S.aggM,S.aggA])a[k]=r2((a[k]||0)+v);}
-      T.sales=r2(T.sales+total);
-      S.tx.unshift({d:S.day,t:Math.floor(S.t),cat:'vendita',amt:total,label:`${name} · ${got} articol${got===1?'o':'i'}${miss.length?' (mancava qualcosa)':''}`});
-      if(S.tx.length>300)S.tx.length=300;RT.txVer++;
-      RT.floatAmt=(RT.floatAmt||0)+total;
-      if(chance(perk('loredana')?.2:.1)){const tip=r2(rnd(.2,1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
-    }
-    T.served++;
-    if(p&&p.debt>0&&chance(p.hon*.12)){
-      const pay=r2(Math.min(p.debt,Math.max(5,p.debt*rnd(.3,1))));
-      p.debt=r2(p.debt-pay);p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);tx('cred',pay,`${name} salda di sua iniziativa`);personHist(p,'saldo',pay,'Di sua iniziativa');
-      log(`${name}, già che c'è, ti ridà ${fmt(pay)} del suo conto.`,'good');
-    }
+  const perfect=!wrong.length&&!forgot.length&&!missing.length;
+  addRep(.04*got+(perfect?.12:0));
+  if(wrong.length)addRep(pen(-.4*wrong.length));
+  if(forgot.length)addRep(pen(-.3*forgot.length));
+  if(missing.length)addRep(-.1*missing.length);
+  T.missed+=missing.length+forgot.length;T.wrong=(T.wrong||0)+wrong.length;
+  let reply;
+  if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»']);
+  else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordata qualcosa… va be\', lasciamo stare.»']);
+  else if(missing.length)reply=pick(['«Finito? Peccato, andrò da un\'altra parte.»','«Non ce l\'ha? Va bene, pazienza.»']);
+  else reply=pick(NICE);
+  if(credit&&total>0){
+    p.debt=r2(p.debt+total);p.lent=r2(p.lent+total);T.credit=r2(T.credit+total);
+    personHist(p,'credito',total,`${got} articoli`);tx('credito',total,`Segnato a credito: ${name}`,true);addRep(.3);
+    log(`Segni ${fmt(total)} sul conto di ${name}. Ora ti deve ${fmt(p.debt)}.`,'warn');
+  }else if(total>0){
+    for(const k in byCat){const v=r2(byCat[k]);S.cash=r2(S.cash+v);for(const a of [S.aggD,S.aggM,S.aggA])a[k]=r2((a[k]||0)+v);}
+    T.sales=r2(T.sales+total);
+    S.tx.unshift({d:S.day,t:Math.floor(S.t),cat:'vendita',amt:total,label:`${name} · ${got} articol${got===1?'o':'i'}${perfect?'':' (con problemi)'}`});
+    if(S.tx.length>300)S.tx.length=300;RT.txVer++;
+    RT.floatAmt=(RT.floatAmt||0)+total;
+    if(perfect&&chance(perk('loredana')?.2:.1)){const tip=r2(rnd(.2,1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
   }
-  if(miss.length)toast(`${name}: manca ${miss.slice(0,3).join(', ')}.`,'bad');
+  if(!credit&&p&&p.debt>0&&chance(p.hon*.12)){
+    const pay=r2(Math.min(p.debt,Math.max(5,p.debt*rnd(.3,1))));
+    p.debt=r2(p.debt-pay);p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);tx('cred',pay,`${name} salda di sua iniziativa`);personHist(p,'saldo',pay,'Di sua iniziativa');
+    log(`${name}, già che c'è, ti ridà ${fmt(pay)} del suo conto.`,'good');
+  }
+  T.served++;
+  if(wrong.length)log(`${name}: consegnato per sbaglio ${wrong.join(', ')}. Torna sullo scaffale.`,'bad');
+  if(forgot.length)log(`${name}: dimenticato ${forgot.join(', ')}, eppure c'era.`,'bad');
+  if(missing.length)log(`${name}: mancava ${missing.join(', ')}.`,'warn');
+  const res={name,face:p.face,perfect,wrong,forgot,missing,noCred,total,credit:!!credit,reply};
+  RT.last=res;S.counter=null;S.tray={};RT.ctrVer=(RT.ctrVer||0)+1;
+  callNext();
+  return res;
 }
-function refuseCredit(id){
-  if(RT.modal||S.phase!=='open')return;
-  const c=S.queue.find(q=>q.id===id);if(!c||c.serving||!c.creditAsk)return;
+function refuseCredit(){
+  const c=S.counter;if(!c||!c.creditAsk||RT.modal)return;
   const p=getP(c);
-  if(chance(1-p.prone*.7)){c.creditAsk=false;c.reply='«Va bene, va bene. Pago.»';}
+  if(chance(1-p.prone*.7)){c.creditAsk=false;c.reply='«Va bene, va bene. Pago.»';RT.ctrVer++;}
   else{
-    S.queue.splice(S.queue.indexOf(c),1);S.today.refused++;addRep(-.3);
-    personHist(p,'rifiuto',0,'Credito rifiutato, se ne va');
+    S.today.refused++;addRep(-.3);personHist(p,'rifiuto',0,'Credito rifiutato, se ne va');
     log(`${p.name} se ne va offeso: «Mai successo in vent'anni.»`,'warn');
+    RT.last={name:p.name,face:p.face,perfect:false,wrong:[],forgot:[],missing:[],noCred:[],total:0,credit:false,reply:'«Mai successo in vent\'anni.» E se ne va.'};
+    S.counter=null;S.tray={};RT.ctrVer++;callNext();
   }
 }
-function askDebt(id){
-  if(RT.modal||S.phase!=='open')return;
-  const c=S.queue.find(q=>q.id===id);if(!c||c.asked)return;
+function askDebt(){
+  const c=S.counter;if(!c||c.asked||RT.modal)return;
   const p=getP(c);if(!p||p.debt<=0)return;
-  c.asked=true;
+  c.asked=true;RT.ctrVer++;
   const h=clamp(p.hon+(perk('loredana')?.12:0),0,1),r=Math.random();
   if(r<h*.55){
     const pay=p.debt;p.debt=0;p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);tx('cred',pay,`${p.name} salda il conto`);personHist(p,'saldo',pay,'Saldato tutto');
@@ -815,29 +880,33 @@ function askDebt(id){
     const ex=pick(NOMONEY);personHist(p,'rinvio',0,ex);c.reply=ex;log(`${p.name} rimanda alla prossima volta.`,'warn');
   }
 }
-function counterTick(dm){
-  const ctr=RT.counter;
-  if(S.freeze>0)return;
-  if(ctr.cust){ctr.left-=dm;if(ctr.left<=0)finishServe();}
-}
-function leave(q,i){
-  S.queue.splice(i,1);S.today.lost++;addRep(-.4);
-  const p=getP(q);log(`${p?p.name:'Un cliente'} perde la pazienza e se ne va.`,'bad');
-}
 
 /* ===== eventi ===== */
 const EVENTS=[
- {id:'furto',w:3,run(){
-  const pool=['acc','cam','g2','bus','car','sna','cpo'].filter(id=>S.stock[id]>0);
-  if(!pool.length){log('Un tipo con il cappuccio guarda gli scaffali vuoti e se ne va deluso.','warn');return;}
-  const pid=pick(pool),n=Math.min(S.stock[pid],ri(2,6));
-  if(S.up.telecamere&&chance(.65)){addRep(1);log(`Le telecamere beccano un taccheggiatore: ${n}× ${PD[pid].name} tornano al loro posto.`,'good');toast('Le telecamere hanno sventato un furto.','good');}
-  else{S.stock[pid]-=n;log(`Furto: spariscono ${n}× ${PD[pid].name} (valore ${fmt(n*costOf(pid))}). Nessuno ha visto niente.`,'bad');toast('Un taccheggiatore è scappato con la merce.','bad');}
+ {id:'maranza',w:2,run(){
+  const pool=['acc','cam','sna','bib','cpo',...BRANDS.map(b=>b.id)].filter(id=>S.stock[id]>0);
+  if(!pool.length){log('Entrano i Maranza, trovano gli scaffali vuoti e se ne vanno delusi.','warn');return;}
+  const take=[];for(let i=0;i<3;i++){const id=pick(pool);const n=Math.min(S.stock[id],ri(1,4));if(n>0){S.stock[id]-=n;take.push(`${n}× ${PD[id].name}`);}}
+  if(S.up.telecamere&&chance(.6)){take.length=0;addRep(1);log('Arrivano i Maranza in tre su un monopattino solo. Vedono le telecamere, fanno i vaghi e se ne vanno.','good');toast('Le telecamere hanno scoraggiato i Maranza.','good');return;}
+  log(`Arrivano i Maranza in tre su un monopattino solo, col borsello a tracolla. Mentre uno chiede «quanto costa tutto?», spariscono ${take.join(', ')}.`,'bad');toast('I Maranza hanno svuotato uno scaffale.','bad');
  }},
- {id:'rapina',w:1,ok:()=>S.day>=3&&S.cash>400,run(){
-  if(S.up.telecamere&&chance(.5)){log('Due balordi entrano, vedono le telecamere, comprano un accendino e se ne vanno.','good');return;}
-  const take=r2(Math.min(S.cash*.4,1500));S.cash=r2(S.cash-take);tx('furti',-take,'Rapina alla cassa');
-  log(`Rapina! Portano via ${fmt(take)} dalla cassa. La prossima volta versa alla Posta.`,'bad');toast(`Rapina: −${fmt(take)} dalla cassa.`,'bad');
+ {id:'avellina',w:2,ok:()=>S.cash>150,run(){
+  if(S.up.telecamere&&chance(.5)){log('Gianluca Avellina chiede un accendino, guarda la telecamera, la saluta e se ne va.','good');return;}
+  const take=r2(Math.min(S.cash*rnd(.08,.18),500));S.cash=r2(S.cash-take);tx('furti',-take,'Gianluca Avellina: mano lesta in cassa');
+  log(`Gianluca Avellina chiede un accendino e intanto non toglie gli occhi dalla cassa. Quando se ne va mancano ${fmt(take)}.`,'bad');toast(`Gianluca Avellina: −${fmt(take)} dalla cassa.`,'bad');
+ }},
+ {id:'napoletani',w:1.5,ok:()=>S.cash>100,run(){
+  const take=r2(ri(2,6)*10);S.cash=r2(S.cash-take);tx('furti',-take,'Ciro e Gennaro: il trucco del resto');
+  log(`Entrano Ciro e Gennaro: uno chiede la strada per una via che non esiste, l'altro cambia una banconota tre volte. Alla fine il resto l'hai dato due volte: −${fmt(take)}.`,'bad');toast(`Ciro e Gennaro ti hanno confuso il resto: −${fmt(take)}.`,'bad');
+ }},
+ {id:'manduci',w:1,ok:()=>S.day>=3&&S.cash>300,run(){
+  const cam=S.up.telecamere?.3:0;
+  openModal({html:`<h3>Rapina!</h3><p>Entra <b>Tony Manduci</b> col casco ancora in testa e una mano in tasca. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
+   {label:'Consegna l\'incasso senza storie',cls:'alt',fn(){const take=r2(Math.min(S.cash*.35,1200));S.cash=r2(S.cash-take);tx('furti',-take,'Rapina di Tony Manduci');log(`Tony Manduci se ne va con ${fmt(take)}. Almeno nessuno si è fatto male.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}},
+   {label:'Premi l\'allarme sotto il banco',cls:'gold',fn(){
+    if(chance(.45+cam)){addRep(3);log('Suona l\'allarme: Tony Manduci scappa senza prendere niente. Il quartiere ne parla per una settimana.','good');toast('Allarme! Tony Manduci è scappato.','good');}
+    else{const take=r2(Math.min(S.cash*.5,1800));S.cash=r2(S.cash-take);tx('furti',-take,'Rapina di Tony Manduci');addRep(-1);log(`L\'allarme non parte. Tony Manduci si arrabbia e prende ${fmt(take)}.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}
+   }}]});
  }},
  {id:'pioggia',w:2,run(){S.mod={traffic:.6,until:S.t+150};log('Acquazzone improvviso: la gente resta a casa per un paio d\'ore.','warn');toast('Piove: meno clienti.','warn');}},
  {id:'sole',w:2,run(){S.mod={traffic:1.4,until:S.t+120};log('Primo sole della stagione: tutti fuori, e tutti con la voglia di fumare.','good');toast('Bella giornata: più clienti.','good');}},
@@ -897,8 +966,9 @@ function runVice(){
       const m=ri(15,30);S.freeze=Math.max(S.freeze,m);
       log(`${nm} «esce un attimo» per una telefonata. Torna dopo ${m} minuti. Il banco resta scoperto.`,'warn');toast(`${nm} si allontana: banco fermo ${m} minuti.`,'warn');
       if(chance(S.up.telecamere?.15:.35)){
-        if(S.cash>100&&chance(.6)){const take=r2(Math.min(S.cash*rnd(.1,.25),800));S.cash=r2(S.cash-take);tx('furti',-take,'Cassa incustodita');log(`Mentre ${nm} è fuori, qualcuno allunga la mano in cassa: −${fmt(take)}.`,'bad');toast(`Furto dalla cassa incustodita: −${fmt(take)}.`,'bad');}
-        else{const pool=BRANDS.map(b=>b.id).filter(id=>S.stock[id]>0);if(pool.length){const id=pick(pool),n=Math.min(S.stock[id],ri(3,10));S.stock[id]-=n;log(`Mentre ${nm} è fuori spariscono ${n}× ${PD[id].name}.`,'bad');toast('Spariscono sigarette dal banco.','bad');}}
+        const who=pick(['Tony Manduci','Gianluca Avellina','i Maranza','Ciro e Gennaro']);
+        if(S.cash>100&&chance(.6)){const take=r2(Math.min(S.cash*rnd(.1,.25),800));S.cash=r2(S.cash-take);tx('furti',-take,`Cassa incustodita: ${who}`);log(`Mentre ${nm} è fuori passano ${who} e allungano la mano in cassa: −${fmt(take)}.`,'bad');toast(`${who}: −${fmt(take)} dalla cassa incustodita.`,'bad');}
+        else{const pool=BRANDS.map(b=>b.id).filter(id=>S.stock[id]>0);if(pool.length){const id=pick(pool),n=Math.min(S.stock[id],ri(3,10));S.stock[id]-=n;log(`Mentre ${nm} è fuori passano ${who}: spariscono ${n}× ${PD[id].name}.`,'bad');toast(`${who} hanno preso delle sigarette.`,'bad');}}
       }
       break;}
     case 'brunetto':{
@@ -951,15 +1021,14 @@ function tick(dm){
   if(S.freeze>0)S.freeze=Math.max(0,S.freeze-dm);
   while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();if(RT.modal)break;}
   spawnTick(dm);
-  counterTick(dm);
-  for(let i=S.queue.length-1;i>=0;i--){const q=S.queue[i];if(q.serving)continue;q.pat-=dm;if(q.pat<=0)leave(q,i);}
-  if(S.t>=closeT()&&(S.queue.length===0||S.t>=closeT()+30))closeDay();
+  callNext();
+  if(S.t>=closeT()&&((S.queue.length===0&&!S.counter)||S.t>=closeT()+30))closeDay();
 }
 function openDay(){
   if(S.phase==='open'||RT.modal||S.over)return;
   S.phase='open';S.t=OPEN;S.today=newToday();S.aggD={};S.autocD=0;S.queue=[];S.freeze=0;S.mod={traffic:1,until:0};S.jackpotUntil=0;
   if(dom(S.day)===1)S.aggM={};
-  RT.counter={cust:null,left:0,total:1};
+  S.counter=null;S.tray={};RT.last=null;
   if(S.speed===0)S.speed=1;
   if(S.day>=5&&S.rincari<6&&chance(.1))rincaro();
   let tg=rnd(50,400)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
@@ -974,10 +1043,11 @@ function openDay(){
 }
 function closeDay(){
   const T=S.today;
-  for(const q of S.queue){if(!q.serving){T.lost++;addRep(-.2);}}
-  S.queue=[];RT.counter={cust:null,left:0,total:1};
+  const left=S.queue.length+(S.counter?1:0);
+  if(left){T.lost+=left;addRep(-.1*left);log(`A saracinesca abbassata restano fuori ${left} clienti.`,'warn');}
+  S.queue=[];S.counter=null;S.tray={};
   const charges=[];
-  if(T.sales>0){const pos=r2(T.sales*.006);charges.push({cat:'pos',amt:pos,label:'Commissioni POS'});}
+  if(T.sales>0){const pos=r2(T.sales*(S.up.registratore?.003:.006));charges.push({cat:'pos',amt:pos,label:'Commissioni POS'});}
   for(const b of billsFor(S.day))charges.push(b);
   if(S.loan){charges.push({cat:'rate',amt:S.loan.rata,label:`Rata finanziamento (${S.loan.n-S.loan.left+1}/${S.loan.n})`});}
   let fromDep=0;
@@ -1069,80 +1139,117 @@ function setTab(name){
   render(true);window.scrollTo(0,0);
 }
 
-/* coda */
-const cardMap=new Map();
-function clearQueueDom(){cardMap.forEach(n=>n.remove());cardMap.clear();}
-function lineHtml(l){
-  if(SV[l.id])return `<li class="svc${svAvail(l.id)?'':' out'}" data-sv="${l.id}"><b>1×</b>${SV[l.id].name}</li>`;
-  return `<li data-pid="${l.id}" data-q="${l.q}"><b>${l.q}×</b>${esc(PD[l.id].name)}</li>`;
-}
-function buildCard(c){
-  const p=getP(c);const n=el('article','cust');n.dataset.id=c.id;
-  n.innerHTML=`<div class="face"></div><div style="min-width:0"><div class="cname">${esc(p.name)}</div><div class="crole">${esc(p.role)}</div><div class="cquote"></div><ul class="wants">${c.lines.map(lineHtml).join('')}</ul><div class="dbx"></div><div class="rbx"></div></div><div class="acts"></div><div class="pbar"><i></i></div>`;
-  n._face=n.querySelector('.face');n._bar=n.querySelector('.pbar i');n._acts=n.querySelector('.acts');n._q=n.querySelector('.cquote');
-  n._dbx=n.querySelector('.dbx');n._rbx=n.querySelector('.rbx');n._lis=$$('li',n);n._mood='';n._sig='';n._rep=null;
-  return n;
-}
-function updateCard(n,c){
-  const p=getP(c),r=clamp(c.pat/c.patMax,0,1);
-  const mood=c.serving?'ok':(r>.6?'ok':r>.3?'meh':'angry');
-  if(mood!==n._mood){n._mood=mood;n._face.innerHTML=faceSVG(p.face,mood);}
-  n._bar.style.width=(r*100).toFixed(1)+'%';n._bar.className=r<.3?'low':(r<.6?'mid':'');
-  n.classList.toggle('serving',!!c.serving);n.classList.toggle('credit',!!c.creditAsk);
-  if(n._q.textContent!==c.quote)n._q.textContent=c.quote;
-  for(const li of n._lis){const pid=li.dataset.pid;if(!pid)continue;const st=S.stock[pid],q=+li.dataset.q;li.classList.toggle('out',st<=0);li.classList.toggle('part',st>0&&st<q);}
-  const owes=p.debt>0;
-  const dtx=owes?`<span class="debt">Ti deve ${fmt(p.debt)}</span>`:'';
-  if(n._dbx._v!==dtx){n._dbx._v=dtx;n._dbx.innerHTML=dtx;}
-  if(n._rep!==c.reply){n._rep=c.reply;n._rbx.innerHTML=c.reply?`<div class="reply">${esc(c.reply)}</div>`:'';}
-  const sig=[c.serving,c.creditAsk,c.asked,owes].join('|');
-  if(sig!==n._sig){
-    n._sig=sig;let h='';
-    if(c.serving)h=`<button class="btn sm" disabled>${c.credit?'Segno a credito…':'In servizio…'}</button>`;
-    else if(c.creditAsk)h=`<button class="btn gold sm" data-a="credit">Fai credito</button><button class="btn alt sm" data-a="refuse">Fatti pagare</button>`;
-    else h=`<button class="btn sm" data-a="serve">Servi</button>`;
-    if(owes&&!c.asked&&!c.serving)h+=`<button class="btn alt sm" data-a="ask">Chiedi il saldo</button>`;
-    n._acts.innerHTML=h;
-  }
-}
-function renderQueue(){
-  const list=$('#queue');const ids=new Set(S.queue.map(q=>q.id));
-  for(const[id,node]of Array.from(cardMap)){if(!ids.has(id)){node.remove();cardMap.delete(id);}}
-  for(const c of S.queue){let n=cardMap.get(c.id);if(!n){n=buildCard(c);cardMap.set(c.id,n);list.appendChild(n);}updateCard(n,c);}
-  $('#qempty').hidden=S.queue.length>0;
-  $('#qemptytx').textContent=S.phase==='open'?(S.t>=closeT()?'Saracinesca a metà: si chiude.':'Il silenzio raro dei tabaccai. Controlla le scorte.'):'Bottega chiusa. Controlla scorte e conti, poi alza la saracinesca.';
-}
-function queueClick(e){
-  const b=e.target.closest('button[data-a]');if(!b)return;
-  const id=+b.closest('.cust').dataset.id,a=b.dataset.a;
-  if(a==='serve'||a==='credit'){
-    if(!serve(id,a==='credit')){const p=$('#pstatus');p.classList.remove('nudge');void p.offsetWidth;p.classList.add('nudge');}
-  }else if(a==='refuse')refuseCredit(id);
-  else if(a==='ask')askDebt(id);
-  renderQueue();
-}
-
-/* scorte in pagina principale */
+/* ===== banco ===== */
+let PCAT='sig';
+function clearQueueDom(){RT.qSig='';RT.ctrSig='';}
+const PCATS={sig:['sig'],gra:['gra'],val:['val'],ban:['tab','ban']};
+const SVTAG={lot:'LOTTO',sup:'SUPER ENALOTTO',del:'10eLOTTO',ric:'RICARICA',pag:'BOLLETTINO'};
 let SG={};
 function buildStockGrid(){
   const g=$('#stockgrid');g.innerHTML='';SG={};
-  for(const p of PRODUCTS){
-    if(!visible(p.id))continue;
-    const b=el('button','si');b.type='button';b.dataset.pid=p.id;
-    b.innerHTML=`${artOf(p.id)}<span class="nm">${esc(p.name)}</span><span class="ct"></span><span class="mb"><i></i></span>`;
-    SG[p.id]={b,ct:b.querySelector('.ct'),bar:b.querySelector('.mb i')};g.appendChild(b);
+  if(PCAT==='lot'){
+    for(const id in SV){
+      const w=el('div','sitem');const b=el('button','si');b.type='button';b.dataset.sv=id;
+      b.innerHTML=`<div class="tile lot">${SVTAG[id]}</div><span class="nm">${SV[id].name}</span><span class="ct"></span>`;
+      w.appendChild(b);w.appendChild(el('span','tq'));SG['sv_'+id]={b,ct:b.querySelector('.ct'),tq:w.querySelector('.tq'),sv:id};g.appendChild(w);
+    }
+  }else{
+    for(const p of PRODUCTS){
+      if(!PCATS[PCAT].includes(p.cat)||!visible(p.id))continue;
+      const w=el('div','sitem');const b=el('button','si');b.type='button';b.dataset.pid=p.id;
+      b.innerHTML=`${artOf(p.id)}<span class="nm">${esc(p.name)}</span><span class="ct"></span><span class="mb"><i></i></span>`;
+      const bb=el('button','sbuy','+');bb.type='button';bb.dataset.buy=p.id;bb.setAttribute('aria-label','Compra '+p.name);
+      w.appendChild(b);w.appendChild(bb);w.appendChild(el('span','tq'));
+      SG[p.id]={b,ct:b.querySelector('.ct'),bar:b.querySelector('.mb i'),tq:w.querySelector('.tq')};g.appendChild(w);
+    }
   }
   RT.gridSig=gridSig();
 }
-const gridSig=()=>S.up.frigo+'|'+S.up.gadget;
+const gridSig=()=>PCAT+'|'+S.up.frigo+'|'+S.up.gadget+'|'+S.up.srvRic+'|'+S.up.srvPag;
 function refreshStockGrid(){
   if(RT.gridSig!==gridSig())buildStockGrid();
-  for(const id in SG){
-    const r=SG[id],cap=capOf(id),st=S.stock[id];
+  const tray=S.tray||{};
+  for(const k in SG){
+    const r=SG[k];
+    if(r.sv){const on=svAvail(r.sv);r.b.classList.toggle('lock',!on);const t=on?'Sempre disponibile':'Da attivare in Bottega';if(r.ct.textContent!==t)r.ct.textContent=t;
+      const n=tray[r.sv]||0;r.tq.hidden=!n;r.tq.textContent=n;continue;}
+    const cap=capOf(k),st=S.stock[k];
     const t=`${st}/${cap}`;if(r.ct.textContent!==t)r.ct.textContent=t;
     r.bar.style.width=(clamp(st/cap,0,1)*100)+'%';
     r.b.classList.toggle('out',st<=0);r.b.classList.toggle('low',st>0&&st<=cap*.25);
+    const n=tray[k]||0;r.tq.hidden=!n;r.tq.textContent=n;
   }
+  $('#pkHint').textContent=S.counter?'Tocca per mettere sul banco · + per comprare':'Tocca un prodotto per comprarlo';
+}
+function gridClick(e){
+  const bb=e.target.closest('button[data-buy]');if(bb){buySheet(bb.dataset.buy);return;}
+  const b=e.target.closest('button.si');if(!b)return;
+  const id=b.dataset.pid||b.dataset.sv;
+  if(!S.counter){if(b.dataset.pid)buySheet(id);else if(!svAvail(id))toast('Questo servizio si attiva nella sezione Bottega.','warn');else toast('Nessun cliente al banco.','warn');return;}
+  const r=trayAdd(id);
+  if(r==='out')toast(`${PD[id].name}: finito. Compralo con il +.`,'bad');
+  if(r==='locked')toast(`${SV[id].name}: non lo fai ancora. Si attiva in Bottega.`,'warn');
+  render(true);
+}
+function trayTotal(){let t=0,sv=0;for(const id in S.tray){if(SV[id])sv+=S.tray[id];else t+=S.price[id]*S.tray[id];}return{t:r2(t),sv};}
+function renderCounter(){
+  const c=S.counter,box=$('#ctr');
+  const sig=[S.phase,c?c.id:0,RT.ctrVer,S.freeze>0,RT.last?RT.last.name+RT.last.reply:'',c?getP(c).debt:0,S.t>=closeT()].join('|');
+  if(RT.ctrSig===sig)return;RT.ctrSig=sig;
+  let h='';
+  if(c){
+    const p=getP(c);
+    h+=`<div class="ctr-head">${faceHtml(p.face,c.reply&&/Sbagliato|altro|Ma che/.test(c.reply)?'angry':'ok')}<div style="min-width:0"><div class="cname">${esc(p.name)}</div><div class="crole">${esc(p.role)}</div>${p.debt>0?`<span class="debt">Ti deve ${fmt(p.debt)}</span>`:''}</div></div>`;
+    h+=`<div class="say">${esc(c.say)}</div>`;
+    if(c.creditAsk)h+=`<div class="say ask">${esc(c.ask)}</div>`;
+    if(c.reply)h+=`<div class="reply">${esc(c.reply)}</div>`;
+    const ids=Object.keys(S.tray);
+    h+=`<div class="tray">${ids.length?ids.map(id=>`<button class="tchip" data-rm="${id}" aria-label="Togli uno">${S.tray[id]}× ${esc(SV[id]?SV[id].name:PD[id].name)} ✕</button>`).join(''):'<span class="muted">Sul banco non c\'è ancora niente: tocca i prodotti dello scaffale qui sotto.</span>'}</div>`;
+    const tt=trayTotal();
+    const tot=ids.length?` · ${fmt(tt.t)}${tt.sv?' + servizi':''}`:'';
+    h+='<div class="ctr-acts">';
+    if(c.creditAsk)h+=`<button class="btn gold" data-a="credit">Segna a credito${tot}</button><button class="btn alt" data-a="refuse">Fatti pagare</button>`;
+    else h+=`<button class="btn gold" data-a="give">Consegna${tot}</button>`;
+    if(p.debt>0&&!c.asked)h+=`<button class="btn alt" data-a="ask">Chiedi il saldo</button>`;
+    if(ids.length)h+=`<button class="btn alt" data-a="clear">Svuota</button>`;
+    h+='</div>';
+  }else{
+    const o=OWD[S.owner];let tx;
+    if(S.phase!=='open')tx='Bottega chiusa. Controlla scaffale e conti, poi alza la saracinesca.';
+    else if(S.freeze>0)tx='Banco fermo per qualche minuto.';
+    else if(S.t>=closeT())tx='Orario di chiusura. Non entra più nessuno.';
+    else tx=`Nessuno al banco. ${RT.forecast||''}`;
+    h+=`<div class="ctr-head">${faceHtml(o.face)}<div><div class="cname">${esc(S.ownerName)}</div><div class="crole">${tx}</div></div></div>`;
+  }
+  const L=RT.last;
+  if(L){
+    const tag=L.perfect?'<span class="tag ok">Giusto</span>':L.wrong.length?'<span class="tag ko">Sbagliato</span>':L.forgot.length?'<span class="tag ko">Dimenticato</span>':L.missing.length?'<span class="tag mid">Mancava</span>':'<span class="tag mid">Uscito</span>';
+    h+=`<div class="lastres">${faceHtml(L.face,L.perfect?'ok':(L.wrong.length||L.forgot.length)?'angry':'meh')}<div style="min-width:0">${tag}<b>${esc(L.name)}</b>${L.total?` · ${L.credit?'a credito ':''}${fmt(L.total)}`:''}<div class="muted">${esc(L.reply)}</div></div></div>`;
+  }
+  box.innerHTML=h;
+}
+function ctrClick(e){
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.rm){trayRemove(b.dataset.rm);render(true);return;}
+  const a=b.dataset.a;
+  if(a==='give'||a==='credit'){
+    const r=deliver(a==='credit');
+    if(r){
+      if(r.wrong.length)toast(`Sbagliato: ${r.wrong.join(', ')}. La reputazione scende.`,'bad');
+      else if(r.forgot.length)toast(`Dimenticato: ${r.forgot.join(', ')}.`,'bad');
+      else if(r.missing.length)toast(`Mancava: ${r.missing.join(', ')}.`,'warn');
+      if(r.noCred.length)toast('Le giocate e i servizi non si segnano a credito.','warn');
+    }
+  }else if(a==='refuse')refuseCredit();
+  else if(a==='ask')askDebt();
+  else if(a==='clear'){S.tray={};RT.ctrVer++;}
+  render(true);
+}
+function renderQueue(){
+  const ids=S.queue.map(c=>c.id).join(',')+'|'+S.queue.map(c=>getP(c).debt>0?1:0).join('');
+  $('#qcount').textContent=`${S.queue.length}/${queueCap()}`;
+  if(RT.qSig===ids)return;RT.qSig=ids;
+  $('#queue').innerHTML=S.queue.map(c=>{const p=getP(c);return `<div class="qp${p.debt>0?' debt':''}" title="${esc(p.name)}">${faceHtml(p.face,S.queue.length>queueCap()-2?'meh':'ok')}<span>${esc(p.name.split(' ')[0])}</span></div>`;}).join('')||'<span class="muted" style="font-size:13px">Nessuno in attesa.</span>';
 }
 function buySheet(id){
   const p=PD[id],cap=capOf(id),sp=space(id),u=costOf(id),lot=p.lot;
@@ -1331,17 +1438,9 @@ function renderHud(){
   const bb=$('#b-banco');bb.hidden=TAB==='banco'||S.queue.length===0;bb.textContent=S.queue.length;
 }
 function renderBanco(){
-  renderQueue();refreshStockGrid();
-  const c=RT.counter;let tx;
-  if(S.phase!=='open')tx='Bottega chiusa.';
-  else if(S.freeze>0)tx='Banco fermo: controllo in corso.';
-  else if(c.cust)tx=`Stai servendo ${getP(c.cust).name}…`;
-  else if(S.t>=closeT())tx='Orario di chiusura: servi gli ultimi in coda.';
-  else tx=`Libero. Tocca «Servi» su un cliente. ${RT.forecast||''}`;
-  $('#pstatus').textContent=tx;
-  $('#svbar').style.width=c.cust?((1-clamp(c.left/c.total,0,1))*100)+'%':'0%';
+  renderCounter();refreshStockGrid();renderQueue();
   const T=S.today;
-  $('#m-served').textContent=T.served;$('#m-lost').textContent=T.lost+T.turned+T.refused;$('#m-missed').textContent=T.missed;$('#m-cred').textContent=fmt(T.credit);
+  $('#m-served').textContent=T.served;$('#m-lost').textContent=T.lost+T.turned+T.refused;$('#m-missed').textContent=T.missed+(T.wrong||0);$('#m-cred').textContent=fmt(T.credit);
 }
 function logHtml(arr){return arr.map(l=>`<li class="${l.tone}"><time>G${l.d} ${hhmm(l.t)}</time>${esc(l.tx)}</li>`).join('');}
 function renderLogs(force){
@@ -1404,9 +1503,9 @@ function startGame(owner,nm){
   S=newState(owner,nm);
   log(`${S.ownerName} eredita la tabaccheria di zio Aldo. I muri sono di famiglia: niente affitto, tutto il resto sì.`,'info');
   initOwnerUI();buildStockGrid();setTab('banco');save();
-  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13.</li><li>Ogni giorno entrano da 50 a 400 clienti, a caso. Ognuno passa al massimo due volte al giorno.</li><li>Tocca «Servi» su un cliente. Se un articolo manca la reputazione scende un po', se c'è sale.</li><li>Le scorte sono in fondo alla pagina principale: tocca un prodotto per comprarlo.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li>${OWD[owner].malus?`<li>Occhio ai vizi di ${esc(S.ownerName)}: ${OWD[owner].malus.toLowerCase()}.</li>`:''}</ul>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}]});
+  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13.</li><li>Ogni giorno entrano da 50 a 400 clienti, a caso. Ognuno passa al massimo due volte al giorno.</li><li>I clienti non hanno fretta: vengono al banco uno alla volta e ti dicono cosa vogliono.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Il + su ogni prodotto serve a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li>${OWD[owner].malus?`<li>Occhio ai vizi di ${esc(S.ownerName)}: ${OWD[owner].malus.toLowerCase()}.</li>`:''}</ul>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}]});
 }
-function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=faceSVG(o.face,'ok');$('#ownerFace2').innerHTML=faceSVG(o.face,'ok');}
+function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=faceSVG(o.face,'ok');RT.ctrSig='';}
 
 /* ===== avvio ===== */
 let last=0,rl=0;
@@ -1424,8 +1523,9 @@ function init(){
   $$('.nav button').forEach(b=>b.addEventListener('click',()=>{if(S)setTab(b.dataset.tab);}));
   $$('#speedwrap button').forEach(b=>b.addEventListener('click',()=>{S.speed=+b.dataset.speed;render(true);}));
   $('#openbtn').addEventListener('click',()=>{openDay();setTab('banco');});
-  $('#queue').addEventListener('click',queueClick);
-  $('#stockgrid').addEventListener('click',e=>{const b=e.target.closest('.si');if(b)buySheet(b.dataset.pid);});
+  $('#ctr').addEventListener('click',ctrClick);
+  $('#stockgrid').addEventListener('click',gridClick);
+  segBind('#pkSeg',v=>{PCAT=v;buildStockGrid();});
   $('#mag-list').addEventListener('click',magClick);
   $('#refillAll').addEventListener('click',refillAll);
   $('#bot-root').addEventListener('click',botClick);
@@ -1467,7 +1567,7 @@ function showSplash(){
   $('#spGo').addEventListener('click',enter);
   setTimeout(()=>{const g=$('#spGo');if(g)g.focus();},50);
 }
-if(typeof window!=='undefined'&&window.__TABTEST){window.__T={startGame,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,serve,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
+if(typeof window!=='undefined'&&window.__TABTEST){window.__T={startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
 })();
 </script>
