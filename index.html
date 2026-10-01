@@ -321,8 +321,8 @@ body.alarm .nav button{color:#fff}
     <section class="tab" id="tab-mag" hidden>
       <div class="card">
         <h2>Grossista</h2>
-        <p class="muted" style="margin:0 0 10px;font-size:13.5px">La merce si paga subito e arriva subito. I tabacchi e le lotterie hanno il prezzo fissato dallo Stato; al banco il prezzo lo decidi tu.</p>
-        <button class="btn sm" id="refillAll">Riempi tutto ciò che è sotto metà</button>
+        <p class="muted" style="margin:0 0 10px;font-size:13.5px">La merce si paga subito e arriva subito. Di ogni prodotto puoi tenerne al massimo 200. I tabacchi e le lotterie hanno il prezzo fissato dallo Stato; al banco il prezzo lo decidi tu.</p>
+        <button class="btn sm" id="refillAll">Rifornisci tutto ciò che sta finendo</button>
       </div>
       <div id="mag-list" style="display:grid;gap:12px"></div>
     </section>
@@ -649,7 +649,7 @@ const OWD={};OWNERS.forEach(o=>OWD[o.id]=o);
 /* ===== migliorie ===== */
 const UPG=[
  {id:'insegna',grp:'neg',name:'Insegna luminosa',max:3,cost:[800,1800,3500],desc:'Più luce, più clienti. Più bolletta, ma quella arriva dopo.',eff:l=>`affluenza +${l*8}%, luce +${l*50} €/mese`},
- {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[600,1400,2800],desc:'Tabacchi in alto, gratta e vinci in basso. Il Feng Shui del monopolio.',eff:l=>`capienza +${l*50}%`},
+ {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[600,1400,2800],desc:'Tabacchi in alto, gratta e vinci in basso. Merce in vista, clienti in più.',eff:l=>`+${l*4}% clienti`},
  {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[700],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
  {id:'sedie',grp:'neg',name:'Sedie per la coda',max:2,cost:[500,1200],desc:'Chi aspetta seduto non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%, in bottega ${l*3} persone in più`},
  {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[900],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
@@ -731,7 +731,9 @@ const vizio=()=>S?S.vz:null;
 const rataOf=L=>r2(L.rata*(perk('interest')?.9:1));
 const closeT=()=>closeOf(S.day);
 const costOf=id=>{const d=PD[id];const base=d.free?d.cost:S.price[id]*(1-d.aggio-(d.cat==='gra'&&perk('gratta')?.02:0));return base*(perk('merce')?.96:1);};
-const capOf=id=>Math.round(PD[id].cap*(1+.5*S.up.scaffali));
+const MAXSTOCK=200;
+const capOf=id=>MAXSTOCK;
+const lowOf=id=>S.stock[id]<=PD[id].lot;
 const visible=id=>!PD[id].gate||S.up[PD[id].gate]>0;
 const space=id=>Math.max(0,capOf(id)-S.stock[id]);
 const stockValue=()=>PRODUCTS.reduce((a,p)=>a+S.stock[p.id]*costOf(p.id),0);
@@ -976,18 +978,23 @@ function rapina(who,night){
   openModal({cls:'alarm',html:`<h3>⚠ ${night?'Rapina fuori orario!':'Rapina!'}</h3><p>${night?'La saracinesca è ancora alzata e ':''}${night?who:Who} ${RAPINATORI[who]}. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)} · al sicuro sul libretto: ${fmt(S.deposit)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
    {label:'Mandalo via',cls:'alt',fn(){alarmOn(false);
     if(chance(.5)){addRep(1);log(`Alzi la voce e indichi la porta: ${who} esita, poi se ne va a mani vuote.`,'good');toast(`${Who} se n'è andato a mani vuote.`,'good');return;}
-    if(S.cash>20&&chance(.5)){const t=steal(S.cash*rnd(.1,.4),'arraffato uscendo');log(`${Who} se ne va, ma uscendo arraffa ${fmt(t)} dalla cassa.`,'bad');toast(`${Who} ha arraffato ${fmt(t)}.`,'bad');}
-    else{const pool=PRODUCTS.filter(p=>S.stock[p.id]>0);const got=[];for(let i=0;i<ri(1,3)&&pool.length;i++){const p=pick(pool);const n=Math.min(S.stock[p.id],ri(2,8));if(n>0){S.stock[p.id]-=n;got.push(`${n}× ${p.name}`);}}
-      log(`${Who} se ne va, ma prima si riempie le tasche: ${got.join(', ')||'niente di che'}.`,'bad');toast(`${Who} ha preso della merce uscendo.`,'bad');}
+    if(S.cash>20&&chance(.4)){const t=steal(S.cash*rnd(.1,.4),'arraffato uscendo');log(`${Who} se ne va, ma uscendo arraffa ${fmt(t)} dalla cassa.`,'bad');toast(`${Who} ha arraffato ${fmt(t)}.`,'bad');}
+    else{const g=grabGoods(ri(1,4),10);log(`${Who} se ne va, ma prima si riempie le tasche: ${g.txt||'niente di che'}${g.val?` (valore ${fmt(g.val)})`:''}.`,'bad');toast(`${Who} ha preso della merce uscendo.`,'bad');}
    }},
-   {label:'Dai tutto l\'incasso',cls:'alt',fn(){alarmOn(false);const t=steal(S.cash,'tutto l\'incasso');log(`Consegni tutto l'incasso: ${who} se ne va con ${fmt(t)}. Quello sul libretto postale è salvo.`,'bad');toast(`Rapina: −${fmt(t)}.`,'bad');}},
+   {label:'Dai tutto l\'incasso',cls:'alt',fn(){alarmOn(false);const t=steal(S.cash,'tutto l\'incasso');
+    let extra='';if(chance(.5)){const g=grabGoods(ri(2,5),12);if(g.got.length)extra=` Già che c'è, si porta via anche ${g.txt} (valore ${fmt(g.val)}).`;}
+    log(`Consegni tutto l'incasso: ${who} se ne va con ${fmt(t)}.${extra} Quello sul libretto postale è salvo.`,'bad');toast(`Rapina: −${fmt(t)}${extra?' e merce':''}.`,'bad');}},
    {label:'Premi l\'allarme',cls:'gold',fn(){alarmOn(false);
-    const t=steal(S.cash*rnd(.1,1),'prima della fuga');
+    const t=steal(S.cash*rnd(.1,1),'prima della fuga');const g=chance(.6)?grabGoods(ri(2,6),15):{got:[],val:0,txt:''};
+    const what=`${fmt(t)}${g.got.length?` e ${g.txt}`:''}`;
     if(chance(.45+(S.up.telecamere?.3:0))){
       const pct=pick([.8,.9,1]),back=r2(t*pct);
-      if(back>0){S.cash=r2(S.cash+back);tx('furti',back,`Refurtiva restituita dai Carabinieri (${Math.round(pct*100)}%)`);}
-      addRep(3);log(`Suona l'allarme: i Carabinieri arrestano ${who} all'angolo. Ti restituiscono il ${Math.round(pct*100)}% della refurtiva: ${fmt(back)} su ${fmt(t)}.`,'good');toast(`Arrestati! Recuperi ${fmt(back)}.`,'good');
-    }else{addRep(-1);log(`Suona l'allarme, ma ${who} scappa in motorino con ${fmt(t)}.`,'bad');toast(`${Who} è scappato con ${fmt(t)}.`,'bad');}
+      if(back>0){S.cash=r2(S.cash+back);tx('furti',back,`Refurtiva restituita dai Carabinieri`);}
+      const ret=[];for(const x of g.got){const n=Math.round(x.n*pct);if(n>0){S.stock[x.id]+=n;ret.push(`${n}× ${PD[x.id].name}`);}}
+      addRep(3);const pp=Math.round(pct*100),art=pp===80?'l\'80%':`il ${pp}%`;const recov=[back>0?fmt(back):'',...ret].filter(Boolean);
+      if(!recov.length){log(`Suona l'allarme: i Carabinieri arrestano ${who} all'angolo, prima che riesca a prendere qualcosa.`,'good');toast('Arrestati a mani vuote!','good');}
+      else{log(`Suona l'allarme: i Carabinieri arrestano ${who} all'angolo. Ti restituiscono ${art} della refurtiva: ${recov.join(', ')}.`,'good');toast(`Arrestati! Recuperi ${art} della refurtiva.`,'good');}
+    }else{addRep(-1);log(`Suona l'allarme, ma ${who} scappa in motorino con ${what}.`,'bad');toast(`${Who} è scappato con ${fmt(t)}${g.got.length?' e della merce':''}.`,'bad');}
    }}]});
 }
 /* fuori orario: più resti aperto, più rischi */
@@ -1032,15 +1039,19 @@ function askDebt(){
 }
 
 /* ===== eventi ===== */
+function grabGoods(kinds,maxN){
+  const pool=PRODUCTS.filter(p=>S.stock[p.id]>0);const got=[];let val=0;
+  for(let i=0;i<kinds&&pool.length;i++){const k=Math.floor(Math.random()*pool.length);const p=pool.splice(k,1)[0];const n=Math.min(S.stock[p.id],ri(1,maxN));
+    if(n>0){S.stock[p.id]-=n;got.push({id:p.id,n});val+=n*costOf(p.id);}}
+  return{got,val:r2(val),txt:got.map(g=>`${g.n}× ${PD[g.id].name}`).join(', ')};
+}
 const foiled=who=>{if(perk('theft')&&chance(.5)){log(`${who} vede ${S.ownerName} dietro al banco, si ricorda di un vecchio favore e cambia bottega.`,'good');toast(`${who} cambia idea: c'è ${S.ownerName}.`,'good');return true;}return false;};
 const EVENTS=[
  {id:'maranza',w:2,run(){
   if(foiled('i Maranza'))return;
-  const pool=['acc','cam','sna','bib','cpo',...BRANDS.map(b=>b.id)].filter(id=>S.stock[id]>0);
-  if(!pool.length){log('Entrano i Maranza, trovano gli scaffali vuoti e se ne vanno delusi.','warn');return;}
-  const take=[];for(let i=0;i<3;i++){const id=pick(pool);const n=Math.min(S.stock[id],ri(1,4));if(n>0){S.stock[id]-=n;take.push(`${n}× ${PD[id].name}`);}}
-  if(S.up.telecamere&&chance(.6)){take.length=0;addRep(1);log('Arrivano i Maranza in tre su un monopattino solo. Vedono le telecamere, fanno i vaghi e se ne vanno.','good');toast('Le telecamere hanno scoraggiato i Maranza.','good');return;}
-  log(`Arrivano i Maranza in tre su un monopattino solo, col borsello a tracolla. Mentre uno chiede «quanto costa tutto?», spariscono ${take.join(', ')}.`,'bad');toast('I Maranza hanno svuotato uno scaffale.','bad');
+  if(S.up.telecamere&&chance(.6)){addRep(1);log('Arrivano i Maranza in tre su un monopattino solo. Vedono le telecamere, fanno i vaghi e se ne vanno.','good');toast('Le telecamere hanno scoraggiato i Maranza.','good');return;}
+  const g=grabGoods(ri(2,4),5);if(!g.got.length){log('Entrano i Maranza, trovano gli scaffali vuoti e se ne vanno delusi.','warn');return;}
+  log(`Arrivano i Maranza in tre su un monopattino solo, col borsello a tracolla. Mentre uno chiede «quanto costa tutto?», spariscono ${g.txt} (valore ${fmt(g.val)}).`,'bad');toast('I Maranza hanno svuotato uno scaffale.','bad');
  }},
  {id:'avellina',w:2,ok:()=>S.cash>150,run(){
   if(foiled('Gianluca Avellina'))return;
@@ -1144,7 +1155,7 @@ function runVice(){
       if(chance(S.up.telecamere?.15:.35)){
         const who=pick(['Tony Manduci','Gianluca Avellina','i Maranza','Ciro e Gennaro']);
         if(S.cash>100&&chance(.6)){const take=r2(Math.min(S.cash*rnd(.1,.25),800));S.cash=r2(S.cash-take);tx('furti',-take,`Cassa incustodita: ${who}`);log(`Mentre ${nm} è fuori passano ${who} e allungano la mano in cassa: −${fmt(take)}.`,'bad');toast(`${who}: −${fmt(take)} dalla cassa incustodita.`,'bad');}
-        else{const pool=BRANDS.map(b=>b.id).filter(id=>S.stock[id]>0);if(pool.length){const id=pick(pool),n=Math.min(S.stock[id],ri(3,10));S.stock[id]-=n;log(`Mentre ${nm} è fuori passano ${who}: spariscono ${n}× ${PD[id].name}.`,'bad');toast(`${who} hanno preso delle sigarette.`,'bad');}}
+        else{const g=grabGoods(ri(1,3),8);if(g.got.length){log(`Mentre ${nm} è fuori passano ${who}: spariscono ${g.txt}.`,'bad');toast(`${who}: sparita della merce dal banco.`,'bad');}}
       }
       break;}
   }
@@ -1223,7 +1234,7 @@ function openDay(){
   S.counter=null;S.tray={};RT.last=null;RT.ovLog=RT.ovFin=RT.ovRap=0;
   if(S.speed===0)S.speed=1;
   if(S.day>=5&&S.rincari<6&&chance(.1))rincaro();
-  let tg=rnd(40,160)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
+  let tg=rnd(40,160)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
   if(S.day===1)tg=rnd(50,70); // primo giorno di rodaggio
   S.today.target=Math.round(clamp(tg,30,170));
   computeInteg();scheduleEvents();
@@ -1272,7 +1283,7 @@ function buy(id,n){
   S.cash=r2(S.cash-cost);S.stock[id]+=n;tx('merce',-cost,`${n}× ${PD[id].name}`);
   return true;
 }
-function refillList(){const out=[];for(const p of PRODUCTS){if(!visible(p.id))continue;const cap=capOf(p.id);if(S.stock[p.id]<cap*.5)out.push({id:p.id,n:space(p.id)});}return out;}
+function refillList(){const out=[];for(const p of PRODUCTS){if(!visible(p.id))continue;const cap=capOf(p.id);const want=Math.min(MAXSTOCK,p.lot*4);if(S.stock[p.id]<p.lot*2)out.push({id:p.id,n:Math.max(0,want-S.stock[p.id])});}return out;}
 function buyUp(id){
   const u=UPD[id],lv=S.up[id];if(lv>=u.max)return;
   const price=u.cost[lv];if(S.cash<price){toast('Non hai abbastanza in cassa.','bad');return;}
@@ -1373,7 +1384,7 @@ function refreshStockGrid(){
     const cap=capOf(k),st=S.stock[k];
     const t=`${st}/${cap}`;if(r.ct.textContent!==t)r.ct.textContent=t;
     r.bar.style.width=(clamp(st/cap,0,1)*100)+'%';
-    r.b.classList.toggle('out',st<=0);r.b.classList.toggle('low',st>0&&st<=cap*.25);
+    r.b.classList.toggle('out',st<=0);r.b.classList.toggle('low',st>0&&lowOf(k));
     const n=tray[k]||0;r.tq.hidden=!n;r.tq.textContent=n;
   }
   $('#pkHint').textContent=S.counter?'Tocca per mettere sul banco · + per comprare':'Tocca un prodotto per comprarlo';
@@ -1457,15 +1468,15 @@ function buySheet(id){
   const p=PD[id],cap=capOf(id),sp=space(id),u=costOf(id),lot=p.lot;
   const opts=[];
   if(sp>0){
-    const a=Math.min(lot,sp);opts.push(a);
-    if(sp>=lot*3)opts.push(lot*3);
-    if(sp>a&&!opts.includes(sp))opts.push(sp);
+    for(const n of [lot,lot*3,lot*10])if(n<=sp&&!opts.includes(n))opts.push(n);
+    if(!opts.length)opts.push(sp);
+    if(!opts.includes(sp))opts.push(sp);
   }
   const html=`<div class="shead">${artOf(id)}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">In magazzino ${S.stock[id]}/${cap} · costo ${fmt(u)} · vendi a ${fmt(S.price[id])}</div></div></div>`
     +(p.stile?`<p class="muted" style="font-size:13px;margin-bottom:4px">${{cla:'Stile classico e vintage',mod:'Stile moderno e minimalista',noir:'Stile noir'}[p.fam]} · ${esc(p.stile)}</p>`:'')
     +(p.motto?`<p style="font-style:italic">Sul pacchetto: «${esc(p.motto)}»</p>`:'')
-    +(sp<=0?'<p>Gli scaffali sono pieni.</p>':`<p class="muted" style="font-size:13px">In cassa ${fmt(S.cash)}${S.deposit>0?` · sul libretto ${fmt(S.deposit)}`:''}. La merce arriva subito.</p>`);
-  const acts=opts.map(n=>{const c=r2(n*u);const lbl=n===sp&&n!==Math.min(lot,sp)?`Riempi lo scaffale: ${n} pezzi (${fmt(c)})`:`Compra ${n} pezzi${n===lot?' ('+CATDEF[p.cat].lotName+')':''} · ${fmt(c)}`;return{label:lbl,cls:'gold',disabled:c>S.cash,fn(){if(buy(id,n)){toast(`+${n} ${p.name}`,'good');render(true);}}};});
+    +(sp<=0?'<p>Hai già il massimo: 200 pezzi.</p>':`<p class="muted" style="font-size:13px">In cassa ${fmt(S.cash)}${S.deposit>0?` · sul libretto ${fmt(S.deposit)}`:''}. La merce arriva subito.</p>`);
+  const acts=opts.map(n=>{const c=r2(n*u);const lbl=n===sp&&opts.length>1?`Fino al massimo di 200: ${n} pezzi (${fmt(c)})`:`Compra ${n} pezzi${n===lot?' ('+CATDEF[p.cat].lotName+')':''} · ${fmt(c)}`;return{label:lbl,cls:'gold',disabled:c>S.cash,fn(){if(buy(id,n)){toast(`+${n} ${p.name}`,'good');render(true);}}};});
   acts.push({label:'Chiudi',cls:'alt'});
   openModal({html,actions:acts});
 }
@@ -1495,7 +1506,7 @@ function refreshMag(){
     const r=MR[id],cap=capOf(id),st=S.stock[id],cost=costOf(id),pr=S.price[id];
     r.meta.textContent=`Costo ${fmt(cost)} · vendi ${fmt(pr)} · guadagni ${fmt(pr-cost)}`;
     r.cnt.textContent=`${st}/${cap}`;
-    r.bar.style.width=(clamp(st/cap,0,1)*100)+'%';r.bar.className=st<=cap*.25?'low':'';
+    r.bar.style.width=(clamp(st/cap,0,1)*100)+'%';r.bar.className=lowOf(id)?'low':'';
     if(r.pval)r.pval.textContent=fmt(pr);
   }
 }
@@ -1509,9 +1520,9 @@ function magClick(e){
 }
 function refillAll(){
   const list=refillList();
-  if(!list.length){toast('Tutto è sopra metà scaffale.','good');return;}
+  if(!list.length){toast('Niente sta finendo.','good');return;}
   const tot=r2(list.reduce((a,x)=>a+x.n*costOf(x.id),0));
-  const html=`<h3>Riempi gli scaffali</h3><p>${list.length} prodotti sotto metà: ${list.map(x=>`${x.n}× ${esc(PD[x.id].name)}`).join(', ')}.</p><p><b>Totale ${fmt(tot)}</b> · in cassa ${fmt(S.cash)}</p>`;
+  const html=`<h3>Rifornisci</h3><p>${list.length} prodotti stanno finendo: ${list.map(x=>`${x.n}× ${esc(PD[x.id].name)}`).join(', ')}.</p><p><b>Totale ${fmt(tot)}</b> · in cassa ${fmt(S.cash)}</p>`;
   openModal({html,actions:[{label:`Compra tutto (${fmt(tot)})`,cls:'gold',disabled:tot>S.cash,fn(){for(const x of list)buy(x.id,x.n);toast('Scaffali riempiti.','good');render(true);}},{label:'Annulla',cls:'alt'}]});
 }
 
@@ -1640,7 +1651,7 @@ function renderHud(){
   const debt=-(S.cash+S.deposit),dw=$('#debtwarn');
   dw.hidden=!(debt>10000||S.debtDays>0);
   if(!dw.hidden)dw.textContent=`In rosso di ${fmt(Math.max(0,debt))}. Giorni oltre 10.000 €: ${S.debtDays}/30. Reputazione ${Math.round(S.rep)}.`;
-  let low=0;for(const p of PRODUCTS){if(visible(p.id)&&S.stock[p.id]<=capOf(p.id)*.25)low++;}
+  let low=0;for(const p of PRODUCTS){if(visible(p.id)&&lowOf(p.id))low++;}
   const bm=$('#b-mag');bm.hidden=low===0;bm.textContent=low;
   const bb=$('#b-banco');bb.hidden=TAB==='banco'||S.queue.length===0;bb.textContent=S.queue.length;
 }
