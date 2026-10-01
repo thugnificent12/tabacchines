@@ -268,6 +268,13 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 #splash .sp-acts .btn.alt{color:#fff;border-color:rgba(255,255,255,.45)}
 #splash .sp-meta{font:500 12.5px var(--f-mono);color:#AFC0D8}
 @media (prefers-reduced-motion:no-preference){#splash .sp-photo{animation:drop .7s cubic-bezier(.2,.8,.2,1) both}@keyframes drop{from{opacity:0;transform:translateY(-24px) rotate(-6deg)}to{opacity:1;transform:rotate(-2deg)}}}
+/* allarme rapina */
+@keyframes alarmflash{0%,100%{background:var(--bad)}50%{background:#5A0F0B}}
+body.alarm .sign,body.alarm .nav{animation:alarmflash .7s steps(2,jump-none) infinite;background:var(--bad)}
+body.alarm .nav button{color:#fff}
+.sheet.alarm{box-shadow:0 0 0 4px var(--bad),0 0 40px rgba(192,52,43,.6);animation:alarmpulse 1s ease-in-out infinite}
+.sheet.alarm h3{color:var(--bad)}
+@keyframes alarmpulse{0%,100%{box-shadow:0 0 0 4px var(--bad),0 0 20px rgba(192,52,43,.4)}50%{box-shadow:0 0 0 6px var(--bad),0 0 50px rgba(192,52,43,.8)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -960,14 +967,27 @@ const RAPINATORI={
  'Ciro e Gennaro':'entrano insieme: uno blocca la porta, l\'altro ti sorride troppo',
  'il finto tecnico del Lotto':'torna, stavolta senza cacciavite e senza sorriso'
 };
+function alarmOn(on){try{document.body.classList.toggle('alarm',!!on);}catch(e){}}
 function rapina(who,night){
   if(foiled(who[0].toUpperCase()+who.slice(1)))return;
-  const cam=S.up.telecamere?.3:0,Who=who[0].toUpperCase()+who.slice(1);
-  openModal({html:`<h3>${night?'Rapina fuori orario!':'Rapina!'}</h3><p>${night?'La saracinesca è ancora alzata e ':''}${night?who:Who} ${RAPINATORI[who]}. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
-   {label:'Consegna l\'incasso senza storie',cls:'alt',fn(){const take=r2(Math.min(S.cash*.35,1200));S.cash=r2(S.cash-take);tx('furti',-take,`${night?'Rapina fuori orario':'Rapina'}: ${who}`);log(`${Who} se ne va con ${fmt(take)}. Almeno nessuno si è fatto male.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}},
-   {label:'Premi l\'allarme sotto il banco',cls:'gold',fn(){
-    if(chance(.45+cam)){addRep(3);log(`Suona l'allarme: ${who} scappa senza prendere niente.`,'good');toast(`Allarme! ${Who} è scappato.`,'good');}
-    else{const take=r2(Math.min(S.cash*.5,1800));S.cash=r2(S.cash-take);tx('furti',-take,`${night?'Rapina fuori orario':'Rapina'}: ${who}`);addRep(-1);log(`L'allarme non parte. ${Who} si arrabbia e prende ${fmt(take)}.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}
+  const Who=who[0].toUpperCase()+who.slice(1),lab=`${night?'Rapina fuori orario':'Rapina'}: ${who}`;
+  const steal=(amt,what)=>{amt=r2(Math.max(0,Math.min(S.cash,amt)));if(amt>0){S.cash=r2(S.cash-amt);tx('furti',-amt,`${lab}${what?' ('+what+')':''}`);}return amt;};
+  alarmOn(true);toast(`ATTENZIONE: rapina in corso!`,'bad');
+  openModal({cls:'alarm',html:`<h3>⚠ ${night?'Rapina fuori orario!':'Rapina!'}</h3><p>${night?'La saracinesca è ancora alzata e ':''}${night?who:Who} ${RAPINATORI[who]}. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)} · al sicuro sul libretto: ${fmt(S.deposit)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
+   {label:'Mandalo via',cls:'alt',fn(){alarmOn(false);
+    if(chance(.5)){addRep(1);log(`Alzi la voce e indichi la porta: ${who} esita, poi se ne va a mani vuote.`,'good');toast(`${Who} se n'è andato a mani vuote.`,'good');return;}
+    if(S.cash>20&&chance(.5)){const t=steal(S.cash*rnd(.1,.4),'arraffato uscendo');log(`${Who} se ne va, ma uscendo arraffa ${fmt(t)} dalla cassa.`,'bad');toast(`${Who} ha arraffato ${fmt(t)}.`,'bad');}
+    else{const pool=PRODUCTS.filter(p=>S.stock[p.id]>0);const got=[];for(let i=0;i<ri(1,3)&&pool.length;i++){const p=pick(pool);const n=Math.min(S.stock[p.id],ri(2,8));if(n>0){S.stock[p.id]-=n;got.push(`${n}× ${p.name}`);}}
+      log(`${Who} se ne va, ma prima si riempie le tasche: ${got.join(', ')||'niente di che'}.`,'bad');toast(`${Who} ha preso della merce uscendo.`,'bad');}
+   }},
+   {label:'Dai tutto l\'incasso',cls:'alt',fn(){alarmOn(false);const t=steal(S.cash,'tutto l\'incasso');log(`Consegni tutto l'incasso: ${who} se ne va con ${fmt(t)}. Quello sul libretto postale è salvo.`,'bad');toast(`Rapina: −${fmt(t)}.`,'bad');}},
+   {label:'Premi l\'allarme',cls:'gold',fn(){alarmOn(false);
+    const t=steal(S.cash*rnd(.1,1),'prima della fuga');
+    if(chance(.45+(S.up.telecamere?.3:0))){
+      const pct=pick([.8,.9,1]),back=r2(t*pct);
+      if(back>0){S.cash=r2(S.cash+back);tx('furti',back,`Refurtiva restituita dai Carabinieri (${Math.round(pct*100)}%)`);}
+      addRep(3);log(`Suona l'allarme: i Carabinieri arrestano ${who} all'angolo. Ti restituiscono il ${Math.round(pct*100)}% della refurtiva: ${fmt(back)} su ${fmt(t)}.`,'good');toast(`Arrestati! Recuperi ${fmt(back)}.`,'good');
+    }else{addRep(-1);log(`Suona l'allarme, ma ${who} scappa in motorino con ${fmt(t)}.`,'bad');toast(`${Who} è scappato con ${fmt(t)}.`,'bad');}
    }}]});
 }
 /* fuori orario: più resti aperto, più rischi */
@@ -1293,7 +1313,7 @@ function openModal(o){
   if(o.after)o.after(sh);
   const f=box.querySelector('button:not(:disabled)');if(f&&!o.noFocus)f.focus();
 }
-function closeModal(){RT.modal=false;const m=$('#modal');if(m)m.hidden=true;}
+function closeModal(){RT.modal=false;const m=$('#modal');if(m)m.hidden=true;try{document.body.classList.remove('alarm');}catch(e){}}
 
 /* ===== grafica prodotti ===== */
 function artOf(id){
@@ -1753,7 +1773,8 @@ function showSplash(){
   $('#spGo').addEventListener('click',enter);
   setTimeout(()=>{const g=$('#spGo');if(g)g.focus();},50);
 }
-if(typeof window!=='undefined'&&window.__TABTEST){window.__T={rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
+if(typeof window!=="undefined"&&window.__TABDBG)window.__R=rapina;
+if(typeof window!=="undefined"&&window.__TABTEST){window.__T={rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
 })();
 </script>
