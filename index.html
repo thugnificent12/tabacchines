@@ -914,12 +914,12 @@ const EVENTS=[
    }}]});
  }},
  {id:'calzini',w:2,run(){
-  openModal({html:`<h3>Il venditore di calzini</h3><p>Entra con una valigia aperta: «Calzini di spugna, tre paia cinque euro, roba buona, di Napoli… cioè, di Taurianova.» Intanto si appoggia all'espositore delle caramelle.</p>`,actions:[
+  openModal({html:`<h3>Il venditore di calzini</h3><p>Entra con una valigia aperta e l'accento di Torre del Greco: «Calzini di spugna, tre paia cinque euro, roba bbuona, fatta a San Giuseppe Vesuviano! Guardate che qualità, signò!» Intanto si appoggia all'espositore delle caramelle.</p>`,actions:[
    {label:'Compra un paio di calzini per levarlo di mezzo (5 €)',cls:'alt',fn(){payForced(5);tx('multe',-5,'Calzini del venditore ambulante');log('Compri dei calzini che non ti servivano. Lui se ne va contento, e l\'espositore è intatto.','info');}},
    {label:'Mandalo via',cls:'gold',fn(){
     if(chance(S.up.telecamere?.2:.5)){const pool=['acc','cam','sna','cpo','car'].filter(id=>S.stock[id]>0);const t=[];for(let i=0;i<2&&pool.length;i++){const id=pick(pool);const n=Math.min(S.stock[id],ri(2,5));S.stock[id]-=n;t.push(`${n}× ${PD[id].name}`);}
       log(`Il venditore di calzini se ne va offeso. Dopo un po' ti accorgi che dall'espositore mancano ${t.join(', ')||'un paio di cose'}.`,'bad');toast('Il venditore di calzini ha alleggerito l\'espositore.','bad');}
-    else log('Il venditore di calzini sbuffa e va a provarci dal barbiere.','info');
+    else log('Il venditore campano di calzini sbuffa «e che maniere!» e va a provarci dal barbiere.','info');
    }}]});
  }},
  {id:'tecnico',w:1.5,ok:()=>S.cash>200,run(){
