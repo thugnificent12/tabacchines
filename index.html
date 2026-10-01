@@ -604,7 +604,7 @@ const SNK=()=>pick(['sna','waf','crk','tar']),CRM=()=>pick(['cam','cam','liq','g
 /* tre famiglie di clienti: pensionati, lavoratori (ognuno col suo mestiere), studenti */
 const TYPES={
  signora:{role:'Pensionata',g:1,pat:60,old:1,
-  quotes:['«Oggi sento che è la volta buona.»','«Mi dia quello vicino a quello che ha vinto ieri.»','«Lo gratto con la moneta di mia nonna.»','«Ha visto che tempo, signora mia?»'],
+  quotes:['«Oggi sento che è la volta buona.»','«Mi dia quello vicino a quello che ha vinto ieri.»','«Lo gratto con la moneta di mia nonna.»','«Ha visto che tempo, figlio mio?»'],
   wants:(c,p)=>{if(chance(.2))wantU(c,'caf');if(chance(.25))wantU(c,'enm');if(chance(.1))wantU(c,'gaz');if(chance(.6))want(c,pick(['g2','g2','g3','g5']),ri(1,3));if(chance(.35))want(c,'lot');if(chance(.2))want(c,'sup');if(chance(.15))want(c,'fra',ri(1,3));if(chance(.15))want(c,CRM());if(chance(.06))want(c,'cpo',ri(1,2));if(chance(.2))wantU(c,'pag');}},
  nonno:{role:'Pensionato',g:0,pat:55,old:1,
   quotes:['«Sempre gli stessi numeri da quarant\'anni.»','«Prima o poi escono. Statisticamente.»','«Una volta si vinceva di più.»'],
@@ -977,7 +977,7 @@ function trayAdd(id){
 }
 function trayRemove(id){if(S.tray[id]){S.tray[id]--;if(!S.tray[id])delete S.tray[id];RT.ctrVer++;}}
 const pen=d=>d*(perk('err')?.5:1);
-const NICE=['«Perfetto, grazie!»','«Lei sì che è precisa. Arrivederci!»','«Tutto giusto, alla prossima.»','«Grazie, buona giornata!»','«Così mi piace. Salutamu!»'];
+const NICE=['«Perfetto, grazie!»','«Lei sì che è preciso. Arrivederci!»','«Gentilissimo, grazie!»','«Bravo, tutto giusto. A domani!»','«Sempre preciso, lei. Grazie!»','«Gentile come sempre, buona giornata.»','«Tutto giusto, alla prossima.»','«Grazie, buona giornata!»','«Così mi piace. Salutamu!»'];
 function deliver(credit){
   const c=S.counter;if(!c||RT.modal)return null;
   const T=S.today,p=getP(c),name=p?p.name:'Cliente';
@@ -1012,8 +1012,8 @@ function deliver(credit){
   T.missed+=missing.length+forgot.length;T.wrong=(T.wrong||0)+wrong.length;
   let reply;
   if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»']);
-  else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordata qualcosa… va be\', lasciamo stare.»']);
-  else if(missing.length)reply=pick(['«Finito? Peccato, andrò da un\'altra parte.»','«Non ce l\'ha? Va bene, pazienza.»']);
+  else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordato qualcosa… vabbè, lasciamo stare.»']);
+  else if(missing.length)reply=`«${pick(['Peccato','Vabbè'])}, ${pick(['sarà per un\'altra volta.','vado da qualcun altro.','andrò da un\'altra parte.',`siamo nel ${dateOf(S.day).getFullYear()}!`])}»`;
   else reply=pick(NICE);
   if(credit&&total>0){
     if(p.never===undefined)p.never=chance(.2);
