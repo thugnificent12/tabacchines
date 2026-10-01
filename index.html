@@ -255,6 +255,9 @@ body.docked #toasts{bottom:calc(var(--nav) + env(safe-area-inset-bottom,0px) + 7
 .sheet ul{margin:0 0 10px;padding-left:18px}
 .sheet li{margin-bottom:4px}
 .macts{display:grid;gap:8px;margin-top:12px}
+.sheet.pick .macts{position:sticky;bottom:0;z-index:3;margin:12px -18px -18px;padding:12px 18px calc(14px + env(safe-area-inset-bottom));background:var(--surface);border-radius:0 0 14px 14px;box-shadow:0 -10px 16px -10px rgba(0,0,0,.35)}
+.si.lock{opacity:.55;filter:grayscale(.7)}
+.si.lock .ct{font-size:11px}
 .shead{display:flex;gap:12px;align-items:center;margin-bottom:10px}
 .shead .pack,.shead .tile{width:64px;flex:none}
 .sheet.receipt{font-family:var(--f-mono);font-size:13px;margin-bottom:26px}
@@ -452,21 +455,34 @@ const PRODUCTS=[
  {id:'tox',cat:'sig',name:'Tox',price:5.20,color:'#5E7A12',fam:'noir',stile:'Ciniche e industriali',motto:'Lo dice il nome, e non mente.',pop:5},
  {id:'ash',cat:'sig',name:'Ash & Co.',price:8.00,color:'#262626',fam:'noir',stile:'Decadenti',motto:'Dal 1900 trasformiamo soldi in cenere.',pop:3},
  {id:'bln',cat:'sig',name:'Blue Night',price:7.00,color:'#13234D',fam:'noir',stile:'Malinconiche, da detective privato',motto:'Per chi pedina qualcuno e fuma da solo.',pop:5},
- {id:'tri',cat:'tab',name:'Trinciato Pipa Fina 30 g',price:8.90,tag:'TRINC.'},
- {id:'car',cat:'tab',name:'Cartine e filtri',price:2.40,tag:'CARTINE'},
+ {id:'mrl',cat:'sig',name:'Marlboro',price:6.80,color:'#C8102E',fam:'cla',stile:'Il rosso e bianco che tutti riconoscono',motto:'Rosso come il conto del cardiologo.',pop:11},
+ {id:'cml',cat:'sig',name:'Camel',price:6.30,color:'#C9A24B',fam:'cla',stile:'Color sabbia, da viaggio nel deserto',motto:'Lento come un cammello, puntuale come la tosse.',pop:8},
+ {id:'tri',cat:'tab',name:'Trinciato Pipa Fina 30 g',price:8.90,tag:'PIPA FINA',gate:'fumo'},
+ {id:'trv',cat:'tab',name:'Trinciato Virginia Dorato 30 g',price:9.50,tag:'VIRGINIA',gate:'fumo'},
+ {id:'trd',cat:'tab',name:'Trinciato Scirocco Scuro 30 g',price:9.20,tag:'SCIROCCO',gate:'fumo'},
+ {id:'car',cat:'tab',name:'Cartine corte e filtri',price:2.40,tag:'CARTINE',gate:'fumo'},
+ {id:'cal',cat:'tab',name:'Cartine lunghe slim',price:1.20,tag:'LUNGHE',gate:'fumo'},
+ {id:'fil',cat:'tab',name:'Filtri slim 6 mm',price:1.50,tag:'FILTRI',gate:'fumo'},
  {id:'g2',cat:'gra',name:'Gratta e Vinci 2 €',price:2,tag:'2 €'},
  {id:'g3',cat:'gra',name:'Gratta e Vinci 3 €',price:3,tag:'3 €'},
  {id:'g5',cat:'gra',name:'Gratta e Vinci 5 €',price:5,tag:'5 €'},
  {id:'g10',cat:'gra',name:'Gratta e Vinci 10 €',price:10,tag:'10 €'},
  {id:'g20',cat:'gra',name:'Gratta e Vinci 20 €',price:20,tag:'20 €'},
- {id:'bol',cat:'val',name:'Marca da bollo 16 €',price:16,aggio:.04,tag:'BOLLO'},
- {id:'fra',cat:'val',name:'Francobollo 1,30 €',price:1.30,aggio:.06,tag:'POSTA'},
- {id:'trr',cat:'val',name:'Biglietto treno per Reggio 2,30 €',price:2.30,aggio:.07,tag:'TRENO RC'},
- {id:'trs',cat:'val',name:'Biglietto treno per Scilla 1,40 €',price:1.40,aggio:.07,tag:'TRENO SCILLA'},
- {id:'acc',cat:'ban',name:'Accendino',free:1,cost:.70,price:2,tag:'ACCEND.'},
- {id:'cam',cat:'ban',name:'Caramelle alla menta',free:1,cost:.55,price:1.50,tag:'MENTA'},
- {id:'sna',cat:'ban',name:'Snack',free:1,cost:.50,price:1.50,tag:'SNACK'},
- {id:'cpo',cat:'ban',name:'Cartolina',free:1,cost:.25,price:1,tag:'CARTOL.'},
+ {id:'bol',cat:'val',name:'Marca da bollo 16 €',price:16,aggio:.04,tag:'BOLLO',gate:'valori'},
+ {id:'fra',cat:'val',name:'Francobollo 1,30 €',price:1.30,aggio:.06,tag:'POSTA',gate:'valori'},
+ {id:'cpo',cat:'val',name:'Cartolina di Reggio',free:1,cost:.25,price:1,tag:'CARTOL.',gate:'valori'},
+ {id:'trr',cat:'val',name:'Biglietto treno per Reggio 2,30 €',price:2.30,aggio:.07,tag:'TRENO RC',gate:'treni'},
+ {id:'trs',cat:'val',name:'Biglietto treno per Scilla 1,40 €',price:1.40,aggio:.07,tag:'TRENO SCILLA',gate:'treni'},
+ {id:'acc',cat:'ban',name:'Accendino usa e getta',free:1,cost:.70,price:2,tag:'ACCEND.',gate:'fumo'},
+ {id:'acm',cat:'ban',name:'Accendino antivento',free:1,cost:2.50,price:6,tag:'ANTIVENTO',gate:'fumo'},
+ {id:'acr',cat:'ban',name:'Accendino ricaricabile USB',free:1,cost:4,price:9,tag:'USB',gate:'fumo'},
+ {id:'cam',cat:'ban',name:'Caramelle alla menta',free:1,cost:.55,price:1.50,tag:'MENTA',gate:'caramelle'},
+ {id:'liq',cat:'ban',name:'Caramelle alla liquirizia',free:1,cost:.60,price:1.50,tag:'LIQUIRIZIA',gate:'caramelle'},
+ {id:'gom',cat:'ban',name:'Caramelle gommose alla frutta',free:1,cost:.65,price:1.80,tag:'GOMMOSE',gate:'caramelle'},
+ {id:'sna',cat:'ban',name:'Barretta al cioccolato',free:1,cost:.50,price:1.50,tag:'BARRETTA',gate:'snack'},
+ {id:'waf',cat:'ban',name:'Wafer alla nocciola',free:1,cost:.45,price:1.30,tag:'WAFER',gate:'snack'},
+ {id:'crk',cat:'ban',name:'Cracker salati',free:1,cost:.40,price:1.20,tag:'CRACKER',gate:'snack'},
+ {id:'tar',cat:'ban',name:'Taralli al finocchietto',free:1,cost:.60,price:1.80,tag:'TARALLI',gate:'snack'},
  {id:'bib',cat:'ban',name:'Bibita in lattina',free:1,cost:.60,price:2,tag:'BIBITA',gate:'frigo'},
  {id:'pow',cat:'ban',name:'Powerbank di origine dubbia',free:1,cost:6,price:15,tag:'POWER',gate:'gadget'},
  {id:'sto',cat:'sga',name:'Sigaro Aspromonte Classico',price:5.00,tag:'SIGARO',gate:'umidor'},
@@ -502,15 +518,15 @@ const PD={};
 PRODUCTS.forEach(p=>{const c=CATDEF[p.cat];p.aggio=p.aggio!=null?p.aggio:c.aggio;p.cap=p.cap||c.cap;p.start=p.start!=null?p.start:c.start;p.lot=p.lot||c.lot;p.ref=p.price;PD[p.id]=p;});
 PD.g10.cap=40;PD.g10.lot=10;PD.g20.cap=20;PD.g20.lot=5;PD.g20.start=6;PD.g10.start=12;
 PD.caf.cap=100;PD.caf.lot=50;PD.ghi.cap=20;PD.vin.cap=12;PD.vin.lot=6;PD.cor.cap=10;PD.ava.cap=10;PD.olo.cap=10;PD.olo.lot=5;
-PD.bol.cap=20;PD.bol.lot=5;PD.bol.start=6;PD.pow.cap=12;PD.pow.lot=4;PD.pow.start=0;PD.bib.start=0;PD.tri.cap=20;PD.tri.lot=5;PD.tri.start=8;
+PD.bol.cap=20;PD.bol.lot=5;PD.bol.start=6;PD.pow.cap=12;PD.pow.lot=4;PD.pow.start=0;PD.bib.start=0;for(const k of ['tri','trv','trd']){PD[k].cap=20;PD[k].lot=5;}PD.acm.lot=5;PD.acr.lot=5;
 const BRANDS=PRODUCTS.filter(p=>p.cat==='sig');
 const SALECAT={sig:'tab',tab:'tab',gra:'gra',val:'val',ban:'ban',sga:'tab',gio:'gio',alc:'bar',cbd:'cbd',bar:'bar'};
 
 /* servizi e lotterie: si incassa solo la provvigione */
 const SV={
- lot:{name:'Lotto',rate:.08,amt:()=>pick([1,2,3,5,5,10,20]),say:a=>`una giocata da ${a} € al Lotto`},
- sup:{name:'SuperEnalotto',rate:.08,amt:()=>pick([2,3,5,5,10,15]),say:a=>`una schedina da ${a} € del SuperEnalotto`},
- del:{name:'10eLotto',rate:.08,amt:()=>pick([1,2,2,3,5,10]),say:a=>`una giocata da ${a} € al 10eLotto`},
+ lot:{name:'Lotto',gate:'licLot',rate:.08,amt:()=>pick([1,2,3,5,5,10,20]),say:a=>`una giocata da ${a} € al Lotto`},
+ sup:{name:'SuperEnalotto',gate:'licSup',rate:.08,amt:()=>pick([2,3,5,5,10,15]),say:a=>`una schedina da ${a} € del SuperEnalotto`},
+ del:{name:'10eLotto',gate:'licDel',rate:.08,amt:()=>pick([1,2,2,3,5,10]),say:a=>`una giocata da ${a} € al 10eLotto`},
  ric:{name:'Ricarica telefonica',gate:'srvRic',rate:.05,amt:()=>pick([5,10,10,15,20,25,50]),say:a=>`una ricarica da ${a} €`},
  pag:{name:'Pagamento bollettino',gate:'srvPag',fixed:1.10,amt:()=>ri(25,150)+2,say:a=>`di pagare un bollettino (${a} €, commissione compresa)`},
  sco:{name:'Scommessa sportiva',gate:'scommesse',rate:.08,amt:()=>pick([2,5,5,10,20,50]),say:a=>`una scommessa da ${a} € sulla partita`},
@@ -585,36 +601,54 @@ const TOUR_S=['Müller','Dupont','Smith','Jansen','Tanaka','Novak','Larsen','O\'
 function wantU(c,id,q=1){const g=SV[id]?SV[id].gate:PD[id].gate;if(g&&!(typeof S!=='undefined'&&S&&S.up&&S.up[g]))return;want(c,id,q);}
 function want(c,id,q=1){const ex=c.lines.find(l=>l.id===id);if(ex){if(!SV[id])ex.q+=q;return;}c.lines.push(SV[id]?{id,q:1,amt:SV[id].amt()}:{id,q});}
 function brandOf(p){return PD[p.brand]?p.brand:BRANDS[0].id;}
+const SNK=()=>pick(['sna','waf','crk','tar']),CRM=()=>pick(['cam','cam','liq','gom']),ACC=()=>pick(['acc','acc','acc','acm','acr']),CRT=()=>pick(['car','car','cal','fil']),TRN=()=>pick(['tri','tri','trv','trd']);
+/* tre famiglie di clienti: pensionati, lavoratori (ognuno col suo mestiere), studenti */
 const TYPES={
- pendolare:{role:'Pendolare',g:.5,pat:100,
-  quotes:['«Ho il treno tra due minuti. Due.»','«Il solito, ma di corsa.»','«Lo scontrino lo tengo, la fretta pure.»'],
-  wants:(c,p)=>{if(chance(.35))wantU(c,'caf');if(chance(.2))wantU(c,'gaz');if(chance(.08))wantU(c,'sco');if(chance(.7))want(c,brandOf(p),chance(.2)?2:1);if(chance(.45))want(c,chance(.75)?'trr':'trs',ri(1,2));if(chance(.12))want(c,'cam');if(chance(.12))want(c,'ric');if(chance(.1))want(c,'del');}},
  signora:{role:'Pensionata',g:1,pat:60,old:1,
   quotes:['«Oggi sento che è la volta buona.»','«Mi dia quello vicino a quello che ha vinto ieri.»','«Lo gratto con la moneta di mia nonna.»','«Ha visto che tempo, signora mia?»'],
-  wants:(c,p)=>{if(chance(.2))wantU(c,'caf');if(chance(.25))wantU(c,'enm');if(chance(.1))wantU(c,'gaz');if(chance(.6))want(c,pick(['g2','g2','g3','g5']),ri(1,3));if(chance(.35))want(c,'lot');if(chance(.2))want(c,'sup');if(chance(.15))want(c,'fra',ri(1,3));if(chance(.15))want(c,'cam');if(chance(.2))want(c,'pag');}},
- studente:{role:'Studente',g:.5,pat:170,
-  quotes:['«Ho tutto in monetine da dieci centesimi.»','«Il treno per Reggio parte tra cinque minuti, faccia presto.»','«Mi fa uno sconto studenti? No? Ok.»'],
-  wants:(c,p)=>{if(chance(.25))wantU(c,'pat');if(chance(.15))wantU(c,'ppc');if(chance(.12))wantU(c,'cbd');if(chance(.12))wantU(c,'vir');if(chance(.1))wantU(c,'bir');if(chance(.55))want(c,chance(.6)?'trr':'trs',ri(1,2));if(chance(.3))want(c,'sna');if(chance(.25))want(c,'bib');if(chance(.25))want(c,'cam');if(chance(.2))want(c,'car');if(chance(.2))want(c,'acc');if(chance(.25))want(c,'ric');if(chance(.25))want(c,brandOf(p));}},
- geometra:{role:'Professionista',g:.4,pat:110,
-  quotes:['«Mi serve per una pratica. Sì, ancora.»','«Questo è l\'ultimo modulo. Lo dico da marzo.»','«Il notaio aspetta, il catasto pure.»'],
-  wants:(c,p)=>{if(chance(.3))wantU(c,'caf');if(chance(.2))wantU(c,'gaz');if(chance(.75))want(c,'bol',ri(1,3));if(chance(.4))want(c,'pag');if(chance(.25))want(c,'fra',ri(1,4));if(chance(.3))want(c,brandOf(p));}},
+  wants:(c,p)=>{if(chance(.2))wantU(c,'caf');if(chance(.25))wantU(c,'enm');if(chance(.1))wantU(c,'gaz');if(chance(.6))want(c,pick(['g2','g2','g3','g5']),ri(1,3));if(chance(.35))want(c,'lot');if(chance(.2))want(c,'sup');if(chance(.15))want(c,'fra',ri(1,3));if(chance(.15))want(c,CRM());if(chance(.06))want(c,'cpo',ri(1,2));if(chance(.2))wantU(c,'pag');}},
  nonno:{role:'Pensionato',g:0,pat:55,old:1,
   quotes:['«Sempre gli stessi numeri da quarant\'anni.»','«Prima o poi escono. Statisticamente.»','«Una volta si vinceva di più.»'],
-  wants:(c,p)=>{if(chance(.45))wantU(c,'gaz');if(chance(.2))wantU(c,'sto');if(chance(.1))wantU(c,'mez');if(chance(.15))wantU(c,'vin');if(chance(.15))wantU(c,'ama');if(chance(.1))wantU(c,'sco');want(c,pick(['lot','lot','sup','del']));if(chance(.35))want(c,'del');if(chance(.35))want(c,'g2',ri(1,2));if(chance(.25))want(c,pick(['tri',brandOf(p)]));}},
- operaio:{role:'Operaio',g:.15,pat:100,
-  quotes:['«Ho dieci minuti di pausa. Dieci.»','«Il solito. Lei sa.»','«Un attimo, che il camion è in doppia fila.»'],
-  wants:(c,p)=>{if(chance(.35))wantU(c,'caf');if(chance(.25))wantU(c,'bir');if(chance(.25))wantU(c,'sco');if(chance(.15))wantU(c,'pat');if(chance(.05))wantU(c,'ghi');if(chance(.1))wantU(c,'spo');if(chance(.7))want(c,chance(.25)?'tri':brandOf(p));if(chance(.3))want(c,'acc');if(chance(.3))want(c,pick(['g2','g5']));if(chance(.3))want(c,'bib');if(chance(.25))want(c,'sna');if(chance(.2))want(c,'del');}},
- cumenda:{role:'Imprenditore',g:.25,pat:90,
-  quotes:['«Tenga il resto. No, il resto lo voglio.»','«Un gratta da venti. Anzi due, per scaramanzia.»','«L\'autista aspetta fuori. Faccia presto.»'],
-  wants:(c,p)=>{if(chance(.35))wantU(c,'ava');if(chance(.2))wantU(c,'cor');if(chance(.2))wantU(c,'vin');if(chance(.2))wantU(c,'sco');if(chance(.08))wantU(c,'olo');want(c,pick(['g10','g20']),ri(1,2));if(chance(.7))want(c,pick(['mon','ash','sil','chr']),ri(1,2));if(chance(.35))want(c,'sup');if(chance(.15))want(c,'pow');}},
- chiacchierone:{role:'Chiacchierone',g:0,pat:75,old:1,mult:4,
+  wants:(c,p)=>{if(chance(.45))wantU(c,'gaz');if(chance(.2))wantU(c,'sto');if(chance(.1))wantU(c,'mez');if(chance(.15))wantU(c,'vin');if(chance(.15))wantU(c,'ama');if(chance(.1))wantU(c,'sco');want(c,pick(['lot','lot','sup','del']));if(chance(.35))want(c,'del');if(chance(.35))want(c,'g2',ri(1,2));if(chance(.25))want(c,chance(.5)?TRN():brandOf(p));if(chance(.1))want(c,ACC());}},
+ chiacchierone:{role:'Pensionato',g:.3,pat:60,old:1,mult:4,
   quotes:['«Ai miei tempi qui c\'era il cinema. Le racconto.»','«Sa chi ho incontrato stamattina? Si sieda.»'],
   wants:(c,p)=>{if(chance(.3))wantU(c,'gaz');if(chance(.3))wantU(c,'caf');want(c,brandOf(p));want(c,'g2');if(chance(.5))want(c,'lot');}},
- turista:{role:'Turista',g:.5,pat:140,
-  quotes:['«Scusi, dov\'è il Colosseo? No, ok.»','«Is this a pharmacy? No? Un biglietto, please.»','«Quanto costa una cartolina? Due? Facciamo dieci.»'],
-  wants:(c,p)=>{if(chance(.1))wantU(c,'ghi');if(chance(.15))wantU(c,'bir');if(chance(.15))wantU(c,'pat');want(c,chance(.7)?'trs':'trr',ri(1,3));if(chance(.6))want(c,'cpo',ri(1,4));if(chance(.5))want(c,'fra',ri(1,4));if(chance(.35))want(c,'bib');if(chance(.2))want(c,'pow');if(chance(.25))want(c,'sna');}}
+ pendolare:{role:'Lavoratore',g:.5,pat:95,
+  quotes:['«Ho il treno tra due minuti. Due.»','«Il solito, ma di corsa.»','«Lo scontrino lo tengo, la fretta pure.»','«Timbro alle otto e mezza, mi aiuti.»'],
+  wants:(c,p)=>{if(chance(.35))wantU(c,'caf');if(chance(.2))wantU(c,'gaz');if(chance(.08))wantU(c,'sco');if(chance(.7))want(c,brandOf(p),chance(.2)?2:1);if(chance(.45))want(c,chance(.75)?'trr':'trs',ri(1,2));if(chance(.12))want(c,CRM());if(chance(.1))want(c,SNK());if(chance(.12))wantU(c,'ric');if(chance(.1))want(c,'del');}},
+ geometra:{role:'Lavoratore',g:.4,pat:100,
+  quotes:['«Mi serve per una pratica. Sì, ancora.»','«Questo è l\'ultimo modulo. Lo dico da marzo.»','«Il notaio aspetta, il catasto pure.»'],
+  wants:(c,p)=>{if(chance(.3))wantU(c,'caf');if(chance(.2))wantU(c,'gaz');if(chance(.75))want(c,'bol',ri(1,3));if(chance(.4))wantU(c,'pag');if(chance(.25))want(c,'fra',ri(1,4));if(chance(.3))want(c,brandOf(p));}},
+ operaio:{role:'Lavoratore',g:.15,pat:95,
+  quotes:['«Ho dieci minuti di pausa. Dieci.»','«Il solito. Lei sa.»','«Un attimo, che il camion è in doppia fila.»'],
+  wants:(c,p)=>{if(chance(.35))wantU(c,'caf');if(chance(.25))wantU(c,'bir');if(chance(.25))wantU(c,'sco');if(chance(.15))wantU(c,'pat');if(chance(.05))wantU(c,'ghi');if(chance(.1))wantU(c,'spo');if(chance(.7))want(c,chance(.25)?TRN():brandOf(p));if(chance(.15))want(c,CRT());if(chance(.3))want(c,ACC());if(chance(.3))want(c,pick(['g2','g5']));if(chance(.3))wantU(c,'bib');if(chance(.25))want(c,SNK());if(chance(.2))want(c,'del');}},
+ cumenda:{role:'Lavoratore',g:.25,pat:90,
+  quotes:['«Tenga il resto. No, il resto lo voglio.»','«Un gratta da venti. Anzi due, per scaramanzia.»','«L\'autista aspetta fuori. Faccia presto.»'],
+  wants:(c,p)=>{if(chance(.35))wantU(c,'ava');if(chance(.2))wantU(c,'cor');if(chance(.2))wantU(c,'vin');if(chance(.2))wantU(c,'sco');if(chance(.08))wantU(c,'olo');want(c,pick(['g10','g20']),ri(1,2));if(chance(.7))want(c,pick(['mon','ash','sil','chr','mrl']),ri(1,2));if(chance(.35))want(c,'sup');if(chance(.15))want(c,'acr');if(chance(.15))wantU(c,'pow');}},
+ studente:{role:'Studente universitario',g:.5,pat:170,
+  quotes:['«Ho tutto in monetine da dieci centesimi.»','«Il treno per Reggio parte tra cinque minuti, faccia presto.»','«Mi fa uno sconto studenti? No? Ok.»','«Ho l\'esame alle nove, mi porti fortuna.»'],
+  wants:(c,p)=>{if(chance(.25))wantU(c,'pat');if(chance(.15))wantU(c,'ppc');if(chance(.12))wantU(c,'cbd');if(chance(.12))wantU(c,'vir');if(chance(.1))wantU(c,'bir');if(chance(.55))want(c,chance(.6)?'trr':'trs',ri(1,2));if(chance(.3))want(c,SNK());if(chance(.25))wantU(c,'bib');if(chance(.25))want(c,CRM());if(chance(.25))want(c,CRT());if(chance(.12))want(c,TRN());if(chance(.2))want(c,ACC());if(chance(.25))wantU(c,'ric');if(chance(.25))want(c,brandOf(p));}},
+ liceale:{role:'Studente delle superiori',g:.5,pat:150,
+  quotes:['«Faccia presto che suona la campanella.»','«Ho solo il resto della paghetta.»','«Mia madre ha detto di prendere anche questo.»','«Il pullman per la scuola è già lì.»'],
+  wants:(c,p)=>{if(chance(.5))want(c,chance(.65)?'trr':'trs',ri(1,2));if(chance(.4))want(c,SNK(),chance(.2)?2:1);if(chance(.35))want(c,CRM());if(chance(.25))wantU(c,'bib');if(chance(.2))wantU(c,'pat');if(chance(.2))wantU(c,'ric');if(chance(.1))wantU(c,'spo');if(chance(.08))want(c,'fra');if(!c.lines.length)want(c,SNK());}},
+ turista:{role:'Lavoratore',g:.5,pat:100,
+  quotes:['«Sono di passaggio, ho la macchina fuori.»'],
+  wants:(c,p)=>{want(c,brandOf(p));if(chance(.3))want(c,'trs');}}
 };
-const RESIDENT_TYPES={pendolare:60,signora:45,studente:45,geometra:30,nonno:35,operaio:45,cumenda:15,chiacchierone:5};
+const JOBS={
+ pendolare:[['Impiegato','Impiegata'],['Ferroviere','Ferroviera'],['Infermiere','Infermiera'],['Insegnante','Insegnante'],['Commesso','Commessa'],['Postino','Postina'],['Bancario','Bancaria'],['Rappresentante','Rappresentante'],['Cameriere','Cameriera'],['Parrucchiere','Parrucchiera'],['Impiegato comunale','Impiegata comunale'],['Barista','Barista']],
+ geometra:[['Geometra','Geometra'],['Avvocato','Avvocata'],['Ingegnere','Ingegnera'],['Commercialista','Commercialista'],['Architetto','Architetta'],['Farmacista','Farmacista'],['Medico di base','Medico di base'],['Agente immobiliare','Agente immobiliare']],
+ operaio:[['Muratore','Muratrice'],['Elettricista','Elettricista'],['Idraulico','Idraulica'],['Camionista','Camionista'],['Meccanico','Meccanica'],['Pescatore','Pescatrice'],['Bracciante','Bracciante'],['Carpentiere','Carpentiera'],['Magazziniere','Magazziniera'],['Operaio al porto','Operaia al porto'],['Giardiniere','Giardiniera']],
+ cumenda:[['Imprenditore edile','Imprenditrice edile'],['Concessionario d\'auto','Concessionaria d\'auto'],['Notaio','Notaia'],['Titolare di un lido','Titolare di un lido'],['Costruttore','Costruttrice'],['Ristoratore','Ristoratrice']],
+ turista:[['Rappresentante','Rappresentante'],['Camionista','Camionista']]
+};
+function roleOf(type,female){
+  if(JOBS[type]){const j=pick(JOBS[type]);return female?j[1]:j[0];}
+  if(type==='studente')return female?'Studentessa universitaria':'Studente universitario';
+  if(type==='liceale')return female?'Studentessa delle superiori':'Studente delle superiori';
+  return female?'Pensionata':'Pensionato';
+}
+const RESIDENT_TYPES={pendolare:60,signora:45,studente:35,liceale:30,geometra:30,nonno:35,operaio:45,cumenda:15,chiacchierone:5};
 
 function genFace(type,female){
   const T=TYPES[type];
@@ -625,11 +659,11 @@ function genFace(type,female){
   switch(type){
     case 'signora':f.hair=pick(['bun','curly','curly','short']);f.ear=true;f.blush=true;break;
     case 'nonno':f.must=chance(.6);if(chance(.45)){f.hat='coppola';f.hatc=pick(['#5B4A3A','#3E4A57','#6C5B47']);}break;
-    case 'studente':f.old=false;if(!female)f.hair=pick(['spiky','curly','short','long']);if(chance(.3)){f.hat='cap';}f.beard=false;break;
+    case 'liceale':case 'studente':f.old=false;if(!female)f.hair=pick(['spiky','curly','short','long']);if(chance(.3)){f.hat='cap';}f.beard=false;break;
     case 'geometra':f.glasses=chance(.75)?'yes':null;if(!female&&chance(.35))f.hair='bald';break;
     case 'operaio':if(chance(.35))f.hat='helmet';else if(chance(.3))f.hat='cap';if(!female)f.beard=chance(.5);break;
     case 'cumenda':if(!female){f.hair='slick';f.must=chance(.5);}f.shirt='#1F2A44';f.glasses=chance(.3)?'yes':null;break;
-    case 'chiacchierone':f.hair='bald';f.glasses='yes';f.must=true;f.blush=true;break;
+    case 'chiacchierone':if(!female){f.hair='bald';f.must=true;}f.glasses='yes';f.blush=true;break;
     case 'turista':if(chance(.6)){f.hat='sunhat';f.hatc=pick(['#E8D9A8','#F2F0E6','#D9B776']);}if(chance(.4))f.glasses='sun';f.skin=pick(SKIN.slice(0,3));f.blush=true;break;
   }
   if(f.glasses==='yes')f.glasses=true;
@@ -638,14 +672,13 @@ function genFace(type,female){
 function makePerson(type,id){
   const T=TYPES[type],female=chance(T.g);
   const first=female?pick(FN_F):pick(FN_M);
-  const brandW={};BRANDS.forEach(b=>brandW[b.id]=b.pop*(type==='cumenda'&&b.price>=7?4:1)*(type==='studente'&&(b.fam==='mod'||b.price<=5.3)?3:1)*(T.old&&b.fam==='cla'?3:1)*((type==='operaio'||type==='pendolare')&&b.fam==='noir'?1.8:1));
-  return{id,type,f:female?1:0,name:`${first} ${pick(SURN)}`,role:female&&T.role.endsWith('o')?T.role.slice(0,-1)+'a':T.role,face:genFace(type,female),brand:pickW(brandW),
+  const brandW={};BRANDS.forEach(b=>brandW[b.id]=b.pop*(type==='cumenda'&&b.price>=7?4:1)*((type==='studente'||type==='liceale')&&(b.fam==='mod'||b.price<=5.3)?3:1)*(T.old&&b.fam==='cla'?3:1)*((type==='operaio'||type==='pendolare')&&b.fam==='noir'?1.8:1));
+  return{id,type,f:female?1:0,name:`${first} ${pick(SURN)}`,role:roleOf(type,female),face:genFace(type,female),brand:pickW(brandW),
     hon:+rnd(.15,.95).toFixed(2),prone:+(chance(.35)?rnd(.3,.9):rnd(0,.15)).toFixed(2),reg:+rnd(.3,1).toFixed(2),
     debt:0,lent:0,back:0,hist:[],vd:0,vc:0};
 }
 function makeTourist(){
-  const female=chance(.5);const p=makePerson('turista',-1);
-  p.name=`${pick(TOUR_N)} ${pick(TOUR_S)}`;p.role='Turista';p.face=genFace('turista',female);p.prone=0;return p;
+  const p=makePerson(pick(['pendolare','operaio']),-1);p.prone=0;return p;
 }
 
 /* ===== tabaccai ===== */
@@ -674,6 +707,14 @@ const OWD={};OWNERS.forEach(o=>OWD[o.id]=o);
 
 /* ===== migliorie ===== */
 const UPG=[
+ {id:'licLot',grp:'base',name:'Licenza del Lotto',max:1,cost:[100],desc:'Terminale, bollettini e i numeri ritardatari che tutti ti chiederanno.',eff:()=>'sblocca il Lotto (provvigione 8%)'},
+ {id:'licSup',grp:'base',name:'Licenza del SuperEnalotto',max:1,cost:[250],desc:'Il jackpot milionario che non vince mai nessuno del quartiere. Per ora.',eff:()=>'sblocca il SuperEnalotto (provvigione 8%)'},
+ {id:'licDel',grp:'base',name:'Licenza del 10eLotto',max:1,cost:[180],desc:'Un\'estrazione ogni cinque minuti, un pensionato fisso davanti allo schermo.',eff:()=>'sblocca il 10eLotto (provvigione 8%)'},
+ {id:'treni',grp:'base',name:'Biglietteria treni',max:1,cost:[150],desc:'Biglietti per Reggio e per Scilla. I ritardi non sono compresi.',eff:()=>'sblocca i biglietti del treno (aggio 7%)'},
+ {id:'snack',grp:'base',name:'Espositore snack',max:1,cost:[20],desc:'Barrette, wafer, cracker e taralli per chi ha saltato la colazione.',eff:()=>'sblocca 4 tipi di snack'},
+ {id:'caramelle',grp:'base',name:'Barattolo delle caramelle',max:1,cost:[10],desc:'Menta, liquirizia e gommose. Il resto in caramelle non vale più.',eff:()=>'sblocca 3 tipi di caramelle'},
+ {id:'valori',grp:'base',name:'Valori bollati e cartoline',max:1,cost:[80],desc:'Marche da bollo, francobolli e cartoline di Reggio per i pochi che scrivono ancora.',eff:()=>'sblocca bolli, francobolli e cartoline'},
+ {id:'fumo',grp:'base',name:'Accendini, cartine e trinciati',max:1,cost:[50],desc:'Per chi le sigarette se le arrotola da sé, e per chi perde sempre l\'accendino.',eff:()=>'sblocca 3 accendini, 3 tipi di cartine e filtri, 3 trinciati'},
  {id:'insegna',grp:'neg',name:'Insegna luminosa',max:3,cost:[800,1800,3500],desc:'Più luce, più clienti. Più bolletta, ma quella arriva dopo.',eff:l=>`affluenza +${l*8}%, luce +${l*50} €/mese`},
  {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[600,1400,2800],desc:'Tabacchi in alto, gratta e vinci in basso. Merce in vista, clienti in più.',eff:l=>`+${l*4}% clienti`},
  {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[700],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
@@ -719,12 +760,12 @@ function newToday(){return{served:0,lost:0,turned:0,missed:0,okItems:0,sales:0,c
 function newState(owner,tr){
   tr=tr||{pk:OWD[owner].pk,perk:OWD[owner].perk,vz:OWD[owner].vz,malus:OWD[owner].malus};
   const stock={},price={};
-  PRODUCTS.forEach(p=>{stock[p.id]=p.start;price[p.id]=p.price;});
+  PRODUCTS.forEach(p=>{stock[p.id]=p.gate?0:p.start;price[p.id]=p.price;});
   const people=[];let id=0;
   for(const t in RESIDENT_TYPES)for(let i=0;i<RESIDENT_TYPES[t];i++)people.push(makePerson(t,id++));
   const bw={};BRANDS.forEach(b=>bw[b.id]=b.pop);
-  return{v:2,start:todayISO(),billMode:'m',calabro:1,counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:5000,deposit:0,rep:0,speed:1,stock,price,
-    up:{insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0,locale:0,scommesse:0,virtuali:0,caffe:0,snackbar:0,giornali:0,alcol:0,ghiaccio:0,umidor:0,sigaripremium:0,cbd:0,tv:0,slot:0,condiz:0,distrib:0},
+  return{v:2,start:todayISO(),billMode:'m',calabro:1,lic2:1,cashMode:'m',counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:2500,deposit:0,rep:0,speed:1,stock,price,
+    up:{licLot:0,licSup:0,licDel:0,treni:0,snack:0,caramelle:0,valori:0,fumo:0,insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0,locale:0,scommesse:0,virtuali:0,caffe:0,snackbar:0,giornali:0,alcol:0,ghiaccio:0,umidor:0,sigaripremium:0,cbd:0,tv:0,slot:0,condiz:0,distrib:0},
     people,queue:[],nid:1,today:newToday(),aggD:{},aggM:{},aggA:{},tx:[],history:[],log:[],
     freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,invested:0,loan:null,debtDays:0,over:false,intro:false};
 }
@@ -739,6 +780,8 @@ function fromObj(s){
     const b=newState(s.owner);
     const m=Object.assign(b,s);
     m.stock=Object.assign(b.stock,s.stock);m.price=Object.assign(b.price,s.price);m.up=Object.assign(b.up,s.up);
+    if(!s.lic2){for(const k of ['licLot','licSup','licDel','treni','snack','caramelle','valori','fumo'])if(!s.up||s.up[k]==null)m.up[k]=1;m.lic2=1;}
+    if(!m.roles2){m.people.forEach(pp=>{if(pp.id>=0)pp.role=roleOf(pp.type,!!pp.f);});if(!m.people.some(pp=>pp.type==='liceale')){let id=m.people.length;for(let i=0;i<RESIDENT_TYPES.liceale;i++)m.people.push(makePerson('liceale',id++));}m.roles2=1;}
     m.today=Object.assign(newToday(),s.today);
     if(m.phase==='open')m.speed=0;
     if(!m.ownerName)m.ownerName=OWD[m.owner].name;
@@ -811,12 +854,11 @@ function pickType(){
     operaio:sun?.5:(((t>=600&&t<=660)||(t>=900&&t<=960))?2.5:((t>=720&&t<=840)?1.5:1)),
     cumenda:(.3+Math.max(0,S.rep)/200)*(sun?1.5:1),
     chiacchierone:.15,
-    turista:(t>=660&&t<=960)?1.2:.5
+    liceale:sun?.3:((t<495||(t>=780&&t<=870))?3:.25)
   };
   return pickW(w);
 }
 function pickPerson(type){
-  if(type==='turista')return makeTourist();
   const pool=S.people.filter(p=>p.type===type&&!(p.vd===S.day&&p.vc>=2)&&!S.queue.some(q=>q.pid===p.id));
   let cand=pool;
   if(!cand.length)cand=S.people.filter(p=>!(p.vd===S.day&&p.vc>=2)&&!S.queue.some(q=>q.pid===p.id));
@@ -829,7 +871,18 @@ const NUMW=['','un','due','tre','quattro','cinque','sei','sette','otto','nove','
 const nw=n=>NUMW[n]||String(n);
 const SAY={
   tri:q=>q===1?'un trinciato Pipa Fina':`${nw(q)} trinciati Pipa Fina`,
-  car:q=>q===1?'cartine e filtri':`${nw(q)} confezioni di cartine`,
+  trv:q=>q===1?'un trinciato Virginia Dorato':`${nw(q)} trinciati Virginia Dorato`,
+  trd:q=>q===1?'un trinciato Scirocco':`${nw(q)} trinciati Scirocco`,
+  cal:q=>q===1?'le cartine lunghe':`${nw(q)} pacchetti di cartine lunghe`,
+  fil:q=>q===1?'i filtri slim':`${nw(q)} bustine di filtri slim`,
+  acm:q=>q===1?'un accendino antivento':`${nw(q)} accendini antivento`,
+  acr:q=>q===1?'un accendino ricaricabile':`${nw(q)} accendini ricaricabili`,
+  liq:q=>q===1?'le caramelle alla liquirizia':`${nw(q)} pacchetti di caramelle alla liquirizia`,
+  gom:q=>q===1?'le caramelle gommose':`${nw(q)} pacchetti di caramelle gommose`,
+  waf:q=>q===1?'un wafer':`${nw(q)} wafer`,
+  crk:q=>q===1?'un pacchetto di cracker':`${nw(q)} pacchetti di cracker`,
+  tar:q=>q===1?'un sacchetto di taralli':`${nw(q)} sacchetti di taralli`,
+  car:q=>q===1?'cartine corte e filtri':`${nw(q)} confezioni di cartine corte`,
   bol:q=>q===1?'una marca da bollo da 16':`${nw(q)} marche da bollo da 16`,
   fra:q=>q===1?'un francobollo':`${nw(q)} francobolli`,
   trr:q=>q===1?'un biglietto del treno per Reggio':`${nw(q)} biglietti del treno per Reggio`,
@@ -884,10 +937,13 @@ function spawnCustomer(forcedType){
   if(p.id>=0){if(p.vd!==S.day){p.vd=S.day;p.vc=0;}p.vc++;}
   const ctx={lines:[]};
   T.wants(ctx,p);
-  if(isSunday(S.day)&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
+  if(isSunday(S.day)&&p.type!=='liceale'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
   if(['signora','nonno','operaio','cumenda','studente'].includes(p.type)&&chance(.03))want(ctx,'vgv');
-  if(!ctx.lines.length)want(ctx,brandOf(p));
-  const pat=T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
+  if(!ctx.lines.length)want(ctx,p.type==='liceale'?SNK():brandOf(p));
+  // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
+  const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
+  const extra=nArt>=5?10*GMS*1.1:nArt>=3?5*GMS*1.1:0;
+  const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
     quote:pick(T.quotes),creditAsk:false,asked:false,reply:null};
   if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.ask=pick(ASKCRED);}
@@ -1112,7 +1168,7 @@ const EVENTS=[
    {label:'Compra un paio di calzini per levarlo di mezzo (5 €)',cls:'alt',fn(){payForced(5);tx('multe',-5,'Calzini del venditore ambulante');log('Compri dei calzini che non ti servivano. Lui se ne va contento, e l\'espositore è intatto.','info');}},
    {label:'Mandalo via',cls:'gold',fn(){log('Il venditore campano di calzini richiude la valigia e se ne va.','info');}}]});
  }},
- {id:'tecnico',w:1.5,ok:()=>S.cash>200,run(){
+ {id:'tecnico',w:1.5,ok:()=>S.cash>200&&(S.up.licLot||S.up.licSup||S.up.licDel),run(){
   if(foiled('Il finto tecnico del Lotto'))return;
   openModal({html:`<h3>Il tecnico dei terminali</h3><p>«Buongiorno, sono il tecnico del Lotto, devo fare l'aggiornamento al terminale. Mi fa passare dietro al banco? Ci metto un attimo.» Ha una polo blu senza scritte e un cacciavite in mano.</p>`,actions:[
    {label:'Fallo passare dietro al banco',cls:'alt',fn(){
@@ -1133,7 +1189,7 @@ const EVENTS=[
  {id:'sole',w:2,run(){S.mod={traffic:1.4,until:S.t+120};log('Primo sole della stagione: tutti fuori, e tutti con la voglia di fumare.','good');toast('Bella giornata: più clienti.','good');}},
  {id:'jackpot',w:2,run(){S.jackpotUntil=S.t+240;log('Il SuperEnalotto è a 94 milioni: la fila si riempie di sognatori.','info');toast('Jackpot alle stelle: tutti vogliono giocare.','warn');}},
  {id:'chiacchierone',w:2,run(){if(spawnCustomer('chiacchierone')){log('È entrato il Chiacchierone. Ti racconterà del cinema che non c\'è più.','warn');toast('Il Chiacchierone blocca il banco.','warn');}}},
- {id:'pullman',w:2,run(){let n=0;for(let i=0;i<7;i++)if(spawnCustomer('turista'))n++;log(`Si ferma un pullman di turisti: ne entrano ${n} tutti insieme.`,'warn');toast('Arriva un pullman di turisti.','warn');}},
+ {id:'pullman',w:2,ok:()=>!isSunday(S.day),run(){let n=0;for(let i=0;i<6;i++)if(spawnCustomer('liceale'))n++;log(`Escono da scuola tutti insieme: entrano ${n} ragazzi delle superiori.`,'warn');toast('Arriva una classe delle superiori.','warn');}},
  {id:'vincita',w:1.5,run(){S.cash=r2(S.cash+20);tx('man',20,'Mancia per una vincita al Gratta e Vinci');addRep(2);log('Un cliente vince 500 € al Gratta e Vinci e ti lascia 20 € di mancia. Ricompra subito.','good');toast('Vincita in bottega: +20 € di mancia.','good');}},
  {id:'conguaglio',w:1.5,run(){payForced(60);tx('boll',-60,'Conguaglio della luce');log('Arriva il conguaglio della luce: 60 €.','bad');toast('Conguaglio della luce: −60 €.','bad');}},
  {id:'ispettore',w:1,ok:()=>S.day>=7,run(){
@@ -1241,7 +1297,7 @@ function billsFor(d){
   }else if(mode==='w'){
     if(wd(d)===6)b.push({cat:'boll',amt:r2((luce+tel+gas)*7/30),label:'Bollette della settimana (luce, telefono, gas e acqua)'});
   }else b.push({cat:'boll',amt:r2((luce+tel+gas)/30),label:'Bollette del giorno (luce, telefono, gas e acqua)'});
-  if(g===12){b.push({cat:'canoni',amt:r2((30+10*S.up.srvRic+15*S.up.srvPag+30*S.up.scommesse+15*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
+  if(g===12){b.push({cat:'canoni',amt:r2(((S.up.licLot||S.up.licSup||S.up.licDel?30:0)+10*S.up.srvRic+15*S.up.srvPag+30*S.up.scommesse+15*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
   if(g===16)b.push({cat:'tasse',amt:250,label:'Contributi INPS (F24)'});
   if(g===25)b.push({cat:'prof',amt:r2(100*pdisc),label:'Commercialista'});
   if(g===28){b.push({cat:'tasse',amt:45+30*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2(30*pdisc),label:'Assicurazione della bottega'});}
@@ -1419,7 +1475,11 @@ function buildStockGrid(){
     }
   }else{
     for(const p of PRODUCTS){
-      if(!PCATS[PCAT].includes(p.cat)||!visible(p.id))continue;
+      if(!PCATS[PCAT].includes(p.cat))continue;
+      if(!visible(p.id)){if(PCAT==='alt')continue;
+        const w=el('div','sitem');const b=el('button','si lock');b.type='button';b.dataset.lk=p.id;
+        b.innerHTML=`${artOf(p.id)}<span class="nm">${esc(p.name)}</span><span class="ct">Da sbloccare in Bottega</span>`;
+        w.appendChild(b);g.appendChild(w);continue;}
       const w=el('div','sitem');const b=el('button','si');b.type='button';b.dataset.pid=p.id;
       b.innerHTML=`${artOf(p.id)}<span class="nm">${esc(p.name)}</span><span class="ct"></span><span class="mb"><i></i></span>`;
       const bb=el('button','sbuy','+');bb.type='button';bb.dataset.buy=p.id;bb.setAttribute('aria-label','Compra '+p.name);
@@ -1449,6 +1509,7 @@ function resumeIfPaused(){if(S&&S.phase==='open'&&S.speed===0&&!RT.modal){S.spee
 function gridClick(e){
   const bb=e.target.closest('button[data-buy]');if(bb){buySheet(bb.dataset.buy);return;}
   const b=e.target.closest('button.si');if(!b)return;
+  if(b.dataset.lk){const u=UPD[PD[b.dataset.lk].gate];toast(`${PD[b.dataset.lk].name}: si sblocca in Bottega con «${u?u.name:'una licenza'}»${u?` (${fmt(u.cost[0])})`:''}.`,'warn');return;}
   const id=b.dataset.pid||b.dataset.sv;
   if(S.counter&&resumeIfPaused())return;
   if(!S.counter){if(b.dataset.pid)buySheet(id);else if(!svAvail(id))toast(LOTS.includes(id)&&S.lotDownUntil>S.t?'Il terminale del Lotto è bloccato.':'Questo servizio si attiva nella sezione Bottega.','warn');else toast('Nessun cliente al banco.','warn');return;}
@@ -1597,9 +1658,9 @@ function refillAll(){
 let BR={};
 function buildBot(){
   const root=$('#bot-root');root.innerHTML='';BR={};
-  for(const[g,title]of [['neg','Il negozio'],['esp','Espansioni'],['rep','Nuovi reparti'],['svago','Svago e comfort'],['srv','Servizi a provvigione']]){
+  for(const[g,title]of [['base','Licenze e reparti di base'],['neg','Il negozio'],['esp','Espansioni'],['rep','Nuovi reparti'],['svago','Svago e comfort'],['srv','Servizi a provvigione']]){
     const card=el('section','card');card.appendChild(el('h2',null,title));
-    if(g==='srv')card.appendChild(el('p','muted','Lotto, SuperEnalotto e 10eLotto sono già attivi: il terminale è compreso, con un canone di 60 € al mese.'));
+    if(g==='base')card.appendChild(el('p','muted','All\'inizio vendi solo sigarette e Gratta e Vinci. Qui sblocchi il resto: chi chiede una cosa che non hai se ne va un po\' scontento.'));
     for(const u of UPG.filter(x=>x.grp===g)){
       const row=el('div','upg');
       row.innerHTML=`<div><h3>${u.name}</h3><p>${u.desc}</p><div class="eff"></div><div class="pips"></div></div><button class="btn sm" data-up="${u.id}"></button>`;
@@ -1691,7 +1752,7 @@ const HT={credito:'Credito concesso',saldo:'Saldo',acconto:'Acconto',scusa:'Scus
 function debtorSheet(pid){
   const p=S.people[pid];
   const rows=p.hist.map(h=>`<div class="minirow" style="align-items:flex-start"><span><span class="mono muted" style="font-size:11.5px">${dateShort(h.d)} ${hhmm(h.t)}</span> ${HT[h.type]||h.type}${h.note?`<br><span class="muted" style="font-size:12.5px">${esc(h.note)}</span>`:''}</span><b class="mono ${h.type==='credito'?'neg':h.amt>0?'pos':''}">${h.amt?fmt(h.amt):''}</b></div>`).join('');
-  openModal({html:`<div class="shead">${faceHtml(p.face,p.debt>0?'meh':'ok')}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">${esc(p.role)} · fuma ${esc(PD[brandOf(p)].name)}</div></div></div><div class="minirow"><span>Deve ancora</span><b class="mono neg">${fmt(p.debt)}</b></div><div class="minirow"><span>Credito ricevuto in tutto</span><b class="mono">${fmt(p.lent)}</b></div><div class="minirow"><span>Restituito</span><b class="mono pos">${fmt(p.back)}</b></div><div class="rdash"></div>${rows||'<p class="muted">Nessun movimento.</p>'}`,actions:[{label:'Chiudi',cls:'alt'}]});
+  openModal({html:`<div class="shead">${faceHtml(p.face,p.debt>0?'meh':'ok')}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">${esc(p.role)}${p.type==='liceale'?'':` · fuma ${esc(PD[brandOf(p)].name)}`}</div></div></div><div class="minirow"><span>Deve ancora</span><b class="mono neg">${fmt(p.debt)}</b></div><div class="minirow"><span>Credito ricevuto in tutto</span><b class="mono">${fmt(p.lent)}</b></div><div class="minirow"><span>Restituito</span><b class="mono pos">${fmt(p.back)}</b></div><div class="rdash"></div>${rows||'<p class="muted">Nessun movimento.</p>'}`,actions:[{label:'Chiudi',cls:'alt'}]});
 }
 function renderConti(){
   $('#c-riep').hidden=CSEG!=='riep';$('#c-tx').hidden=CSEG!=='tx';$('#c-cred').hidden=CSEG!=='cred';
@@ -1789,20 +1850,23 @@ function resetGame(){
 function chooseOwner(){
   let sel=null;const D=drawTraits();
   const html=`<h3>Scegli il tuo personaggio</h3><div class="owners">${OWNERS.map(o=>`<button class="owner" data-o="${o.id}" aria-pressed="false">${ownerHtml(o)}<b>${esc(o.name)}</b><em>${esc(D[o.id].perk)}</em><em class="mal">${esc(D[o.id].malus)}</em></button>`).join('')}</div><p class="muted" style="font-size:13px;margin:10px 0 0;text-align:center">Pregi e difetti sono estratti a sorte a ogni nuova partita.</p>`;
-  openModal({html,noFocus:true,actions:[{label:'Vai',cls:'gold',disabled:true,keep:true,fn(){if(!sel)return;closeModal();startGame(sel,D[sel]);}}],
+  openModal({html,cls:'pick',noFocus:true,actions:[{label:'Vai',cls:'gold',disabled:true,keep:true,fn(){if(!sel)return;closeModal();startGame(sel,D[sel]);}}],
     after(sh){
       const go=sh.querySelector('.macts button');
       sh.querySelector('.owners').addEventListener('click',e=>{const b=e.target.closest('.owner');if(!b)return;sel=b.dataset.o;$$('.owner',sh).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));go.disabled=false;go.textContent='Vai';});
     }});
 }
 const DIFF={d:{n:10,t:'Difficile'},m:{n:25,t:'Media'},f:{n:50,t:'Facile'}};
+const CASHD={d:{n:0,t:'Difficile'},m:{n:2500,t:'Media'},f:{n:5000,t:'Facile'}};
+function setCash(k){S.cashMode=k;S.cash=CASHD[k].n;}
+function cashSeg(){return `<div class="seg" id="introCash" role="group" aria-label="Cassa iniziale">${Object.entries(CASHD).map(([k,v])=>`<button data-cs="${k}" aria-pressed="${S.cashMode===k}">${v.t} · ${v.n?v.n.toLocaleString('it-IT')+' €':'0 €'}</button>`).join('')}</div>`;}
 function setDiff(k){S.diff=k;const n=DIFF[k].n;for(const p of PRODUCTS)if(!p.gate)S.stock[p.id]=n;RT.gridSig='';}
 function diffSeg(){return `<div class="seg" id="introDiff" role="group" aria-label="Difficoltà">${Object.entries(DIFF).map(([k,v])=>`<button data-df="${k}" aria-pressed="${S.diff===k}">${v.t} · ${v.n}</button>`).join('')}</div>`;}
 function startGame(owner,tr){
-  S=newState(owner,tr);setDiff('m');
+  S=newState(owner,tr);setDiff('m');setCash('m');
   log(`${S.ownerName} ha sposato Ines e ha ereditato il suo tabacchino. I muri sono di famiglia: niente affitto, tutto il resto sì.`,'info');
   initOwnerUI();buildStockGrid();setTab('banco');save();
-  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. La barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Sul banco usa − e + per cambiare le quantità. Il + nell'angolo di ogni prodotto dello scaffale serve invece a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario e si pagano da soli alla chiusura. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul><p style="margin:4px 0 6px;font-weight:600">Come vuoi pagare le bollette?</p>${billSeg('introBill')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Bollette, tasse e imposte si pagano da sole alla chiusura: prima dalla cassa, poi dal libretto postale se la cassa non basta. La frequenza si può cambiare quando vuoi da Conti.</p><p style="margin:14px 0 6px;font-weight:600">Difficoltà</p>${diffSeg()}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Quanti pezzi di ogni prodotto trovi sugli scaffali all'inizio.</p>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}],after(sh){sh.querySelector('#introBill').addEventListener('click',billSegClick);sh.querySelector('#introDiff').addEventListener('click',e=>{const b=e.target.closest('button[data-df]');if(!b)return;setDiff(b.dataset.df);$$('#introDiff button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));save();render(true);});}});
+  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. La barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Sul banco usa − e + per cambiare le quantità. Il + nell'angolo di ogni prodotto dello scaffale serve invece a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>All'inizio vendi solo sigarette e Gratta e Vinci. Lotto, SuperEnalotto, 10eLotto, biglietti del treno, valori bollati, snack, caramelle, accendini e cartine si sbloccano in Bottega con poca spesa.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario e si pagano da soli alla chiusura. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul><p style="margin:4px 0 6px;font-weight:600">Come vuoi pagare le bollette?</p>${billSeg('introBill')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Bollette, tasse e imposte si pagano da sole alla chiusura: prima dalla cassa, poi dal libretto postale se la cassa non basta. La frequenza si può cambiare quando vuoi da Conti.</p><p style="margin:14px 0 6px;font-weight:600">Difficoltà</p>${diffSeg()}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Quanti pezzi di ogni prodotto trovi sugli scaffali all'inizio.</p><p style="margin:14px 0 6px;font-weight:600">Cassa iniziale</p>${cashSeg()}<p class="muted" style="font-size:12.5px;margin:6px 0 0">I soldi con cui parti. Con zero, i primi giorni si va avanti a sigarette e Gratta e Vinci.</p>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}],after(sh){sh.querySelector('#introBill').addEventListener('click',billSegClick);sh.querySelector('#introDiff').addEventListener('click',e=>{const b=e.target.closest('button[data-df]');if(!b)return;setDiff(b.dataset.df);$$('#introDiff button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));save();render(true);});sh.querySelector('#introCash').addEventListener('click',e=>{const b=e.target.closest('button[data-cs]');if(!b)return;setCash(b.dataset.cs);$$('#introCash button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));save();render(true);});}});
 }
 function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=`<img src="${PORTS[o.img]}" alt="">`;$('#ownerFace').classList.add('px');RT.ctrSig='';}
 
