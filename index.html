@@ -61,6 +61,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .daybox b{font:600 14px var(--f-mono)}
 .face{width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;background:var(--surface2)}
 .face svg{display:block;width:100%;height:100%}
+.face.px{border-radius:10px;background:#96A0AC}
+.face.px img{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.sign .face.px{border-radius:10px}
 .hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-block:10px 8px;display:grid;gap:8px}
 .hud-row{display:flex;align-items:center;gap:10px;min-height:38px}
 .clock{font:600 20px/1 var(--f-mono);min-width:64px}
@@ -134,6 +137,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .si.lock{opacity:.5}
 .tile.lot{background:#2F6B3F;color:#fff}
 .pseg button{min-width:0;font-size:12.5px;padding:0 3px}
+.pseg button[data-v="sig"]{flex:1.4}
 .ctr-head{display:flex;gap:12px;align-items:center}
 .ctr-head .face{width:58px;height:58px}
 .say{background:var(--surface2);border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:15.5px;line-height:1.35;margin-top:10px}
@@ -581,19 +585,22 @@ function makeTourist(){
 }
 
 /* ===== tabaccai ===== */
+const PORTS=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAALVBMVEX+x6b7wqP1wKPxtpfiq4iWoKzjm3TVeVK+UC9wQTdkIxYcHCQvFRUcCgsEAAFJPtc+AAACKUlEQVR42tWUwWoTURSGvzNTAgo690YoKgiTqW4qSkLyAqF9ARe6K0YXs/d1uirqA7hyI0pXbjQxku6kMyniSpO5cSFYyBwXzbRNc924c1YXPv5z/nvOf0ce8vcv4H+Ca9Wh1gPY9cPHGYTzdNdXtpYThqaZ9XzK4/hrV2dR+d5r6HlXBzq4Fnt7Ppm8K/oFd3wwnX7Iy09kmzc9ZXWaEzRN4h+CMxDC794qrBXqmVjVUxEsG/DaAx1sNJIv+1vzq3uenqKDgdT1s38rzri8IHrkhaYBkcQepTW4vHQ6yH/1LhraGaIU4CjtilLdyX0MLlotGwE6Q6xnfC8RECOtGOtzaw0QtK2uQgeC1Bm3Lq9M6Hg7kNjUY5i5VeVuUwRlDOYMhncXh4Pr1rhCzKUb3zyGYgIc8Xnl0nJjQ350q+eHAeo2X/iUY8CK4dizbEpIbCze9O0whiSRPQ9Mh5Rk2WEj9cA5kOV5bs/TBUz3DaCKOptegOk0Xox0aqXRW4K1elsFQIuRNbK+BJ8aCaIqL5NCeudganBbYgDR+9OwbtfP0lez88k4aQ5tBhvBq2czKk/yBrky6lKYyRAIW1qn7C/crVnmo6YzlmtA2+pcC2lXMONnEwP6lo4BnIQNlcpQ0ERA97dbBnDjUXSaoiCJ4WNRuO5Jrvu3kaW30u+YxRv8MWyjfJ9y2rPoGEQhzCdhJ3L3ioMHCyiHp/nXPAGV8qhRlZXpv/6M/wAWRMZ7tEex9QAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAM1BMVEX29fXNv7XprZShqKOWoKy8j32dYlJfW1xUPjtJLSonJjAcHCQXFyILChUDAggAAAIAAAClwAvyAAABl0lEQVR42u2WzXLCMAyEKaklWZacvP/TdmUD0yFOcXropexAkoM/1tZfuHz+Upc3+EuwhE6DYIRZ+AA9BIuI5BDQEyDc8k34gTINwi7fDUnyNFgYHHWllPLI8tARxPUmOgHSg4LSCfA7dwIs3/b5d+CdxFOiaTA1XRMhL5bFlzIFFlFVU5SMupm76BxYVLOaBamh1Ua1M3ZsRE7UwK1K3p/yAAxSUmo3NxLZnrvrB5AQ0V7miWTb1vIaXFiiWJGLVuS4AtwmwI9bOq79TsS2PVsOwUtqyPXWWcgma32yHIM4FVGm3sp4BKi1lonKocfkiNnBmVlLmSi5D8L63OZH+yrvJtYYjLDeDwhvVS5zRa6ZOygNNJ0sOVXPDYkL+sN1tsjVa8zFzvnqahNbLegL8zVi0hKR14oeex2c4JA0l7vCsPIurJexoZn0dwe8q7sxL8vPeWyGddOW+mj/Cq7qBIjzoKK1Zc+CxMf33MAxQroydw5WAPU12HdaHQuXJZYvPDbcgY6dVrflIR0b7sBDvf8gvcF/B34BHz0+AQGLztUAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAPFBMVEXfzKSWoKymh1SxYTmxRCF0WzN/RR9qQx5VOiFRQzJnLxFQKg83JRojGhEwFwwcHCQfFg4bFAwYEAkRCQaM7LS4AAACyUlEQVR42u2V25ajIBBFaREUKC6F//+vcwowatKT2P0wT1NrJWrC9py6iOrrl6H+g/8azCN+COYcQjCTUir/AIROLbXWBJiWfBvMQB5R0/pq929g8jPCemu99+uidb4JNq6FRXhzG5xnrfVOer/8DByogNOUfwLOB6jyLxXvgvoRPUl7D8y6F8f64G0rq7+VYzY+oZF69iFhdFoz9Q0wG+NDSAJ6SPr74DRZSNoZ4ALF5tXq69h9C+pJlo6R6yFXn0EzzddoYP66oSgN1CfQ3wOnSXrR2987Ge6BlHRr5NzJu2Detq1DMjH9GML8sR3CbX3OsN5LdgCnj4+VcLVaGyTazhFE8OPWAY65cPBhDxm69Eq+gjGWwglrbfPbVZNx73OEYCmxMPY4zHbLcoDmLZgjQEjKhprCY3usyS7re5CQooDgJbeuV2vQK7n8HqwsTh8g9nFsyFYTXFxeI08gSy8q48BEoZWTUloA1kp0VlVXTrTAVRwSiU2CWWtnbQCujo4SqZehEUkBUd7S+y99WSBZy3p05RUUjDsqL56wCOjJcI1mWnkn1fnNVrchySx24c4gTwyq9mnCQBHx2oc2Z3V+sw2wo/iUQhHNiW4JQRWOxHFqWeZ6gLnuuW3tMAyjOzHymoJyhUoxk6OMIpas9vd8rQ+yl3V8S18rpcU5CLrJuEpZ7qgkHXjqOXUtbl3Zxg8FrU/r5FiKapwh58SWKj32crQYp8cPsEgbO8SKDz2DV7j0qy4Mh5glZxp7ARsq36MVOI+xjXsDCY9NxF0KirNerGKyuTxAHhwK2osVYy9zhOgZbDfnk+eBIUaZY7cfCfXpVvcFu2FJrhwczPJepqaA2vAFPNadsX7HjnK7pOb+G5DLE9iGjmLFryQTOKZyz/Gxms8EtaVyMv4nrhdQOjD+usjR0wk53p8DdfS9J1f4xenwKIdRGcQfNbRX8ev3QwQAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAANlBMVEX+9JzR5Mz/2VbttU2qsJiWoKzdjjXhcRbAVxOdfUhod32rOgZYTj1XJQ0iLD0cHCQREhAGBwX5CN+WAAADlUlEQVR42q2W25rbIAyEsaFCMmJx3/9lOyPbiePNJmm/cpGjf3QeSL/+caX/Bo6xv/HD9voROHrn02Ndu4/Rmtr4FPTu67qsXkrvHaSMTy1y+ermAf5EfgNXUEqz2w4/ks/Arr31Y23keAcGx4f7iVTNebwDfQflRKoKyIvVK9gO7/TmqOIbyDpex9hiaa1VgeBDzloBzvNjjq4W+XBgQeIFtvKcuOYX4FDaqad15y5BXsB6WXKA03iZVex6AcnNaTIf76dDz94KVjZ003g/j3tib0vNun8Emj5yOftnIB7bmOg3yyUVt0/AjinuBozv3Ur6C3Dthp5bf8cWBMuVfBqjo9XNYkLcLQfon4CxxLAB3wna5yDqF1R0TrFveX0KEpIofUqZXWe+spTjPRgeZhpMxjpGsP01OHrEJ3maDEUEzmAhehjp8apXsXnECLBANAIMg1LrzyBavPW2JYeEWuIXqKXl+UE+LmNVBJPcPCoRxTAklNLsTWasu9qlCyeUjLZVkpERdCt98QqM5J7bdOEkxMaiFCVsAs+pl90k4DQu4CgHWKP2aSqWw+louVZzkN/AIcuyg1kQGCoxlVxAwvYyLXqA8yM4BOCyWJVK/5BEVnP7mIylIZi/gQOmAkSzhKNzQiVagKUUgPQEZH4EQ9wCzAVtTT9NI0D34Ka8gTdf00lPDSBnCD1dCsiGuWQtyE2MXq7gkAOETKRwFSCO8vXL8RvBkk/gjGKmk4DbUsIgXQWaaM992QzmevIVwn4ClWBmbjBMCXVMEV9wReY4hQ6TAMdd9g2pAUcMjhrLt0woIRb+ANc7neXmEyQTpdsXpdcs7JWSOMqLlylqwYMVY1Mlzgf8ktNXPzCCYpwqeIlcsiQwSZIzBXsIkucQQpwk+WEQg0iDEHBYnUkJcA9SsnhcRyTOZoA1nTj2mG4gegaKI8oKIUKh1LZ1bVvroIlrkp0bI3oTs6g0qzXy0WiyxGCC63JUQzUdGIoSWqEWlxzEUrBpQ2LL8uViPA+OyUplA3f1GrR4XI3wDAJDvqZlcUWEsId7yw7isbA4bgre+riBGRNWlWALjHmQIJmIdL/LEoTmjv0aRoMIkmkB5zjUK69KTE6ADxJOrT5ArSFcCvn/3WMfhNyiHABHul6rg+OVar9A4Cuji2sEQM1Qu3YFj4su/t8uZfSVHaPb/YNHpmaZ5Qm4btdFeqob2Po2UtQ+37sHO/8B5lxUhmbkkXIAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAOVBMVEX92sPR1dTkqY2WoKyxn6XDh2p2dpC4a1NdWV5lTVZNTUxFSUQ8NUEYIjYqHyocHCQVHC8TFSAOCw4+8VV3AAACv0lEQVR42t2W26KjMAhFEwfJRTDm/P/HDpDY2no7zuPQWrW6siEQ1P35R3P/BViaPQVL8c3KM3DFTkl34qH3N6TbYTCIubcpeRCp+8LGcWjglhV6x36Ago2dHIZ1r5zuvzzegiW8wbHbqq9WzsGw3h+a2eEq/Ul+gf3eebajoY/xUi/XYMg/lPSwOR1CenlSrkBE+qGJOSIKhjLENIVL0EgUm+Z5pgyAg46y1PkObJpiAs4RAUIAn2mu5qv8X04rp5MTURqVCwhRBtlzByUX0jimlFo6RDIRZZvdUu6KXKdRkxHCoEIyivxeltyr8jSmYQiayMESua/yQ1AVNYGtbMbP4K4Wcmng2LZD7gSctGw0Th0glF+3jkKhxTeYp78Hzde2pEQ0PQI7qVM6PQMFtVSkND8BQ2rFo7tnYGiUFW4st3nsXb+kdWVquSZkummPxeNSEWz1jwZqcadY8RakWhHTq82gcoDpFkSuDNj8tCTKvCJ6vAGLj0tlj20p9u6KBvrL1VFAPCWPKbxbYgKWJhAvQZkaruoqhpclxMqZCS5BkIZWFwTsjTxJfMALIzJegCooYMUeZIoRvTgvDTbzPki3FTSQpZ+qgfegvosTyxLPQRNc1NcI+hgWWgf6Me4gSPchqGBdKMZIcmYOKMhMeA4id8UqBLNxS9MT2wXpNoIG6pebddCO4ymIbGATZb29nfVRdkG6dw7VO7u7u7fBNMjjdwATZN7KvCHBiCIcg2TT8RK1X0UyNqNvyRVcBRZexdo59rcrAQH2jzkTZMqZNyaPcozYX5DoW3IFZTwpMmDJvRJRPiqkoOwMzHgAspQZggMCqTytUl28K4gCZimluAOLpMnrdYyykdwnO1Q8KiRXfJZyoAMwertsYPYalYLisp5IwUPUOvoG5Y1Eh0f1TDYdxDk9BMgZjSQtyJo24F+ZjEMUxidoLwAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAM1BMVEXz+//q9P7d7PPX6/fS6PPO3uPayL6WoKzOnoeqcFqJSDNFNzccHCQkFhgEChIABQsAAANaK+8QAAACdklEQVR42u2VWZbjIAxFqcEOCAHa/2pbTwJPVYlJ92/rJI6TcHmaLMLjLy38B/8JZH4T5G45/4aG51h2q7UA5UmQdXUZ7wx0DmQFnNML2S3PgMqZuWI3ngJ9LSUYvQlSinGFRZApE0+AmWKnYNAkSjPggRpkngIHEbuweTsLKkNIj6FJwcgTIKRSTyvudQ/95FvQq0BWejKSoH0Hsq7XdUQld0zlIX4LIotYazIDjPcxclLJuMajpbOnv4L8pRHRqMVb4BoTahDTQZDuWw7gusnE5J0+BS6eGfKnYxp88ALOnmGDyXeZAZPV3sZA6Zg+MPfl+I4EigzHNeM11aubo7TNjjQBPpis6dRJOJ1N0Zt8DMpnoI/HQh6goagPcy18M5AL8mGtnjFaIUilYjzz6yOAsZxsxiFRegNMwcJ3Z0efxsqJBpwbzFiE+eq0YhGfy6J4kw7aL8yvFGsRt2I3ion7isEVXnGtoQFkmDvqdX0C4ljE7oKiiNROup714TMwFttdJGfZFWuP8AqOIxilqLo9nDyArVdDTRMbTlN4WfO6LMxrtXjUxy3EXglj9R8OvJnP+s9FrQvWKj8xmH4LhzkGcgkfnx8RYkX/BvITA9fCPhwUVDSEsFZ4qoLNwQtm3BEkiMY1LJpRFQRY96TsVLNOCLSZDTTzGb5l21gF21AZELh2Ae2EiAmOFjSm9LZuHeyUnMBknioZqXlqat2y0jomDurlAKYVruKJt2aWU2TDRzBmYfRQcVchmmWL6sK1jWtHRUr9GMzV8nIFZefk6Cq8TH4mWn+3q6AcuIurfQ8txanu0rmjhb113VO16qvaiNOnxpmTP2YWdMy/DpLoAAAAAElFTkSuQmCC", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAMFBMVEWkpbSXormWoKzjm4iTnLWNmLGJlK2Ejqh1gJfNf26ef4CtZleTT0JbQ0AcHCQeEg/P7LuYAAACwElEQVR42uWSQY9TVRTHf/e2KQM0nXM7M+CghteiG4PSAXYm5hHdaYIfYXQxYuKKT0DcwcZ9XdiEJQtYQGImhHmsTLDQJoYoMbbPHSF23n3OJNYOvceFY6LOxS/gXd2bX/7n/M/5X9Pmxcfy/4DVf7zqGbtpHNazvRu8Hlf29250qX2cpRFY/+nRDGYhauien/WA3n+6vRuF+wXnWVRZW3/xEvav4ZcYlKQHtc/RLGpog4XrJD5a9rX3roTS5XoQ9r1QCNsD8oMwTTzUGIXobvMi+MasC5/GeqrPfQ0wEWXJyAob9FrpAbibBFqzGXY91tO4tsjVpAyVSM/z4hwyplyO/QTjmH+ycMVGF39BC7uxnks87JaW7QSXRqEV3260T0bD3srbOvpVxqcPRlbvfxlsS0TGv53u/wvWN7uQt5pN5YOdS/3+30fpz3qgwbbD3fxW1V2T/vm/YD3regHPSMe5vXinBd3+bkoV6tnsaiEFbiwFo+6lWy/pz4leq/2p7KqGH1dcQcgBZf2LywWeLLWwOffeZ6OxHwIz9o4p248eFuPPsNS/qqCe+da+76MXHoTRYK6DIZZN7wPw+PlIgVrtoxNbncl8eH9tJ6u8+nxaHv5+/tSG1ePNKawdmfxw9tDysZffGjy2m76gtHQAa+nZIyduMtHBdydFH1SWp1N1X6+cehKetXX1/b3rt6dmp/HKcee+wSoKa0MxaaqMv735jjfSoWEtHSzeGBGEShkK/NIzox6sM0OwHg9JpTzjnCm2fdJbhIdDjNeKsahDqTgnzjnvfvfecQ6lgVysvD11U3dolQKzwIKbPDnM0aeh+UZtidIaNQZdVAcYozuAeRMrYLSKI8FAYYRFUyy9OxmCUZrgLUYVj1GcMQiu2jkzBG9QsR4xH+KDAUU95uwpQFfwiAUDTow4ERAcTs4BSsEfwXQm4nbzqBMAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAIVBMVEWWoKzegWRxWVZoPDhWPDw6NT9aMi8zHx4CW6oFS5YcHCT0A8LBAAAB/klEQVR42rWUvW/TUBTFf88pSrAYnhmoEpaoSEhsERETA5UYujJUzJYCEiMT7cjcibFSB6IuILN0ZuEvqGKBxARJgIGtvkhQpYT4McSJn+2XDEh4eR/X536ce96F//35/fKNt+73fzdulMOeh/lR5dvj1J+e8CvMzTby4LqG328uOWO2NCSrE0oSkGnf4dYbryklnS/G7dasIyEop2CfdOb67eKilrPz6aKB6k4mU/+Dm9vbw4S0XUVOD640vzdarbpsPj6pIJWotgek6YqEwIy9ry6GAJOkzlL852LGQwy0HW5ngzO2PsftraHDqBnI8EbNG10LK0rwb3UhSMDcDV1IgpXEG4BAK3GpzxAASusV0sT80JZIbfq+IEoDEX7Efj/MY/pHd2ROIM3ocHRUK5TyKu7OYgBz5n27B8cf7WxrD3uLCrRWs0ZUbPZ5J9tsK63Zj4pK6AEIBninghd5KT295OJnRkmRPgSTESRF4zNgYATMNvxpV9R3iGLulZhux6IvJHotc2ASGDit58g+/pBZlk6V+JejmFOu7i5fVI6cRKLAJLsmkWqznxhA9hCXEjYxHfbsqWDHFHZ2Ci+4PMEygkRBrWMZn0Ii62aflsAKV5SmMspqg/ZKwGXfHjAruS3OICkYleR629CLmVB/dP/y+xZ6EmAmAFw0bsbNvwNWp9kUxD3NAAAAAElFTkSuQmCC", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAPFBMVEX9/Pj19PLw7Ofg3NPx2MvxvrLOz6bfv6Sa2ZaWoKzemI+8l4ZajIq3cWZrS0pRZGIQR0cYKCscHCQADA0LqkbCAAACQUlEQVR42u3W6Y6jMAwA4ByQdHAOYt7/Xdd2QssRprD/VlpXBUblw8YOaNTPX4b6D/8ViBJPIRGtlNIan0FU2hijFH3xCURSZhjoa7TpltuHOA4U4yi7YbgNcdzGEzhxeO/5S7LXoC+QtpzzAeQa/bva+9CLa3K4D1NKMVKdECMdwK1S+RyMiek0kSMY/Q2IL1pr7EpKBGUfpzvQWhslIWcEPopwCxqluUQKGL0cwdSbxwGi1krT+UAxMZzqKL9DepKUBz490iwrHL9DepjoCfTcz8TCTzIV779n5JTUnSg9GevdEsUbc0S0qYZMP160VV0snJXWJXATkoxNxVR4IHAfcpngPSTou6tXR00n0wfe4m3YJC8EXuXnV12/VIhrygptB+IuGnSQJBm0SunVfHynKwzbwJoQnKQUGhMYfqfbgHuYt4E/q+R51DmCNbz0Qw7bpArnbYjEkoN7LwJnGepAP+ZNUjXvQ+CylAClLLQHcgwDXzXThdfoQMxMZLPMrsJXK+jTDVV2wZekE5Y1JKMxtl02XMISuKa5bCCnzKeEJ+jmDaS/gZgNZxfUsosSVpjlJksgB839BnMtiuYRAAI1Nn/cXh7g2ly6NQoIeYbXe8b7rh5goXSlZOv447inG8flrnG8x1lalO078mHQV7D1lv51qC6Ug7vqal0GtkGa/AEG3aILA0MOm8sBvvqwVUoPEn+MAb7lC1g64Vpj3HyC7jc4w6ejJ9huwvRglifCGF5+p1LXMXWhPLqmrfcL+AckxIV4QyaWMAAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAMFBMVEXa4eHM0NSytbiWoKyfnp+JlZGDjIm0amazfX+FcnDKYFSxVk+ASUFeOjA6GxkcHCRXP4xPAAACIElEQVR42s2UsWsUQRTGf29vCxNWM0+w0Op2o/2ZWNh5ikkdAlpY2fpfCFaCYG9rI9gZhCiB7B+wga0lJKUg5mZPDr3CzVjM3mVvstc7zezw7ffem+9782ST5SvivweLYv4ZBwh8JB92gslr+DXoDpvsW2vPy25w/yU8flDPz71bLeIxkEXZh28dzC/Nfj+/XFDy1p/VHXcwq2aXOl8mgixXaIhjmUJbamxlusAnICk6qrrCZilKO2wLPPS1iMJxV05nPbH2xkQLUOUs1jKjXmibjPT3/s0/djqdrsj4a8CsRz8xXgZ3qaBrBzkYwMDfPMwZD0FAEB+hBU6eP7yxm6JqMNgwbGyup9IHhN5WACYKMBYw3L4X3vNMDJhUlWgYVjvZVrCzWsKck76zuuD2gtniTRHT4acbVaDoMqaqA0iKS+Ajp8pYANKiyEM/rQEDPz4NsnFdTeLFrrSi4OL3VhjLWjvspD+7xrMNMGFB/hoVp682VYKcTgEcuNJk56fnbWbxonkyDjFEYlquFE8HlqZvy7Ehu8iZfN6WMrf+rV0FgX48x3bU9FzTAjmgrDbMZG9HBGr/TM4WtE32dsFRU1hwB+WR703ZBDjcuAuIwU/fI7DAagxQ3EmbQEe9wRwDccD6ukFYa7QblFi1APE76jfRwjAomfndWzk5/Z4qwHSlpdaVKRBZO4qa1qjCwRKfwPpM94tR4X+MM1Bj8RUE6x/KbqjA0yRAegAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAPFBMVEX358Xrx5jwtXTYsYPmol/SoGmWoKzVkVG6lWuohWa3ekKubDuRa0p1cn1kYWdvVEZrPiRCOCscHCQjEhFHdVzbAAACFklEQVR42u3V25aDIAwFUEQZkVu4/P+/ThLQonY6OM+Th3Z16eYEsCi+/ljiH/7DW+VaT2HOpdZHeoc7Y/oAHi7FGB/A5qJZ10UuJj+D0ZplkViLzc+gQ0lQrio/gQkjlVoYyvwIAuDawOoi6B8yxYfNaOXyEEw0xxjrjtCPosdgtDGBdUysxg8YhBbjrLWOAtcplqTV21nen5xoHcLqjXHzrNYxaPcyaI2RUi2DMHKiWdW2OWWkGoTYa2RoLPWMicsgRMmRlr19BEk6Wh9nnZzkMHSRirEBJQe3o20lS7O5qKXKX88gFkA0Mg8fVrZJENj0locPK6FxduyEB8jDh5UXQmwUhd/eb4Mw50BQaDfj5+yx8sAcc/YhBEqElDwF+h+puDKC/GcMXpMKld6w6BjdhuX17EvBwMn3ld/Cysj5gLObEghxtPoB5nYxMEVSaKbnxIs8Q9/glNK+qIOQWsUw3y/qPuAbmMNxnW6ZREoUeYFnKXjTqcFXohZ4oqbpd+h4+8KxPH4i6MXFneUNsqRDHOYzhDtklkI3duHI3iW65Qqhwpp5wLI/b+zSm1Y5ElIvz4k0bKmTfFUHm+R4enPwhA/IkfyX4zogtpagLhENQ2+pulC1CNLvWW9b3ZoG4YChTbK8VG2BZdqrQWr0BPHG3gV+y1Ire/WwTuMF0w1Ss845fuIJ1hbKKxK/cZQOAkO6PO31DatRb2VDPhlnAAAAAElFTkSuQmCC", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAJFBMVEX59OPi7fHj18zS0dPhp4yxvbiWoKzRim+Tc1puPSkcHCQSDwYQVD3+AAACA0lEQVR42tWUvW7UQBSFv5mxIoJEGO/SgGCx3IEUNJEp0EpoN9L2vAUPQYF4BBoqJERLl56NtEDLBkuUZL0WooIldmigGQ+FnWR/xvS4sH195t45PvfcEY9pvyT/ExisBEMYt2QG+2F4ddgC7muQ1/xlA01WiD0/OGA2n8Jo7CsrZ/Mp1cvTkQcMyoIEqoMLTkuZt0pARtbLdl5/cLkHHJT104qJh+3EwH3tl++d6GiiT3ar9ICDnpMRIZx69nRpEmVtLXsP1QklTHy/InIOMy2d9YngyDmgWniF36scVeEmWxNP5tvs2Fj3s81DXTUq1VKskrO36tGPy9e3udS5e+LJVGgIRegvG57fNsEPOCid9vtWAxrnywz6dTvETV/Zp/ofs9IrAWIv+FCWNfZtuEnISoghv/16U6HgkO93Qqrw4w2X9PLVzP6VI8iI7WfDlxfPa+LNURPMzE6ahLBIFeZNDrBdEwpGfawiLYpFmlk7XSYUPHgSkYruLu6VJoPG9MEI+PMsBtzil6iVbUz4WyRA0WnEUWYMVPmyCKEGMGCPVk+TomkHalM1Gcdx3EEZtZuqhHsAebS6ymDATrv1bjKKLkClUChzNkMRX5s9kyWDYRueUbVc1gIkRhN5hlcBNhVa5i1OSHHV2qkZAq4ESOB4dXwlgGiCnbXZkeeOJSVdc99f2ieaBkwYAXwAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAJ1BMVEXk0r3ZpKGWoKzIi4ergHqlcWGGWlhdSD80JywhGyUcHCQRG0oPDhHV8R04AAACOElEQVR42u2TMU8UQRTHf7N7wB2JMMMqAQtdjlhDDrQwFGhi6IyFWhpswNLEQhISc4mJXmdNZ2Fh4VcQKU0EucRCC49biIoF7D0IIRBgx+KAO26Hb+BWs/PL/73/m/eeynP+5/EfnoUlSqXm/0wzm56bZm6mcaEab1t6HSHae1N0hd2vioXkfePGNyenbGV9P5eFCzsuZaIAOHCFnRWsANZditW2VmuGTaUEwWZVggKfHdAutd0lGrmy7HCb3ejp6P+zfTNmZyOt3M5Tg/hi8MsR9nAJoFrxex1uJarn6S673CYrXggVcmnlLJYwiTmnZSo03b4No/BvqzIb4UXB6MjtNdJ1vliV/pxd7V7HJM8XWsK+GlMYGycYq1LKzJHdutz3+3tnVrV/aM259ziOBqr+aCFvJe1W+Ufzh8v0Pvqay6bqfGlIAhMMfaTkqPPq4TfyyuK7JsH0WI2FG44Z2iuoRFawa7rp+eoZ9oqQ3yyzEnrNcHcSoLMPekYkwiukF2m3iJVAgzck6a48ebu4pa/7DMYOuPtwaksGjYorByVmUqVE1lZVTUQ+DRRboRpO4p/zS7GwWf5RbIEd2iBfpIa2MtaqfGYQQoRabbjteCMyk8dwfBEIsOUBBap0xu0E6AhsHOIB9RHITNXt3EeUBYlCv9GozIPTLQMrEA2GruUVXR8t7YC30GI0eOOnvAFPJvISHKSg36WOBNqfNrXMGGOM6VqACaWr6to7IBk+qxTgHoncQenTy39ceMcVo4b16wAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAPFBMVEXZqImWoKy/j3Wxf2KJbk99WDJfSCtHS0dPPiRGNiA4KxswHwwjHBQcHCQeGBAdEwkTEAsRCgUOCQQLBAJ/Qg/+AAAB0ElEQVR42u2UUZOkIAyEWQiRREHQ//9fr4O7pzs3Y+m97dZ0lSUPfDTpRN3Hf8q9wTf448G86S6Ys/fOlG+BwNyX8g0wu4NugDvnY6TwvE73lPMh9Lvay4eYr4LIxfdsKAC9A8KLgjnGyPEyaCRhv92VyEyvg8H7sKUDDBHl66l+9nGbgjtgp+DV06V7oCdPMfSM7jr6QN696KQ7mVNEiqtCl8C8BWK5ovlEvSHXHH3YUtm8IBhfAwkk2biaKwUCewlEbcH/7WN35X8b8mxWrSr/NTcGModLIAOk/bOKLHQNFMQRaLOEIQvjoMfP+UmNgzJH6oXiqiGqgEvlBNx+hplEUjIW+5FoUgu2FM2vwYHBDkSiOqrY4KC+BI6kzCcgqiulJgCDjGVSSTiBbXbiPFc5AT9ygfqYEUPC25qmWsfE+bXjBK5OuOxAR0mtVfg1mEXNsT2QUcGVdAqmqcKyFdm5yNNSaxOAnA9y37ikBWSrddZh6CHp1JbWltk4Hndlt5+hqthnlivQak8Fsy51WUd0Ns1HOX0QAizY3D5lSzyaWNs4HsG0S8xSxxmWa0eXxRbGsVX6HdyXmgAKkp3n1oG2bAesTWhsSxmPeoO/A/wD8Zw7Mmuyt4QAAAAASUVORK5CYII="];
 const OWNERS=[
- {id:'ines',hidden:1,name:'Ines',desc:'La titolare. Giovane, in carne, con una risata che si sente dalla piazza. Conosce tutti per nome.',perk:'Reputazione guadagnata +40%',malus:null,
-  face:{skin:'#EBC09C',hc:'#3A2418',shirt:'#0B2F63',bg:'#F5E6B8',hair:'long',ear:true,lip:'#C2566E',blush:true,wide:true}},
- {id:'nando',name:'Nando',desc:'Ex barista. Sa sempre cosa dire al cliente scontento.',perk:'Gli sbagli al banco costano metà reputazione: rimedia con una battuta',malus:'Beve 1-2 birre al giorno, e dopo la seconda il resto a volte lo sbaglia',
-  face:{skin:'#DDA67D',hc:'#1C1C1C',shirt:'#8A3B3B',bg:'#CFE3F1',hair:'slick',must:true}},
- {id:'assunta',name:'Assunta',desc:'Racconta storie a chi aspetta. In coda nessuno si annoia.',perk:'In bottega entrano 4 persone in più: restano a sentire le sue storie',malus:'Sgranocchia 2-4 snack al giorno dagli scaffali',
-  face:{skin:'#F3D2B6',hc:'#D7D2CB',shirt:'#6B4E8A',bg:'#F1D3D9',hair:'curly',ear:true,blush:true,old:true,glasses:true}},
- {id:'ciro',name:'Ciro',desc:'Cugino del grossista. O almeno così dice il grossista.',perk:'Merce scontata del 4%',malus:'Vizio del gioco: ogni giorno gratta e gioca a Lotto e SuperEnalotto',
-  face:{skin:'#C78C62',hc:'#2B211B',shirt:'#3F6E4E',bg:'#D9EBD3',hair:'curly',beard:true}},
- {id:'loredana',name:'Loredana',desc:'Sorriso da cassiera di banca. I debitori si vergognano a non pagarla.',perk:'Più mance e debitori più onesti',malus:'Ogni tanto «esce un attimo»: banco fermo e cassa incustodita',
-  face:{skin:'#A56C47',hc:'#7D2E1F',shirt:'#C07A2C',bg:'#EAD8C6',hair:'long',ear:true,lip:'#9E2F3E'}},
- {id:'brunetto',name:'Brunetto',desc:'Ex ragioniere. Contratta anche con la compagnia della luce.',perk:'Bollette e canoni −10%',malus:'Fuma 1-2 pacchetti al giorno, presi dagli scaffali',
-  face:{skin:'#F3D2B6',hc:'#9C9791',shirt:'#4A4A52',bg:'#E4DDF2',hair:'bald',glasses:true,must:true,old:true}}
+ {id:'losco',name:'il Losco',img:0,desc:'Occhiali sulla testa, sigaro in bocca e lo sguardo di chi sa cose.',pk:'theft',perk:'I ladri lo conoscono: furti, rapine e truffe falliscono più spesso',vz:'cigar',malus:'Fuma 1-2 sigari al giorno, a 6 € l\'uno'},
+ {id:'dottore',name:'il Dottore',img:1,desc:'Non si sa di cosa sia dottore. Lui nemmeno.',pk:'prof',perk:'Commercialista e assicurazione a metà prezzo',vz:'early',malus:'Ogni tanto chiude prima per andare in montagna'},
+ {id:'toto',name:'Totò',img:2,desc:'Barba curata e sorriso da cliente abituale.',pk:'err',perk:'Gli sbagli al banco costano metà reputazione',vz:'snack',malus:'Sgranocchia 2-4 snack al giorno dagli scaffali'},
+ {id:'salah',name:'Salah',img:3,desc:'Casco da cantiere, sigaro e nessuna fretta.',pk:'merce',perk:'Merce scontata del 4%',vz:'leave',malus:'Ogni tanto «esce un attimo»: banco fermo e cassa incustodita'},
+ {id:'enzino',name:'Enzino',img:4,desc:'Cappello di paglia e canotta da basket in ogni stagione.',pk:'queue',perk:'In bottega entrano 4 persone in più',vz:'gamble',malus:'Vizio del gioco: ogni giorno gratta e gioca a Lotto e SuperEnalotto'},
+ {id:'pietro',name:'Pietro',img:5,desc:'Sempre con un calice in mano e la vista mare.',pk:'interest',perk:'Interessi del libretto doppi e rate del finanziamento −10%',vz:'prosecco',malus:'Beve 1-2 calici di prosecco al giorno, e dopo il secondo a volte sbaglia il resto'},
+ {id:'frank',name:'Frank',img:6,desc:'Il sorriso più largo del quartiere.',pk:'rep',perk:'Reputazione guadagnata +40%',vz:'coffee',malus:'Offre il caffè a mezzo quartiere: 5-15 € al giorno'},
+ {id:'dedda',name:'Dedda',img:7,desc:'Lupo di mare a tempo pieno, tabaccaio a tempo perso.',pk:'traffic',perk:'Il 10% di clienti in più: fa pubblicità al porto',vz:'boat',malus:'Ogni tanto scappa in barca per un\'ora: banco fermo'},
+ {id:'giapponese',name:'il Giapponese',img:8,desc:'Papillon e precisione da cameriere di gran classe.',pk:'tips',perk:'Gli ordini perfetti valgono il doppio e arrivano più mance',vz:'smoke',malus:'Fuma 1-2 pacchetti al giorno, presi dagli scaffali'},
+ {id:'ricky',name:'Ricky',img:9,desc:'Tifoso dal cuore grande e dalla memoria lunga per i debiti.',pk:'debtors',perk:'I debitori pagano più volentieri',vz:'fan',malus:'Tifoso: spesso spende 10-30 € tra sciarpe e biglietti'},
+ {id:'avvocato',name:'l\'Avvocato',img:10,desc:'Giacca, cravatta e occhiali scuri anche al tabacchino.',pk:'fines',perk:'Con l\'ispettore dei Monopoli non prende mai multe',vz:'late',malus:'Certi giorni apre tardi: «avevo un\'udienza»'},
+ {id:'lamera',name:'Lamera',img:11,desc:'Pollice in su e occhiali a specchio verdi.',pk:'bills',perk:'Bollette e canoni −10%',vz:'spend',malus:'Compra online gadget inutili: 10-40 € a giorni alterni'},
+ {id:'hermano',name:'Hermano',img:12,desc:'Ride di tutto, anche delle bollette.',pk:'gratta',perk:'Provvigione sui Gratta e Vinci +2%',vz:'phone',malus:'Si incanta al telefono: banco fermo 1-2 volte al giorno'},
+ {id:'s1cky',name:'S1cky',img:13,desc:'Sciarpa al collo e una birra sempre a portata di mano.',pk:'tax',perk:'Imposte del mese −15%',vz:'beer',malus:'Beve 1-2 birre al giorno, e dopo la seconda a volte sbaglia il resto'}
 ];
 const OWD={};OWNERS.forEach(o=>OWD[o.id]=o);
 
@@ -624,7 +631,7 @@ const NOMONEY=['«Oggi proprio non ce l\'ho. Passo la prossima volta, giuro.»',
 const ASKCRED=['«Me lo segna? Passo domani.»','«Mi fa credito? Ho dimenticato il portafoglio.»','«Lo metta sul mio conto, come sempre.»','«Segni, segni, che a fine mese saldo tutto.»'];
 
 /* ===== stato ===== */
-const KEY='tabacchines.v2';
+const KEY='tabacchines.v3';
 function newToday(){return{served:0,lost:0,turned:0,missed:0,okItems:0,sales:0,credit:0,refused:0,target:0,arrived:0};}
 function newState(owner,oname){
   const stock={},price={};
@@ -632,7 +639,7 @@ function newState(owner,oname){
   const people=[];let id=0;
   for(const t in RESIDENT_TYPES)for(let i=0;i<RESIDENT_TYPES[t];i++)people.push(makePerson(t,id++));
   const bw={};BRANDS.forEach(b=>bw[b.id]=b.pop);
-  return{v:2,calabro:1,counter:null,tray:{},owner,ownerName:oname||OWD[owner].name,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:3000,deposit:0,rep:0,speed:1,stock,price,
+  return{v:2,calabro:1,counter:null,tray:{},owner,ownerName:OWD[owner].name,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:3000,deposit:0,rep:0,speed:1,stock,price,
     up:{insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0},
     people,queue:[],nid:1,today:newToday(),aggD:{},aggM:{},aggA:{},tx:[],history:[],log:[],
     freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,invested:0,loan:null,debtDays:0,over:false,intro:false};
@@ -641,7 +648,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function load(){
   try{
     const raw=localStorage.getItem(KEY);if(!raw)return null;
-    const s=JSON.parse(raw);if(!s||s.v!==2||!s.owner||!s.people)return null;
+    const s=JSON.parse(raw);if(!s||s.v!==2||!s.owner||!s.people||!OWD[s.owner])return null;
     const b=newState(s.owner);
     const m=Object.assign(b,s);
     m.stock=Object.assign(b.stock,s.stock);m.price=Object.assign(b.price,s.price);m.up=Object.assign(b.up,s.up);
@@ -661,9 +668,11 @@ let S=load();
 const RT={modal:false,events:[],lastSave:0,logVer:0,txVer:0,ctrVer:0,turnLogT:-999,integ:1,last:null};
 
 /* ===== calcoli ===== */
-const perk=id=>S&&S.owner===id;
+const perk=k=>!!(S&&OWD[S.owner]&&OWD[S.owner].pk===k);
+const vizio=()=>S&&OWD[S.owner]?OWD[S.owner].vz:null;
+const rataOf=L=>r2(L.rata*(perk('interest')?.9:1));
 const closeT=()=>closeOf(S.day);
-const costOf=id=>{const d=PD[id];const base=d.free?d.cost:S.price[id]*(1-d.aggio);return base*(perk('ciro')?.96:1);};
+const costOf=id=>{const d=PD[id];const base=d.free?d.cost:S.price[id]*(1-d.aggio-(d.cat==='gra'&&perk('gratta')?.02:0));return base*(perk('merce')?.96:1);};
 const capOf=id=>Math.round(PD[id].cap*(1+.5*S.up.scaffali));
 const visible=id=>!PD[id].gate||S.up[PD[id].gate]>0;
 const space=id=>Math.max(0,capOf(id)-S.stock[id]);
@@ -672,7 +681,7 @@ const credTotal=()=>S.people.reduce((a,p)=>a+p.debt,0);
 const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
 const rankName=()=>{const v=patrimonio();let n=RANKS[0][1];for(const[t,x]of RANKS)if(v>=t)n=x;return n;};
-const addRep=d=>{S.rep=clamp(S.rep+d*(d>0&&perk('ines')?1.4:1),-100,100);};
+const addRep=d=>{S.rep=clamp(S.rep+d*(d>0&&perk('rep')?1.4:1),-100,100);};
 const LOTS=['lot','sup','del'];
 const svAvail=id=>(!SV[id].gate||S.up[SV[id].gate]>0)&&!(LOTS.includes(id)&&S.lotDownUntil>S.t);
 const jackpot=()=>S.jackpotUntil>S.t;
@@ -683,7 +692,7 @@ function hourCurve(t){
   if(h<9)return 1.6;if(h<12)return .9;if(h<14)return 1.3;if(h<16)return .6;if(h<17.5)return .95;if(h<19.5)return 1.6;return 1.0;
 }
 function priceFactor(id){const d=PD[id];if(!d.free)return 1;return clamp(Math.pow(d.ref/S.price[id],1.7),0,1.5);}
-const queueCap=()=>10+3*S.up.sedie+(perk('assunta')?4:0);
+const queueCap=()=>10+3*S.up.sedie+(perk('queue')?4:0);
 function tx(cat,amt,label,neutral){
   amt=r2(amt);
   S.tx.unshift({d:S.day,t:Math.floor(S.t),cat,amt,label});if(S.tx.length>300)S.tx.length=300;
@@ -795,7 +804,7 @@ function trayAdd(id){
   S.tray[id]=have+1;RT.ctrVer++;return 'ok';
 }
 function trayRemove(id){if(S.tray[id]){S.tray[id]--;if(!S.tray[id])delete S.tray[id];RT.ctrVer++;}}
-const pen=d=>d*(perk('nando')?.5:1);
+const pen=d=>d*(perk('err')?.5:1);
 const NICE=['«Perfetto, grazie!»','«Lei sì che è precisa. Arrivederci!»','«Tutto giusto, alla prossima.»','«Grazie, buona giornata!»','«Così mi piace. Salutamu!»'];
 function deliver(credit){
   const c=S.counter;if(!c||RT.modal)return null;
@@ -819,7 +828,7 @@ function deliver(credit){
   }
   total=r2(total);
   const perfect=!wrong.length&&!forgot.length&&!missing.length;
-  addRep(.04*got+(perfect?.12:0));
+  addRep(.04*got+(perfect?(perk('tips')?.24:.12):0));
   if(wrong.length)addRep(pen(-.4*wrong.length));
   if(forgot.length)addRep(pen(-.3*forgot.length));
   if(missing.length)addRep(-.1*missing.length);
@@ -839,7 +848,7 @@ function deliver(credit){
     S.tx.unshift({d:S.day,t:Math.floor(S.t),cat:'vendita',amt:total,label:`${name} · ${got} articol${got===1?'o':'i'}${perfect?'':' (con problemi)'}`});
     if(S.tx.length>300)S.tx.length=300;RT.txVer++;
     RT.floatAmt=(RT.floatAmt||0)+total;
-    if(perfect&&chance(perk('loredana')?.2:.1)){const tip=r2(rnd(.2,1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
+    if(perfect&&chance(perk('tips')?.22:.1)){const tip=r2(rnd(.2,1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
   }
   if(!credit&&p&&p.debt>0&&chance(p.hon*.12)){
     const pay=r2(Math.min(p.debt,Math.max(5,p.debt*rnd(.3,1))));
@@ -870,7 +879,7 @@ function askDebt(){
   const c=S.counter;if(!c||c.asked||RT.modal)return;
   const p=getP(c);if(!p||p.debt<=0)return;
   c.asked=true;RT.ctrVer++;
-  const h=clamp(p.hon+(perk('loredana')?.12:0),0,1),r=Math.random();
+  const h=clamp(p.hon+(perk('debtors')?.15:0),0,1),r=Math.random();
   if(r<h*.55){
     const pay=p.debt;p.debt=0;p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);tx('cred',pay,`${p.name} salda il conto`);personHist(p,'saldo',pay,'Saldato tutto');
     c.reply=`«Ha ragione, ecco qua.» Salda ${fmt(pay)}.`;addRep(.1);log(`${p.name} salda tutto: ${fmt(pay)}.`,'good');
@@ -887,8 +896,10 @@ function askDebt(){
 }
 
 /* ===== eventi ===== */
+const foiled=who=>{if(perk('theft')&&chance(.5)){log(`${who} vede ${S.ownerName} dietro al banco, si ricorda di un vecchio favore e cambia bottega.`,'good');toast(`${who} cambia idea: c'è ${S.ownerName}.`,'good');return true;}return false;};
 const EVENTS=[
  {id:'maranza',w:2,run(){
+  if(foiled('i Maranza'))return;
   const pool=['acc','cam','sna','bib','cpo',...BRANDS.map(b=>b.id)].filter(id=>S.stock[id]>0);
   if(!pool.length){log('Entrano i Maranza, trovano gli scaffali vuoti e se ne vanno delusi.','warn');return;}
   const take=[];for(let i=0;i<3;i++){const id=pick(pool);const n=Math.min(S.stock[id],ri(1,4));if(n>0){S.stock[id]-=n;take.push(`${n}× ${PD[id].name}`);}}
@@ -896,15 +907,18 @@ const EVENTS=[
   log(`Arrivano i Maranza in tre su un monopattino solo, col borsello a tracolla. Mentre uno chiede «quanto costa tutto?», spariscono ${take.join(', ')}.`,'bad');toast('I Maranza hanno svuotato uno scaffale.','bad');
  }},
  {id:'avellina',w:2,ok:()=>S.cash>150,run(){
+  if(foiled('Gianluca Avellina'))return;
   if(S.up.telecamere&&chance(.5)){log('Gianluca Avellina chiede un accendino, guarda la telecamera, la saluta e se ne va.','good');return;}
   const take=r2(Math.min(S.cash*rnd(.08,.18),500));S.cash=r2(S.cash-take);tx('furti',-take,'Gianluca Avellina: mano lesta in cassa');
   log(`Gianluca Avellina chiede un accendino e intanto non toglie gli occhi dalla cassa. Quando se ne va mancano ${fmt(take)}.`,'bad');toast(`Gianluca Avellina: −${fmt(take)} dalla cassa.`,'bad');
  }},
  {id:'napoletani',w:1.5,ok:()=>S.cash>100,run(){
+  if(foiled('Ciro e Gennaro'))return;
   const take=r2(ri(2,6)*10);S.cash=r2(S.cash-take);tx('furti',-take,'Ciro e Gennaro: il trucco del resto');
   log(`Entrano Ciro e Gennaro: uno chiede la strada per una via che non esiste, l'altro cambia una banconota tre volte. Alla fine il resto l'hai dato due volte: −${fmt(take)}.`,'bad');toast(`Ciro e Gennaro ti hanno confuso il resto: −${fmt(take)}.`,'bad');
  }},
  {id:'manduci',w:1,ok:()=>S.day>=3&&S.cash>300,run(){
+  if(foiled('Tony Manduci'))return;
   const cam=S.up.telecamere?.3:0;
   openModal({html:`<h3>Rapina!</h3><p>Entra <b>Tony Manduci</b> col casco ancora in testa e una mano in tasca. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
    {label:'Consegna l\'incasso senza storie',cls:'alt',fn(){const take=r2(Math.min(S.cash*.35,1200));S.cash=r2(S.cash-take);tx('furti',-take,'Rapina di Tony Manduci');log(`Tony Manduci se ne va con ${fmt(take)}. Almeno nessuno si è fatto male.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}},
@@ -919,6 +933,7 @@ const EVENTS=[
    {label:'Mandalo via',cls:'gold',fn(){log('Il venditore campano di calzini richiude la valigia e se ne va.','info');}}]});
  }},
  {id:'tecnico',w:1.5,ok:()=>S.cash>200,run(){
+  if(foiled('Il finto tecnico del Lotto'))return;
   openModal({html:`<h3>Il tecnico dei terminali</h3><p>«Buongiorno, sono il tecnico del Lotto, devo fare l'aggiornamento al terminale. Mi fa passare dietro al banco? Ci metto un attimo.» Ha una polo blu senza scritte e un cacciavite in mano.</p>`,actions:[
    {label:'Fallo passare dietro al banco',cls:'alt',fn(){
     S.lotDownUntil=S.t+ri(120,240);
@@ -938,7 +953,8 @@ const EVENTS=[
   openModal({html:`<h3>Ispettore dei Monopoli</h3><p>«Buongiorno. Prezzi esposti? Registri in ordine? Posso vedere?» Ha un taccuino e nessuna fretta.</p>`,actions:[
    {label:'Collabora con calma (banco fermo 25 minuti)',cls:'gold',fn(){S.freeze=25;addRep(3);log('Controllo dei Monopoli: tutto in ordine. Il banco si ferma, la reputazione sale.','good');}},
    {label:'Presenta tutto di corsa (rischioso)',cls:'alt',fn(){
-    if(chance(.6))log('L\'ispettore sfoglia, annuisce e se ne va. Hai avuto fortuna.','info');
+    if(perk('fines')){addRep(1);log(`${S.ownerName} cita tre commi a memoria. L\'ispettore chiude il taccuino e se ne va.`,'good');}
+    else if(chance(.6))log('L\'ispettore sfoglia, annuisce e se ne va. Hai avuto fortuna.','info');
     else{payForced(150);tx('multe',-150,'Multa dei Monopoli');addRep(-4);log('L\'ispettore trova un cartello storto: multa da 150 €.','bad');toast('Multa dei Monopoli: −150 €.','bad');}
    }}]});
  }},
@@ -958,18 +974,23 @@ function takeOrBuy(id,n){
   if(rest>0){const c=r2(rest*S.price[id]);payForced(c);tx('vizi',-c,`${nm} compra fuori ${rest}× ${PD[id].name}`);}
   return k;
 }
+function drinkVice(what,unit,price){
+  const nm=S.ownerName,n=ri(1,2),c=r2(n*price);payForced(c);tx('vizi',-c,`${n} ${n>1?what[1]:what[0]} al bar di fronte`);
+  log(`${nm} attraversa la strada per ${n>1?'un altro giro':'un attimo'}: ${n} ${n>1?what[1]:what[0]}. «È per la gola.»`,'warn');
+  if(n===2&&chance(.3)){const l=ri(5,15);payForced(l);tx('vizi',-l,`Resto sbagliato dopo il secondo ${unit}`);log(`${nm}, dopo il secondo ${unit}, dà ${fmt(l)} di resto in più.`,'bad');toast(`${nm} sbaglia il resto: −${fmt(l)}.`,'bad');}
+}
 function runVice(){
   const nm=S.ownerName;
-  switch(S.owner){
-    case 'nando':{
-      const n=ri(1,2),c=r2(n*2.5);payForced(c);tx('vizi',-c,`${n} birr${n>1?'e':'a'} al bar di fronte`);
-      log(`${nm} attraversa la strada per ${n>1?'due birre':'una birra'}. «È per la gola.»`,'warn');
-      if(n===2&&chance(.3)){const l=ri(5,15);payForced(l);tx('vizi',-l,'Resto sbagliato dopo la seconda birra');log(`${nm}, dopo la seconda birra, dà ${fmt(l)} di resto in più.`,'bad');toast(`${nm} sbaglia il resto: −${fmt(l)}.`,'bad');}
-      break;}
-    case 'assunta':{
-      const n=ri(2,4);const k=takeOrBuy('sna',n);
-      log(`${nm} sgranocchia ${n} snack «per tenersi su». ${k<n?'Gli scaffali erano vuoti: li compra al bar.':''}`,'warn');break;}
-    case 'ciro':{
+  switch(vizio()){
+    case 'beer':drinkVice(['birra','birre'],'bicchiere',2.5);break;
+    case 'prosecco':drinkVice(['calice di prosecco','calici di prosecco'],'calice',3);break;
+    case 'cigar':{const n=ri(1,2),c=n*6;payForced(c);tx('vizi',-c,`${n} sigar${n>1?'i':'o'}`);log(`${nm} si accende ${n>1?'due sigari':'un sigaro'} sulla soglia. Il quartiere sa che è arrivato.`,'warn');break;}
+    case 'coffee':{const c=ri(5,15);payForced(c);tx('vizi',-c,'Caffè offerti al quartiere');log(`${nm} offre il caffè a mezzo quartiere: ${fmt(c)}.`,'warn');break;}
+    case 'spend':{const c=ri(10,40);payForced(c);tx('vizi',-c,'Gadget inutile comprato online');log(`Arriva il corriere: ${nm} ha comprato online ${pick(['un ventilatore da scrivania a forma di pinguino','una lampada che cambia colore','un massaggiatore per piedi','delle cuffie che nessuno ha mai visto'])} (${fmt(c)}).`,'warn');break;}
+    case 'fan':{const c=ri(10,30);payForced(c);tx('vizi',-c,'Sciarpa e biglietto per la partita');log(`${nm} spende ${fmt(c)} tra sciarpa e biglietto. «Quest'anno è l'anno buono.»`,'warn');break;}
+    case 'snack':{const n=ri(2,4);const k=takeOrBuy('sna',n);log(`${nm} sgranocchia ${n} snack «per tenersi su». ${k<n?'Gli scaffali erano vuoti: li compra al bar.':''}`,'warn');break;}
+    case 'smoke':{const n=ri(1,2),id=S.ownerBrand;const k=takeOrBuy(id,n);log(`${nm} si fuma ${n} pacchett${n>1?'i':'o'} di ${PD[id].name}.${k<n?' Erano finite: le compra dal collega.':''}`,'warn');break;}
+    case 'gamble':{
       const plays=ri(1,3);let spent=0,won=0;
       for(let i=0;i<plays;i++){
         if(chance(.55)){const id=pick(['g2','g3','g5','g5','g10','g20']);takeOrBuy(id,1);}
@@ -981,18 +1002,18 @@ function runVice(){
       if(won){S.cash=r2(S.cash+won);tx('vin',won,`Vincita di ${nm}`);log(`${nm} vince ${fmt(won)}! Si sente un genio, e domani rigioca tutto.`,'good');toast(`${nm} vince ${fmt(won)}.`,'good');}
       else log(`${nm} gratta e gioca ${plays} volt${plays>1?'e':'a'}. «Stavolta me lo sento.» Niente.`,'warn');
       break;}
-    case 'loredana':{
+    case 'boat':{const m=ri(45,70);S.freeze=Math.max(S.freeze,m);log(`${nm} vede il mare calmo e scappa in barca. Torna dopo ${m} minuti, abbronzato.`,'warn');toast(`${nm} è in barca: banco fermo ${m} minuti.`,'warn');break;}
+    case 'phone':{const m=ri(10,20);S.freeze=Math.max(S.freeze,m);log(`${nm} risponde al telefono e si incanta per ${m} minuti.`,'warn');toast(`${nm} è al telefono: banco fermo ${m} minuti.`,'warn');break;}
+    case 'early':{const m=Math.max(0,closeT()-S.t)+31;S.freeze=Math.max(S.freeze,m);log(`${nm} abbassa la saracinesca in anticipo: «c'è neve fresca in Aspromonte».`,'warn');toast(`${nm} chiude prima per andare in montagna.`,'warn');break;}
+    case 'leave':{
       const m=ri(15,30);S.freeze=Math.max(S.freeze,m);
-      log(`${nm} «esce un attimo» per una telefonata. Torna dopo ${m} minuti. Il banco resta scoperto.`,'warn');toast(`${nm} si allontana: banco fermo ${m} minuti.`,'warn');
+      log(`${nm} «esce un attimo». Torna dopo ${m} minuti. Il banco resta scoperto.`,'warn');toast(`${nm} si allontana: banco fermo ${m} minuti.`,'warn');
       if(chance(S.up.telecamere?.15:.35)){
         const who=pick(['Tony Manduci','Gianluca Avellina','i Maranza','Ciro e Gennaro']);
         if(S.cash>100&&chance(.6)){const take=r2(Math.min(S.cash*rnd(.1,.25),800));S.cash=r2(S.cash-take);tx('furti',-take,`Cassa incustodita: ${who}`);log(`Mentre ${nm} è fuori passano ${who} e allungano la mano in cassa: −${fmt(take)}.`,'bad');toast(`${who}: −${fmt(take)} dalla cassa incustodita.`,'bad');}
         else{const pool=BRANDS.map(b=>b.id).filter(id=>S.stock[id]>0);if(pool.length){const id=pick(pool),n=Math.min(S.stock[id],ri(3,10));S.stock[id]-=n;log(`Mentre ${nm} è fuori passano ${who}: spariscono ${n}× ${PD[id].name}.`,'bad');toast(`${who} hanno preso delle sigarette.`,'bad');}}
       }
       break;}
-    case 'brunetto':{
-      const n=ri(1,2),id=S.ownerBrand;const k=takeOrBuy(id,n);
-      log(`${nm} si fuma ${n} pacchett${n>1?'i':'o'} di ${PD[id].name}. «Ne avevo smesso, ma solo il lunedì.»${k<n?' Erano finite: le compra dal collega.':''}`,'warn');break;}
   }
 }
 EVD.vizio={run:runVice};
@@ -1002,9 +1023,14 @@ function scheduleEvents(){
     const w={};pool.forEach(e=>w[e.id]=e.w);const id=pickW(w);
     list.push({id,at:ri(OPEN+60,closeT()-40)});pool=pool.filter(e=>e.id!==id);
   }
-  if(S.owner!=='ines'){
-    const nv=S.owner==='loredana'?(chance(.45)?1:0):S.owner==='ciro'?ri(1,2):1;
-    for(let i=0;i<nv;i++)list.push({id:'vizio',at:ri(OPEN+30,closeT()-30)});
+  const vz=vizio();
+  if(vz&&vz!=='late'){
+    if(vz==='early'){if(chance(.25))list.push({id:'vizio',at:closeT()-ri(90,150)});}
+    else{
+      const nv={leave:chance(.45)?1:0,gamble:ri(1,2),phone:ri(1,2),spend:chance(.5)?1:0,fan:chance(.3)?1:0,boat:chance(.35)?1:0}[vz];
+      const n=nv===undefined?1:nv;
+      for(let i=0;i<n;i++)list.push({id:'vizio',at:ri(OPEN+30,closeT()-30)});
+    }
   }
   list.sort((a,b)=>a.at-b.at);RT.events=list;
 }
@@ -1016,14 +1042,14 @@ function rincaro(){
 
 /* ===== scadenze ===== */
 function billsFor(d){
-  const g=dom(d),b=[],disc=perk('brunetto')?.9:1;
+  const g=dom(d),b=[],disc=perk('bills')?.9:1,pdisc=perk('prof')?.5:1;
   if(g===5)b.push({cat:'boll',amt:r2((180+50*S.up.insegna+30*S.up.frigo)*disc),label:'Bolletta della luce'});
   if(g===12){b.push({cat:'boll',amt:r2(45*disc),label:'Telefono e internet'});b.push({cat:'canoni',amt:r2((60+15*S.up.srvRic+25*S.up.srvPag)*disc),label:'Canoni terminali lotterie e servizi'});}
   if(g===16)b.push({cat:'tasse',amt:380,label:'Contributi INPS (F24)'});
   if(g===20)b.push({cat:'boll',amt:r2(70*disc),label:'Gas e acqua'});
-  if(g===25)b.push({cat:'prof',amt:150,label:'Commercialista'});
-  if(g===28){b.push({cat:'tasse',amt:70,label:'TARI rifiuti'});b.push({cat:'prof',amt:45,label:'Assicurazione della bottega'});}
-  if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','srv','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
+  if(g===25)b.push({cat:'prof',amt:r2(150*pdisc),label:'Commercialista'});
+  if(g===28){b.push({cat:'tasse',amt:70,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2(45*pdisc),label:'Assicurazione della bottega'});}
+  if(g===30){const m=S.aggM;const base=['tab','gra','val','ban','srv','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0);if(base>0)b.push({cat:'tasse',amt:r2(base*.18*(perk('tax')?.85:1)),label:'Imposte del mese (IRPEF e IRAP stimate)'});}
   return b;
 }
 function upcoming(n){
@@ -1050,10 +1076,11 @@ function openDay(){
   S.counter=null;S.tray={};RT.last=null;
   if(S.speed===0)S.speed=1;
   if(S.day>=5&&S.rincari<6&&chance(.1))rincaro();
-  let tg=rnd(50,400)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
+  let tg=rnd(50,400)*(perk('traffic')?1.1:1)*(1+S.rep/400)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
   if(S.day===1)tg=rnd(90,150); // primo giorno di rodaggio
   S.today.target=Math.round(clamp(tg,50,400));
   computeInteg();scheduleEvents();
+  if(vizio()==='late'&&chance(.3)){const m=ri(60,120);S.freeze=m;log(`${S.ownerName} arriva tardi: «avevo un'udienza». La saracinesca si alza con ${m} minuti di ritardo.`,'warn');}
   const tgt=S.today.target;
   const f=tgt<120?'Giornata fiacca, si sente.':tgt<230?'Una giornata normale, dicono i piccioni.':tgt<330?'Il quartiere è in movimento: giornata piena.':'C\'è qualcosa nell\'aria: oggi entrano tutti.';
   log(`${DAYS[wd(S.day)]}, ore 07:00. Alzi la saracinesca${isSunday(S.day)?' (oggi si chiude alle 13)':''}. ${f}`,'info');
@@ -1072,7 +1099,7 @@ function closeDay(){
   let fromDep=0;
   for(const c of charges){fromDep+=payForced(c.amt);tx(c.cat,-c.amt,c.label);}
   if(S.loan){S.loan.left--;if(S.loan.left<=0){log('Hai pagato l\'ultima rata del finanziamento. La banca ti manda un calendario.','good');S.loan=null;}}
-  if(dom(S.day)===30&&S.deposit>0){const i=r2(S.deposit*.003);S.deposit=r2(S.deposit+i);tx('int',i,'Interessi del libretto postale');}
+  if(dom(S.day)===30&&S.deposit>0){const i=r2(S.deposit*(perk('interest')?.006:.003));S.deposit=r2(S.deposit+i);tx('int',i,'Interessi del libretto postale');}
   if(fromDep>0)log(`La cassa non bastava: ${fmt(fromDep)} addebitati sul libretto postale.`,'warn');
   S.rep=clamp(S.rep*.93,-100,100);
   const net=aggSum(S.aggD);
@@ -1108,8 +1135,8 @@ function deposit(a){a=r2(a);if(!(a>0))return;if(a>S.cash){toast('In cassa non ha
 function withdraw(a){a=r2(a);if(!(a>0))return;if(a>S.deposit){toast('Sul libretto non ci sono tutti questi soldi.','bad');return;}S.deposit=r2(S.deposit-a);S.cash=r2(S.cash+a);tx('giro',a,'Prelievo dal libretto postale',true);toast(`Prelevati ${fmt(a)}.`,'good');save();}
 function takeLoan(i){
   if(S.loan)return;const L=LOANS[i];
-  S.loan={amt:L.amt,n:L.n,left:L.n,rata:L.rata,day:S.day};S.cash=r2(S.cash+L.amt);tx('fin',L.amt,`Finanziamento di ${fmt(L.amt)}`);
-  log(`La banca ti accredita ${fmt(L.amt)}. Da stasera, ${L.n} rate da ${fmt(L.rata)}.`,'info');toast(`Accreditati ${fmt(L.amt)}.`,'good');save();
+  S.loan={amt:L.amt,n:L.n,left:L.n,rata:rataOf(L),day:S.day};S.cash=r2(S.cash+L.amt);tx('fin',L.amt,`Finanziamento di ${fmt(L.amt)}`);
+  log(`La banca ti accredita ${fmt(L.amt)}. Da stasera, ${L.n} rate da ${fmt(rataOf(L))}.`,'info');toast(`Accreditati ${fmt(L.amt)}.`,'good');save();
 }
 function payoffLoan(){
   if(!S.loan)return;const due=r2(S.loan.left*S.loan.rata*.95);
@@ -1146,6 +1173,7 @@ function artOf(id){
   return `<div class="tile ${p.cat}">${esc(p.tag||p.name)}</div>`;
 }
 const faceHtml=(f,m)=>`<div class="face">${faceSVG(f,m||'ok')}</div>`;
+const ownerHtml=o=>`<div class="face px"><img src="${PORTS[o.img]}" alt="${esc(o.name)}"></div>`;
 
 /* ===== schede ===== */
 let TAB='banco',CSEG='riep',PER='d',TXF='all';
@@ -1238,7 +1266,7 @@ function renderCounter(){
     else if(S.freeze>0)tx='Banco fermo per qualche minuto.';
     else if(S.t>=closeT())tx='Orario di chiusura. Non entra più nessuno.';
     else tx=`Nessuno al banco. ${RT.forecast||''}`;
-    h+=`<div class="ctr-head">${faceHtml(o.face)}<div><div class="cname">${esc(S.ownerName)}</div><div class="crole">${tx}</div></div></div>`;
+    h+=`<div class="ctr-head">${ownerHtml(o)}<div><div class="cname">${esc(S.ownerName)}</div><div class="crole">${tx}</div></div></div>`;
   }
   const L=RT.last;
   if(L){
@@ -1349,7 +1377,7 @@ function buildBot(){
   }
   const card=el('section','card');card.appendChild(el('h2',null,'Il tabaccaio'));
   const o=OWD[S.owner];
-  card.appendChild(el('div','counter-top',`${faceHtml(o.face)}<div><b>${esc(S.ownerName)}</b><div class="muted" style="font-size:13px">${o.desc}</div><div style="font-size:12.5px;color:var(--good);font-weight:600">Pregio: ${o.perk}</div><div style="font-size:12.5px;color:var(--bad);font-weight:600">${o.malus?'Difetto: '+o.malus:'Nessun vizio. Quasi sospetto.'}</div></div>`));
+  card.appendChild(el('div','counter-top',`${ownerHtml(o)}<div><b>${esc(S.ownerName)}</b><div class="muted" style="font-size:13px">${o.desc}</div><div style="font-size:12.5px;color:var(--good);font-weight:600">Pregio: ${o.perk}</div><div style="font-size:12.5px;color:var(--bad);font-weight:600">Difetto: ${o.malus}</div></div>`));
   root.appendChild(card);
   refreshBot();
 }
@@ -1373,14 +1401,14 @@ function renderPosta(){
     const L=S.loan,due=r2(L.left*L.rata*.95);
     box.innerHTML=`<div class="minirow"><span>Importo ricevuto</span><b class="mono">${fmt(L.amt)}</b></div><div class="minirow"><span>Rata giornaliera</span><b class="mono">${fmt(L.rata)}</b></div><div class="minirow"><span>Rate pagate</span><b class="mono">${L.n-L.left} / ${L.n}</b></div><div class="minirow"><span>Ancora da pagare</span><b class="mono neg">${fmt(L.left*L.rata)}</b></div><p class="muted" style="font-size:12.5px">La rata si paga ogni sera alla chiusura. Puoi estinguere ora con lo sconto del 5%.</p><button class="btn alt" data-loan="pay" ${S.cash<due?'disabled':''}>Estingui ora (${fmt(due)})</button>`;
   }else{
-    box.innerHTML=`<p class="muted" style="font-size:13px;margin:0 0 4px">Un finanziamento alla volta. Le rate si pagano ogni sera alla chiusura, anche la domenica.</p>`+LOANS.map((L,i)=>`<div class="loan"><div><b class="mono">${fmt(L.amt)}</b><p>${L.n} rate giornaliere da ${fmt(L.rata)} · in tutto ${fmt(L.n*L.rata)}</p></div><button class="btn sm" data-loan="${i}">Richiedi</button></div>`).join('');
+    box.innerHTML=`<p class="muted" style="font-size:13px;margin:0 0 4px">Un finanziamento alla volta. Le rate si pagano ogni sera alla chiusura, anche la domenica.</p>`+LOANS.map((L,i)=>`<div class="loan"><div><b class="mono">${fmt(L.amt)}</b><p>${L.n} rate giornaliere da ${fmt(rataOf(L))} · in tutto ${fmt(L.n*rataOf(L))}</p></div><button class="btn sm" data-loan="${i}">Richiedi</button></div>`).join('');
   }
 }
 function loanClick(e){
   const b=e.target.closest('button[data-loan]');if(!b)return;
   if(b.dataset.loan==='pay'){payoffLoan();render(true);return;}
   const L=LOANS[+b.dataset.loan];
-  openModal({html:`<h3>Finanziamento di ${fmt(L.amt)}</h3><p>Ricevi subito ${fmt(L.amt)} in cassa. Da stasera paghi ${L.n} rate giornaliere da ${fmt(L.rata)}, per un totale di ${fmt(L.n*L.rata)}.</p><p class="muted">Il direttore della filiale ti guarda come si guarda un tabaccaio.</p>`,
+  openModal({html:`<h3>Finanziamento di ${fmt(L.amt)}</h3><p>Ricevi subito ${fmt(L.amt)} in cassa. Da stasera paghi ${L.n} rate giornaliere da ${fmt(rataOf(L))}, per un totale di ${fmt(L.n*rataOf(L))}.</p><p class="muted">Il direttore della filiale ti guarda come si guarda un tabaccaio.</p>`,
     actions:[{label:'Firma',cls:'gold',fn(){takeLoan(+b.dataset.loan);render(true);}},{label:'Ci penso',cls:'alt'}]});
 }
 
@@ -1508,23 +1536,21 @@ function resetGame(){
   S=null;RT.events=[];RT.modal=false;clearQueueDom();chooseOwner();
 }
 function chooseOwner(){
-  let sel=null,edited=false;
-  const html=`<h3>Scegli il tuo personaggio</h3><p>Scegli chi sei e, se vuoi, cambia il nome. <b>Dopo non potrai più cambiare né l'uno né l'altro.</b></p><div class="owners">${OWNERS.filter(o=>!o.hidden).map(o=>`<button class="owner" data-o="${o.id}" aria-pressed="false">${faceHtml(o.face)}<b>${o.name}</b><small>${o.desc}</small><em>${o.perk}</em><em class="mal">${o.malus||'Nessun vizio'}</em></button>`).join('')}</div><label for="oname" style="display:block;font-weight:600;margin-top:10px">Il tuo nome</label><div class="amtrow" style="margin-top:4px"><input id="oname" type="text" maxlength="18" autocomplete="off" placeholder="Prima scegli un personaggio" style="font-family:var(--f-body)"></div>`;
-  openModal({html,noFocus:true,actions:[{label:'Scegli un personaggio',cls:'gold',disabled:true,keep:true,fn(){if(!sel)return;const nm=($('#oname').value||'').trim().slice(0,18)||OWD[sel].name;closeModal();startGame(sel,nm);}}],
+  let sel=null;
+  const html=`<h3>Scegli il tuo personaggio</h3><p>Ognuno ha un pregio e un difetto. <b>Una volta scelto, non si cambia più.</b></p><div class="owners">${OWNERS.map(o=>`<button class="owner" data-o="${o.id}" aria-pressed="false">${ownerHtml(o)}<b>${esc(o.name)}</b><small>${esc(o.desc)}</small><em>${esc(o.perk)}</em><em class="mal">${esc(o.malus)}</em></button>`).join('')}</div>`;
+  openModal({html,noFocus:true,actions:[{label:'Scegli un personaggio',cls:'gold',disabled:true,keep:true,fn(){if(!sel)return;closeModal();startGame(sel);}}],
     after(sh){
-      const go=sh.querySelector('.macts button'),inp=sh.querySelector('#oname');
-      const upd=()=>{if(sel)go.textContent=`Apri bottega con ${(inp.value||'').trim()||OWD[sel].name}`;};
-      inp.addEventListener('input',()=>{edited=true;upd();});
-      sh.querySelector('.owners').addEventListener('click',e=>{const b=e.target.closest('.owner');if(!b)return;sel=b.dataset.o;$$('.owner',sh).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));if(!edited)inp.value=OWD[sel].name;go.disabled=false;upd();});
+      const go=sh.querySelector('.macts button');
+      sh.querySelector('.owners').addEventListener('click',e=>{const b=e.target.closest('.owner');if(!b)return;sel=b.dataset.o;$$('.owner',sh).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));go.disabled=false;go.textContent=`Apri bottega con ${OWD[sel].name}`;});
     }});
 }
-function startGame(owner,nm){
-  S=newState(owner,nm);
+function startGame(owner){
+  S=newState(owner);
   log(`${S.ownerName} ha sposato Ines e ha ereditato il suo tabacchino. I muri sono di famiglia: niente affitto, tutto il resto sì.`,'info');
   initOwnerUI();buildStockGrid();setTab('banco');save();
-  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13.</li><li>Ogni giorno entrano da 50 a 400 clienti, a caso. Ognuno passa al massimo due volte al giorno.</li><li>I clienti non hanno fretta: vengono al banco uno alla volta e ti dicono cosa vogliono.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Il + su ogni prodotto serve a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li>${OWD[owner].malus?`<li>Occhio ai vizi di ${esc(S.ownerName)}: ${OWD[owner].malus.toLowerCase()}.</li>`:''}</ul>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}]});
+  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13.</li><li>Ogni giorno entrano da 50 a 400 clienti, a caso. Ognuno passa al massimo due volte al giorno.</li><li>I clienti non hanno fretta: vengono al banco uno alla volta e ti dicono cosa vogliono.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Il + su ogni prodotto serve a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Occhio al difetto di ${esc(S.ownerName)}: ${esc(OWD[owner].malus.charAt(0).toLowerCase()+OWD[owner].malus.slice(1))}.</li></ul>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'}]});
 }
-function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=faceSVG(o.face,'ok');RT.ctrSig='';}
+function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=`<img src="${PORTS[o.img]}" alt="">`;$('#ownerFace').classList.add('px');RT.ctrSig='';}
 
 /* ===== avvio ===== */
 let last=0,rl=0;
