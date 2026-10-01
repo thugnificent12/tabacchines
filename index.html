@@ -442,7 +442,7 @@ const PRODUCTS=[
  {id:'mez',cat:'sga',name:'Sigaretti Mezzaluna (5 pz)',price:4.00,tag:'SIGARETTI',gate:'umidor'},
  {id:'ava',cat:'sga',name:'Sigaro Avana Riserva',price:14.00,tag:'AVANA',gate:'sigaripremium'},
  {id:'cor',cat:'sga',name:'Sigaro Gran Corona',price:22.00,tag:'CORONA',gate:'sigaripremium'},
- {id:'gaz',cat:'gio',name:'Il Grido dello Stretto',price:1.50,tag:'QUOTIDIANO',gate:'giornali'},
+ {id:'gaz',cat:'gio',name:'La Gazzetta del Sud',price:1.50,tag:'GAZZETTA',gate:'giornali'},
  {id:'spo',cat:'gio',name:'Quotidiano sportivo',price:1.90,tag:'SPORT',gate:'giornali'},
  {id:'enm',cat:'gio',name:'Settimanale di enigmistica',price:2.00,tag:'ENIGMI',gate:'giornali'},
  {id:'bir',cat:'alc',name:'Birra in bottiglia',free:1,cost:.70,price:2,tag:'BIRRA',gate:'alcol'},
@@ -812,7 +812,7 @@ const SAY={
   mez:q=>q===1?'un pacchetto di sigaretti Mezzaluna':`${nw(q)} pacchetti di sigaretti Mezzaluna`,
   ava:q=>q===1?'un Avana Riserva':`${nw(q)} Avana Riserva`,
   cor:q=>q===1?'un Gran Corona':`${nw(q)} Gran Corona`,
-  gaz:q=>q===1?'il Grido dello Stretto':`${nw(q)} copie del Grido dello Stretto`,
+  gaz:q=>q===1?'la Gazzetta del Sud':`${nw(q)} copie della Gazzetta del Sud`,
   spo:q=>q===1?'il quotidiano sportivo':`${nw(q)} copie del quotidiano sportivo`,
   enm:q=>q===1?'il settimanale di enigmistica':`${nw(q)} copie dell'enigmistica`,
   sco:()=>'una scommessa sulla partita',vir:()=>'una scommessa sulle virtuali',
@@ -951,6 +951,24 @@ function patienceTick(dm){
     }
   }
 }
+/* rapina fuori orario: può tentarla chiunque */
+const RAPINATORI={
+ 'Tony Manduci':'entra col casco ancora in testa e una mano in tasca',
+ 'Gianluca Avellina':'entra senza salutare, si guarda intorno e si piazza davanti alla cassa',
+ 'i Maranza':'entrano in tre col cappuccio tirato su, uno resta sulla porta a fare il palo',
+ 'Ciro e Gennaro':'entrano insieme: uno blocca la porta, l\'altro ti sorride troppo',
+ 'il finto tecnico del Lotto':'torna, stavolta senza cacciavite e senza sorriso'
+};
+function rapina(who){
+  if(foiled(who[0].toUpperCase()+who.slice(1)))return;
+  const cam=S.up.telecamere?.3:0,Who=who[0].toUpperCase()+who.slice(1);
+  openModal({html:`<h3>Rapina fuori orario!</h3><p>La saracinesca è ancora alzata e ${who} ${RAPINATORI[who]}. «Apri la cassa e non fare storie.»</p><p class="muted">In cassa: ${fmt(S.cash)}${S.up.telecamere?' · le telecamere stanno registrando':''}</p>`,actions:[
+   {label:'Consegna l\'incasso senza storie',cls:'alt',fn(){const take=r2(Math.min(S.cash*.35,1200));S.cash=r2(S.cash-take);tx('furti',-take,`Rapina fuori orario: ${who}`);log(`${Who} se ne va con ${fmt(take)}. Almeno nessuno si è fatto male.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}},
+   {label:'Premi l\'allarme sotto il banco',cls:'gold',fn(){
+    if(chance(.45+cam)){addRep(3);log(`Suona l'allarme: ${who} scappa senza prendere niente.`,'good');toast(`Allarme! ${Who} è scappato.`,'good');}
+    else{const take=r2(Math.min(S.cash*.5,1800));S.cash=r2(S.cash-take);tx('furti',-take,`Rapina fuori orario: ${who}`);addRep(-1);log(`L'allarme non parte. ${Who} si arrabbia e prende ${fmt(take)}.`,'bad');toast(`Rapina: −${fmt(take)}.`,'bad');}
+   }}]});
+}
 /* fuori orario: più resti aperto, più rischi */
 function overtime(dm){
   const late=S.t-closeT();
@@ -959,7 +977,7 @@ function overtime(dm){
     if(perk('fines')){log(`Passa la Guardia di Finanza: ${S.ownerName} spiega che stava solo finendo di servire. Se ne vanno con un richiamo.`,'info');}
     else{const m=ri(200,500);payForced(m);tx('multe',-m,'Guardia di Finanza: apertura fuori orario');addRep(-2);log(`Passa la Guardia di Finanza e vede la saracinesca alzata fuori orario: multa di ${fmt(m)}.`,'bad');toast(`Multa della Finanza: −${fmt(m)}.`,'bad');}
   }
-  if(!RT.ovRap&&S.cash>300&&!RT.modal&&chance(dm*(.0015+late*.00006))){RT.ovRap=1;EVD.manduci.run();}
+  if(!RT.ovRap&&S.cash>300&&!RT.modal&&chance(dm*(.0015+late*.00006))){RT.ovRap=1;rapina(pick(Object.keys(RAPINATORI)));}
 }
 function refuseCredit(){
   const c=S.counter;if(!c||!c.creditAsk||RT.modal)return;
@@ -1730,7 +1748,7 @@ function showSplash(){
   $('#spGo').addEventListener('click',enter);
   setTimeout(()=>{const g=$('#spGo');if(g)g.focus();},50);
 }
-if(typeof window!=='undefined'&&window.__TABTEST){window.__T={startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
+if(typeof window!=='undefined'&&window.__TABTEST){window.__T={rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
 })();
 </script>
