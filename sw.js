@@ -1,9 +1,9 @@
 /* Il TabacchInes: funzionamento offline.
    Cambia VERSION a ogni nuova versione del gioco per aggiornare la cache. */
-const VERSION = 'tabacchines-v75';
+const VERSION = 'tabacchines-v76';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png', './icons/favicon-32.png'];
+  './icons/apple-touch-icon.png', './icons/favicon-32.png', './music.mp3'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
