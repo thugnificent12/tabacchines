@@ -560,6 +560,7 @@ const EVENTI=[
  {t:'il concerto dei Bronzi Elettrici al PalaCalafiore',p:35},
  {t:'la partita della Reggina al Granillo',p:15},
  {t:'la partita della Villese',p:8},
+ {t:'la partita della Viola Reggio Calabria al PalaCalafiore',p:12},
  {t:'la commedia «U zu Peppi e l\'eredità» al Teatro Cilea',p:22},
  {t:'il Tarantella Elettronica Festival sul Lungomare',p:25},
  {t:'il cabaret di Mimmo Spitaleri',p:18},
@@ -1066,7 +1067,7 @@ function deliver(credit){
   let reply;
   if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»']);
   else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordato qualcosa… vabbè, lasciamo stare.»']);
-  else if(missing.length)reply=`«${pick(['Peccato','Vabbè'])}, ${pick(['sarà per un\'altra volta.','vado da qualcun altro.','andrò da un\'altra parte.',pick([`siamo nel ${dateOf(S.day).getFullYear()}, cazzo!`,`siamo nel ${dateOf(S.day).getFullYear()}! Aggiornatevi!`,`siamo nel ${dateOf(S.day).getFullYear()}! Vergogna!`])])}»`;
+  else if(missing.length){const y=dateOf(S.day).getFullYear();reply=`«${pick(['Sarà per un\'altra volta.','Vado da qualcun altro.','Andrò da un\'altra parte.'])} ${pick([`Siamo nel ${y}, cazzo!`,`Siamo nel ${y}! Aggiornatevi!`,`Siamo nel ${y}! Vergogna!`])}»`;}
   else reply=pick(NICE);
   if(credit&&total>0){
     if(p.never===undefined)p.never=chance(.2);
