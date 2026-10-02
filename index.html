@@ -1016,7 +1016,7 @@ function sayRequest(lines){
 /* quanti articoli chiede un cliente: di solito 1-2, a volte 3, raramente 4, rarissimo 5;
    con la reputazione alta le richieste si allungano (80: fino a 7, 90: fino a 9, 100: fino a 10) */
 function orderSize(){
-  const r=S.rep,w={1:42,2:33,3:17,4:6,5:2};
+  const r=S.rep,w=r<51?{1:52,2:30,3:12,4:4,5:1}:{1:42,2:33,3:17,4:6,5:2};
   if(r>=70){w[4]+=2;w[5]+=2;}
   if(r>=80){w[5]+=1;w[6]=2.5;w[7]=1.5;}
   if(r>=90){w[6]+=.5;w[7]+=.5;w[8]=1.2;w[9]=.8;}
