@@ -521,12 +521,12 @@ const PRODUCTS=[
  {id:'caf',cat:'bar',name:'Caffè',free:1,cost:.25,price:1,tag:'CAFFÈ',gate:'caffe'},
  {id:'pat',cat:'bar',name:'Patatine classiche',free:1,cost:.45,price:1.50,tag:'PATATINE',gate:'snackbar'},
  {id:'ppc',cat:'bar',name:'Patatine piccanti',free:1,cost:.50,price:1.60,tag:'PICCANTI',gate:'snackbar'},
- {id:'sv1',cat:'svp',name:'Nuvola 600 usa e getta',free:1,cost:3.50,price:7.90,tag:'NUVOLA 600',gate:'licSvapo'},
- {id:'sv2',cat:'svp',name:'Pod Stretto menta ghiaccio',free:1,cost:4.50,price:9.90,tag:'POD STRETTO',gate:'licSvapo'},
- {id:'sv3',cat:'svp',name:'Scilla Vape frutti rossi',free:1,cost:3.80,price:8.50,tag:'SCILLA VAPE',gate:'licSvapo'},
- {id:'sv4',cat:'svp',name:'Kit Bergamotto ricaricabile',free:1,cost:14,price:29.90,tag:'BERGAMOTTO',gate:'licSvapo'},
- {id:'sv5',cat:'svp',name:'Mod Aspromonte 80 W',free:1,cost:24,price:49,tag:'MOD 80W',gate:'licSvapo'},
- {id:'sv6',cat:'svp',name:'Nebbia THC usa e getta',free:1,cost:12,price:30,tag:'NEBBIA THC',gate:'licSvapo',thc:1},
+ {id:'sv1',cat:'svp',name:'Bronze Lux',free:1,cost:3.50,price:8,tag:'BRONZE LUX',gate:'licSvapo'},
+ {id:'sv2',cat:'svp',name:'Stretto Bubble (Lupa Edition)',free:1,cost:4.50,price:10,tag:'STRETTO BUBBLE',gate:'licSvapo'},
+ {id:'sv3',cat:'svp',name:'Scilla Lemon Aspire',free:1,cost:3.80,price:8.50,tag:'SCILLA LEMON',gate:'licSvapo'},
+ {id:'sv4',cat:'svp',name:'Kit Bergamotto ricaricabile',free:1,cost:14,price:30,tag:'BERGAMOTTO',gate:'licSvapo'},
+ {id:'sv5',cat:'svp',name:'Brutium 100 Pro',free:1,cost:24,price:50,tag:'BRUTIUM 100',gate:'licSvapo'},
+ {id:'sv6',cat:'svp',name:'Stiiizy BIIIG',free:1,cost:30,price:75,tag:'STIIIZY',gate:'licSvapo',thc:1},
  {id:'pen',cat:'can',name:'Penna a sfera',free:1,cost:.25,price:1,tag:'PENNA',gate:'cancelleria'},
  {id:'pco',cat:'can',name:'Penne colorate (4 pz)',free:1,cost:1.20,price:3.50,tag:'COLORATE',gate:'cancelleria'},
  {id:'evi',cat:'can',name:'Evidenziatori (3 pz)',free:1,cost:1.30,price:3.90,tag:'EVIDENZ.',gate:'cancelleria'},
@@ -761,7 +761,7 @@ const UPG=[
  {id:'licSup',grp:'base',name:'Licenza del SuperEnalotto',max:1,cost:[250],desc:'Il jackpot milionario che non vince mai nessuno del quartiere. Per ora.',eff:()=>'sblocca il SuperEnalotto (provvigione 8%)'},
  {id:'licDel',grp:'base',name:'Licenza del 10eLotto',max:1,cost:[180],desc:'Un\'estrazione ogni cinque minuti, un pensionato fisso davanti allo schermo.',eff:()=>'sblocca il 10eLotto (provvigione 8%)'},
  {id:'treni',grp:'base',name:'Biglietteria treni e nave',max:1,cost:[150],desc:'Treni per Reggio e per Scilla, nave veloce Villa–Messina. I ritardi non sono compresi.',eff:()=>'sblocca i biglietti di treno e nave (aggio 7%)'},
- {id:'licSvapo',grp:'base',name:'Licenza ed espositore sigarette elettroniche',max:1,cost:[400],desc:'L\'autorizzazione per vendere svapo e l\'espositore per metterle in mostra: sei modelli, compresa una al THC che attira clienti e controlli.',eff:()=>'sblocca 6 sigarette elettroniche; con la Nebbia THC in vendita i controlli sono più frequenti'},
+ {id:'licSvapo',grp:'base',name:'Licenza ed espositore sigarette elettroniche',max:1,cost:[400],desc:'L\'autorizzazione per vendere svapo e l\'espositore per metterle in mostra: sei modelli, compresa una al THC che attira clienti e controlli.',eff:()=>'sblocca 6 sigarette elettroniche; con la Stiiizy BIIIG in vendita i controlli sono più frequenti'},
  {id:'snack',grp:'base',name:'Espositore snack',max:1,cost:[20],desc:'Barrette, wafer, cracker e taralli per chi ha saltato la colazione.',eff:()=>'sblocca 4 tipi di snack'},
  {id:'caramelle',grp:'base',name:'Barattolo delle caramelle',max:1,cost:[10],desc:'Menta, liquirizia e gommose. Il resto in caramelle non vale più.',eff:()=>'sblocca 3 tipi di caramelle'},
  {id:'valori',grp:'base',name:'Valori bollati e cartoline',max:1,cost:[80],desc:'Marche da bollo, francobolli e cartoline di Reggio per i pochi che scrivono ancora.',eff:()=>'sblocca bolli, francobolli e cartoline'},
@@ -935,12 +935,12 @@ const NUMW=['','un','due','tre','quattro','cinque','sei','sette','otto','nove','
 const nw=n=>NUMW[n]||String(n);
 const SAY={
   nav:q=>q===1?'un biglietto della nave veloce per Messina':`${nw(q)} biglietti della nave veloce per Messina`,
-  sv1:q=>q===1?'una Nuvola 600':`${nw(q)} Nuvola 600`,
-  sv2:q=>q===1?'un pod Stretto alla menta':`${nw(q)} pod Stretto alla menta`,
-  sv3:q=>q===1?'una Scilla Vape ai frutti rossi':`${nw(q)} Scilla Vape ai frutti rossi`,
+  sv1:q=>q===1?'una Bronze Lux':`${nw(q)} Bronze Lux`,
+  sv2:q=>q===1?'una Stretto Bubble, la Lupa Edition':`${nw(q)} Stretto Bubble Lupa Edition`,
+  sv3:q=>q===1?'una Scilla Lemon Aspire':`${nw(q)} Scilla Lemon Aspire`,
   sv4:q=>q===1?'il kit Bergamotto ricaricabile':`${nw(q)} kit Bergamotto`,
-  sv5:q=>q===1?'la mod Aspromonte da 80 watt':`${nw(q)} mod Aspromonte`,
-  sv6:q=>q===1?'una Nebbia… quella al THC, ha capito':`${nw(q)} Nebbia al THC, ha capito`,
+  sv5:q=>q===1?'la Brutium 100 Pro':`${nw(q)} Brutium 100 Pro`,
+  sv6:q=>q===1?'una Stiiizy… quella grossa, ha capito':`${nw(q)} Stiiizy BIIIG, ha capito`,
   pen:q=>q===1?'una penna':`${nw(q)} penne`,
   pco:q=>q===1?'le penne colorate':`${nw(q)} confezioni di penne colorate`,
   evi:q=>q===1?'gli evidenziatori':`${nw(q)} confezioni di evidenziatori`,
@@ -1295,11 +1295,11 @@ const EVENTS=[
   log(`Controllo sulla cannabis light: etichette non conformi. Multa di 300 € e sequestro${lost.length?' di '+lost.join(', '):''}.`,'bad');toast('Controllo sulla cannabis light: −300 € e sequestro.','bad');
  }},
  {id:'thccheck',w:3,ok:()=>S.up.licSvapo>0&&S.stock.sv6>0,run(){
-  if(chance(.3)){log('Passa la Guardia di Finanza a guardare le sigarette elettroniche. Si ferma davanti alla Nebbia, ci pensa, e se ne va.','warn');return;}
+  if(chance(.3)){log('Passa la Guardia di Finanza a guardare le sigarette elettroniche. Si ferma davanti alle Stiiizy, ci pensa, e se ne va.','warn');return;}
   const n=S.stock.sv6;S.stock.sv6=0;
-  if(perk('fines')){log(`Controllo sulle sigarette elettroniche: ${S.ownerName} cita tre sentenze a memoria. Niente multa, ma le ${n} Nebbia THC vanno sotto sequestro.`,'warn');toast('Controllo: Nebbia THC sequestrate.','warn');return;}
+  if(perk('fines')){log(`Controllo sulle sigarette elettroniche: ${S.ownerName} cita tre sentenze a memoria. Niente multa, ma le ${n} Stiiizy BIIIG vanno sotto sequestro.`,'warn');toast('Controllo: Stiiizy BIIIG sequestrate.','warn');return;}
   payForced(1000);tx('multe',-1000,'Controllo sulle sigarette elettroniche al THC');addRep(-4);
-  log(`Controllo sulle sigarette elettroniche: ${n} Nebbia THC sequestrate e multa di 1.000 €. In quartiere se ne parla.`,'bad');toast('Controllo THC: −1.000 € e sequestro.','bad');
+  log(`Controllo sulle sigarette elettroniche: ${n} Stiiizy BIIIG sequestrate e multa di 1.000 €. In quartiere se ne parla.`,'bad');toast('Controllo THC: −1.000 € e sequestro.','bad');
  }},
  {id:'ines',w:1.1,ok:()=>S.day>=3&&!(S.ines&&S.t<S.ines.until),run(){inesArrives();}},
  {id:'pioggia',w:2,run(){S.mod={traffic:.6,until:S.t+150};log('Acquazzone improvviso: la gente resta a casa per un paio d\'ore.','warn');toast('Piove: meno clienti.','warn');}},
