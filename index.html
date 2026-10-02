@@ -757,8 +757,8 @@ const UPG=[
  {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[500],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
  {id:'sedie',grp:'neg',name:'Sedie e tavolini fuori',max:2,cost:[500,1200],desc:'Due tavolini sul marciapiede: chi aspetta si siede, fuma e non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%`},
  {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[700],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
- {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[1000],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
- {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[700],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
+ {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[800],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
+ {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[300],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
  {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[300],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
  {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[20000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese'},
  {id:'scommesse',grp:'srv',name:'Licenza scommesse sportive',max:1,cost:[2500],desc:'Schedine, quote e discussioni sul rigore che non c\'era.',eff:()=>'provvigione 8% sulle giocate, canone 40 €/mese'},
@@ -994,7 +994,9 @@ function spawnCustomer(forcedType){
   const ctx={lines:[]};
   T.wants(ctx,p);
   if(isSunday(S.day)&&p.type!=='liceale'&&p.type!=='turista'){if(chance(.35))want(ctx,brandOf(p));if(chance(.35))want(ctx,pick(['lot','sup','del']));}
-  if(['signora','nonno','operaio','cumenda','studente','liceale'].includes(p.type)&&chance(.03))want(ctx,'vgv');
+  if(['signora','nonno','operaio','cumenda','studente','liceale'].includes(p.type)&&S.day>=2&&chance(.03))want(ctx,'vgv');
+  // primo giorno niente treni e nave; SuperEnalotto e 10eLotto solo con la licenza; vincite dal secondo giorno
+  ctx.lines=ctx.lines.filter(l=>!(S.day===1&&['trr','trs','nav'].includes(l.id))&&!(l.id==='sup'&&!S.up.licSup)&&!(l.id==='del'&&!S.up.licDel)&&!(l.id==='vgv'&&S.day<2));
   if(!ctx.lines.length)want(ctx,p.type==='liceale'?SNK():brandOf(p));
   // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
   const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
