@@ -842,7 +842,7 @@ function fromObj(s){
     if(!s.lic2){for(const k of ['licLot','licSup','licDel','treni','snack','caramelle','valori','fumo'])if(!s.up||s.up[k]==null)m.up[k]=1;m.lic2=1;}
     if(!m.roles2){m.people.forEach(pp=>{if(pp.id>=0)pp.role=roleOf(pp.type,!!pp.f);});if(!m.people.some(pp=>pp.type==='liceale')){let id=m.people.length;for(let i=0;i<RESIDENT_TYPES.liceale;i++)m.people.push(makePerson('liceale',id++));}m.roles2=1;}
     m.people.forEach(pp=>{if(pp.role==='Barista')pp.role=roleOf(pp.type,!!pp.f);});
-    addRegulars(m);if(!m.vetrina)m.vetrina=[];if(m.helper===undefined)m.helper=null;
+    addRegulars(m);if(m.priceFree){m.pfSeen=true;delete m.priceFree;}if(!m.vetrina)m.vetrina=[];if(m.helper===undefined)m.helper=null;
     m.today=Object.assign(newToday(),s.today);
     if(m.phase==='open')m.speed=0;
     if(!m.ownerName)m.ownerName=OWD[m.owner].name;
@@ -877,7 +877,7 @@ const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
 const rankName=()=>{const v=patrimonio();let n=RANKS[0][1];for(const[t,x]of RANKS)if(v>=t)n=x;return n;};
 /* più sei in alto, più è difficile salire; più sei in basso, più è facile scendere ancora */
-const addRep=d=>{if(S.rep>=70&&!S.priceFree)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S.rep>0?Math.max(.15,1-S.rep/110):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
+const addRep=d=>{if(S.rep>=70&&!S.pfSeen)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S.rep>0?Math.max(.15,1-S.rep/110):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
 const LOTS=['lot','sup','del'];
 const svAvail=id=>(!SV[id].gate||S.up[SV[id].gate]>0)&&!(LOTS.includes(id)&&S.lotDownUntil>S.t);
 const jackpot=()=>S.jackpotUntil>S.t;
@@ -889,7 +889,8 @@ function hourCurve(t){
 }
 /* prezzo di vendita: per i prodotti a prezzo fisso vale quello ufficiale, finché la reputazione a 70 non sblocca i prezzi liberi */
 const offP=id=>PD[id].free?PD[id].ref:S.price[id];
-const sellP=id=>PD[id].free?S.price[id]:(S.priceFree&&S.sell&&S.sell[id]!=null?S.sell[id]:S.price[id]);
+const pfOn=()=>!!(S&&S.rep>=70);
+const sellP=id=>PD[id].free?S.price[id]:(pfOn()&&S.sell&&S.sell[id]!=null?S.sell[id]:S.price[id]);
 function priceFactor(id){const d=PD[id];if(!d.free)return 1;return clamp(Math.pow(d.ref/S.price[id],1.7),0,1.5);}
 const queueCap=()=>S.up.locale?50:20;
 function tx(cat,amt,label,neutral){
@@ -1100,7 +1101,7 @@ function settle(c,tray,credit,by){
       if(short>0){if(!svAvail(id)){missing.push(SV[id].name);if(SV[id].gate&&!S.up[SV[id].gate])nLocked++;}else forgot.push(SV[id].name);}
       continue;
     }
-    if(ok>0){S.stock[id]-=ok;const v=sellP(id)*ok;if(S.priceFree){const ra=sellP(id)/offP(id);if(ra>1.04)caro.push([id,ra]);}const k=SALECAT[PD[id].cat];byCat[k]=(byCat[k]||0)+v;total+=v;got+=ok;T.okItems+=ok;}
+    if(ok>0){S.stock[id]-=ok;const v=sellP(id)*ok;if(pfOn()){const ra=sellP(id)/offP(id);if(ra>1.04)caro.push([id,ra]);}const k=SALECAT[PD[id].cat];byCat[k]=(byCat[k]||0)+v;total+=v;got+=ok;T.okItems+=ok;}
     if(short>0){if(S.stock[id]<=0||blockedP(id)){missing.push(PD[id].name);if(!visible(id)||blockedP(id))nLocked++;}else forgot.push(PD[id].name);}
   }
   total=r2(total);
@@ -1119,7 +1120,7 @@ function settle(c,tray,credit,by){
       :r<.5?pick(['«Sarà per un\'altra volta, aggiornatevi però!»','«Vado da qualcun altro. Ma che tabacchino è?»','«Andrò da un\'altra parte. Vergogna!»'])
       :r<.72?`«${pick(['Sarà per un\'altra volta.','Vado da qualcun altro.','Andrò da un\'altra parte.'])} ${pick(['Aggiornatevi!','Vergogna!','Che vergogna!','Ma che tabacchino è?'])}»`
       :pick(['«Forajabbu!»','«Fora maravigghia!»','«Manculicani!»','«Ma varda tu!»']);}
-  else if(caro.length){const [cid]=caro.sort((a,b)=>b[1]-a[1])[0];const nm=PD[cid].name;reply=pick([`«${nm} a ${fmt(sellP(cid))}? Ma siete pazzi?»`,'«Al tabacchino di Gallico costa meno!»','«Coi prezzi che fate, la prossima volta vado a Catona.»','«Ma quanto costa?! Neanche a Milano.»',`«${fmt(sellP(cid))}? L\'altra settimana costava ${fmt(offP(cid))}!»`,'«Vambonu va, ma è un furto.»']);}
+  else if(caro.length){const [cid]=caro.sort((a,b)=>b[1]-a[1])[0];const nm=PD[cid].name;reply=pick([`«${nm} a ${fmt(sellP(cid))}? Ma siete pazzi?»`,'«\'Nti Carrozzu voli i menu!»','«\'Nti Passalacqua non custa tantu.»','«Ma quanto costa?! Neanche a Milano.»',`«${fmt(sellP(cid))}? L\'altra settimana costava ${fmt(offP(cid))}!»`,'«Vambonu va, ma è un furto.»']);}
   else reply=pick(NICE);
   if(credit&&total>0){
     if(p.never===undefined)p.never=chance(.2);
@@ -1551,9 +1552,9 @@ function payoffLoan(){
 }
 
 function unlockPrices(){
-  S.priceFree=true;if(!S.sell)S.sell={};
-  log('Bonus sbloccato: con la reputazione a 70 puoi decidere i prezzi di tutto, anche tabacchi, biglietti, bolli e francobolli. Ma se esageri, i clienti se ne accorgono.','good');
-  toast('Bonus: ora puoi cambiare il prezzo di ogni prodotto in Magazzino!','good');
+  S.pfSeen=true;if(!S.sell)S.sell={};
+  log('Sorpresa: la bottega è così stimata che ora puoi decidere i prezzi di tutto, anche tabacchi, biglietti, bolli e francobolli (in Magazzino). Vale finché la reputazione resta alta. E occhio: se esageri, i clienti se ne accorgono.','good');
+  toast('Sorpresa! Ora puoi cambiare il prezzo di ogni prodotto in Magazzino.','good');
 }
 
 /* ===== feste, giornate speciali, rincari, clienti fissi, aiutanti, vetrina ===== */
@@ -2069,7 +2070,7 @@ function buySheet(id){
 /* magazzino */
 let MR={};
 function buildMag(){
-  const root=$('#mag-list');root.innerHTML='';MR={};
+  const root=$('#mag-list');root.innerHTML='';MR={};MR._pf=pfOn();
   for(const c in CATDEF){
     const items=PRODUCTS.filter(p=>p.cat===c&&visible(p.id));if(!items.length)continue;
     const card=el('section','card');card.appendChild(el('h2',null,CATDEF[c].label));
@@ -2077,7 +2078,7 @@ function buildMag(){
       const row=el('div','prow');row.dataset.pid=p.id;
       row.innerHTML=`<div><div class="pname">${esc(p.name)}</div><div class="pmeta mono"></div></div>
       <div class="pstock"><div class="sbar"><i></i></div><span class="mono scount"></span></div>
-      <div class="pctl">${p.free||S.priceFree?`<div class="stepper"><small>Prezzo</small><button data-a="pm" aria-label="Abbassa il prezzo">−</button><b class="mono pval"></b><button data-a="pp" aria-label="Alza il prezzo">+</button></div>`:'<span class="muted" style="font-size:12px">Prezzo fissato dallo Stato</span>'}
+      <div class="pctl">${p.free||pfOn()?`<div class="stepper"><small>Prezzo</small><button data-a="pm" aria-label="Abbassa il prezzo">−</button><b class="mono pval"></b><button data-a="pp" aria-label="Alza il prezzo">+</button></div>`:'<span class="muted" style="font-size:12px">Prezzo fissato dallo Stato</span>'}
       <button class="btn sm" data-a="buy">Compra</button></div>`;
       MR[p.id]={meta:row.querySelector('.pmeta'),bar:row.querySelector('.sbar i'),cnt:row.querySelector('.scount'),pval:row.querySelector('.pval')};
       card.appendChild(row);
@@ -2087,12 +2088,13 @@ function buildMag(){
   refreshMag();
 }
 function refreshMag(){
-  for(const id in MR){
+  if(MR._pf!==pfOn()){buildMag();return;}
+  for(const id in MR){if(id[0]==="_")continue;
     const r=MR[id],cap=capOf(id),st=S.stock[id],cost=costOf(id),pr=sellP(id);
     r.meta.textContent=`Costo ${fmt(cost)} · vendi ${fmt(pr)} · guadagni ${fmt(pr-cost)}`;
     r.cnt.textContent=`${st}/${cap}`;
     r.bar.style.width=(clamp(st/cap,0,1)*100)+'%';r.bar.className=lowOf(id)?'low':'';
-    if(r.pval){r.pval.textContent=fmt(pr);const hi=S.priceFree&&pr/offP(id)>1.04;r.pval.style.color=hi?'var(--bad)':'';r.pval.title=hi?`Prezzo ufficiale ${fmt(offP(id))}: i clienti si lamentano`:'';}
+    if(r.pval){r.pval.textContent=fmt(pr);const hi=pfOn()&&pr/offP(id)>1.04;r.pval.style.color=hi?'var(--bad)':'';r.pval.title=hi?`Prezzo ufficiale ${fmt(offP(id))}: i clienti si lamentano`:'';}
   }
 }
 function magClick(e){
@@ -2102,7 +2104,7 @@ function magClick(e){
   if(d.free){
   if(a==='pm')S.price[id]=r2(Math.max(Math.max(.3,d.cost*.6),S.price[id]-.1));
   if(a==='pp')S.price[id]=r2(Math.min(d.ref*2.5,S.price[id]+.1));
-  }else if(S.priceFree){S.sell=S.sell||{};const cur=sellP(id),st=cur>=10?.5:.1;
+  }else if(pfOn()){S.sell=S.sell||{};const cur=sellP(id),st=cur>=10?.5:.1;
   if(a==='pm')S.sell[id]=r2(Math.max(S.price[id]*.7,cur-st));
   if(a==='pp')S.sell[id]=r2(Math.min(S.price[id]*2,cur+st));}
   refreshMag();
