@@ -752,7 +752,7 @@ const UPG=[
  {id:'fumo',grp:'base',name:'Accendini, cartine e trinciati',max:1,cost:[50],desc:'Per chi le sigarette se le arrotola da sé, e per chi perde sempre l\'accendino.',eff:()=>'sblocca 3 accendini, 3 tipi di cartine e filtri, 3 trinciati'},
  {id:'insegna',grp:'neg',name:'Insegna luminosa',max:3,cost:[400,900,1750],desc:'Più luce, più clienti. Più bolletta, ma quella arriva dopo.',eff:l=>`affluenza +${l*8}%, luce +${l*50} €/mese`},
  {id:'scaffali',grp:'neg',name:'Scaffali e retrobanco',max:3,cost:[300,700,1400],desc:'Tabacchi in alto, gratta e vinci in basso. Merce in vista, clienti in più.',eff:l=>`+${l*4}% clienti`},
- {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[500],desc:'Fa «bip» più in fretta e la banca si prende meno. Il resto lo conti ancora a mente.',eff:()=>'commissioni POS dimezzate (0,3%)'},
+ {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[500],desc:'Fa «bip» da solo: metti la merce sul banco e il cliente ha già pagato. Chi paga con la carta finisce dritto sul libretto.',eff:()=>'incasso automatico appena il banco è giusto, i pagamenti col POS vanno sul libretto, commissioni dimezzate (0,3%)'},
  {id:'sedie',grp:'neg',name:'Sedie e tavolini fuori',max:2,cost:[500,1200],desc:'Due tavolini sul marciapiede: chi aspetta si siede, fuma e non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%`},
  {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[700],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
  {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[800],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
@@ -1066,7 +1066,7 @@ function deliver(credit){
   if(forgot.length)addRep(pen(-.3*forgot.length));
   if(missing.length)addRep(-.1*missing.length);
   T.missed+=missing.length+forgot.length;T.wrong=(T.wrong||0)+wrong.length;
-  let reply;
+  let reply,pos=false;
   if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»','«Ma chi sta durmendu?»','«Rusbigghiati!»','«Vambonu va…»']);
   else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordato qualcosa… vabbè, lasciamo stare.»','«Vambonu va…»','«Ma chi sta durmendu?»']);
   else if(missing.length){const y=dateOf(S.day).getFullYear();const r=Math.random();
@@ -1082,11 +1082,12 @@ function deliver(credit){
     personHist(p,'credito',total,`${got} articoli`);tx('credito',total,`Segnato a credito: ${name}`,true);addRep(.3);
     log(`Segni ${fmt(total)} sul conto di ${name}. Ora ti deve ${fmt(p.debt)}.`,'warn');
   }else if(total>0){
-    for(const k in byCat){const v=r2(byCat[k]);S.cash=r2(S.cash+v);for(const a of [S.aggD,S.aggM,S.aggA])a[k]=r2((a[k]||0)+v);}
+    pos=!!S.up.registratore&&chance(.6);
+    for(const k in byCat){const v=r2(byCat[k]);if(pos)S.deposit=r2(S.deposit+v);else S.cash=r2(S.cash+v);for(const a of [S.aggD,S.aggM,S.aggA])a[k]=r2((a[k]||0)+v);}
     T.sales=r2(T.sales+total);
-    S.tx.unshift({d:S.day,t:Math.floor(S.t),cat:'vendita',amt:total,label:`${name} · ${got} articol${got===1?'o':'i'}${perfect?'':' (con problemi)'}`});
+    S.tx.unshift({d:S.day,t:Math.floor(S.t),cat:'vendita',amt:total,label:`${name} · ${got} articol${got===1?'o':'i'}${perfect?'':' (con problemi)'}${pos?' · POS sul libretto':''}`});
     if(S.tx.length>300)S.tx.length=300;RT.txVer++;
-    RT.floatAmt=(RT.floatAmt||0)+total;
+    if(!pos)RT.floatAmt=(RT.floatAmt||0)+total;
     if(perfect&&chance(perk('tips')?.22:.1)){const tip=r2(rnd(.2,1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
   }
   if(!credit&&p&&p.debt>0&&!p.never&&chance(p.hon*.12)){
@@ -1098,7 +1099,7 @@ function deliver(credit){
   if(wrong.length)log(`${name}: consegnato per sbaglio ${wrong.join(', ')}. Torna sullo scaffale.`,'bad');
   if(forgot.length)log(`${name}: dimenticato ${forgot.join(', ')}, eppure c'era.`,'bad');
   if(missing.length)log(`${name}: mancava ${missing.join(', ')}.`,'warn');
-  const res={name,face:p.face,perfect,wrong,forgot,missing,noCred,total,credit:!!credit,reply};
+  const res={name,face:p.face,perfect,wrong,forgot,missing,noCred,total,credit:!!credit,reply,pos};
   RT.last=res;S.counter=null;S.tray={};RT.ctrVer=(RT.ctrVer||0)+1;
   callNext();
   return res;
@@ -1585,9 +1586,26 @@ function gridClick(e){
   if(S.counter&&resumeIfPaused())return;
   if(!S.counter){if(b.dataset.pid)buySheet(id);else if(!svAvail(id))toast(LOTS.includes(id)&&S.lotDownUntil>S.t?'Il terminale del Lotto è bloccato.':'Questo servizio si attiva nella sezione Bottega.','warn');else toast('Nessun cliente al banco.','warn');return;}
   const r=trayAdd(id);
+  if(r==='ok'&&autoPos()){render(true);return;}
   if(r==='out')toast(`${PD[id].name}: finito. Compralo con il +.`,'bad');
   if(r==='locked')toast(LOTS.includes(id)&&S.lotDownUntil>S.t?`${SV[id].name}: il terminale è bloccato.`:`${SV[id].name}: non lo fai ancora. Si attiva in Bottega.`,'warn');
   render(true);
+}
+/* con il POS nuovo: appena sul banco c'è esattamente quello che serve, il cliente paga da solo */
+function trayComplete(c){
+  if(!c||!Object.keys(S.tray).length)return false;
+  const need={};
+  for(const l of c.lines){const n=SV[l.id]?(svAvail(l.id)?1:0):Math.min(l.q,S.stock[l.id]);if(n>0)need[l.id]=(need[l.id]||0)+n;}
+  for(const id in S.tray)if(S.tray[id]!==(need[id]||0))return false;
+  for(const id in need)if((S.tray[id]||0)!==need[id])return false;
+  return true;
+}
+function autoPos(){
+  if(!S.up.registratore||!S.counter||S.counter.creditAsk||RT.modal||!trayComplete(S.counter))return false;
+  const r=deliver(false);if(!r)return false;
+  if(r.missing.length)toast(`Mancava: ${r.missing.join(', ')}.`,'warn');
+  else if(r.total>0)toast(r.pos?`Bip! ${fmt(r.total)} col POS, dritti sul libretto.`:`Bip! ${fmt(r.total)} in contanti.`,'good');
+  return true;
 }
 function trayTotal(){let t=0;const c=S.counter;for(const id in S.tray){if(SV[id]){const ln=c&&c.lines.find(l=>l.id===id);const a=ln&&ln.amt!=null?ln.amt:0;t+=SV[id].payout?-a:a;}else t+=S.price[id]*S.tray[id];}return{t:r2(t),sv:0};}
 function renderCounter(){
@@ -1633,8 +1651,8 @@ function setPCat(v){PCAT=v;$$('#pkSeg button').forEach(x=>x.setAttribute('aria-p
 function ctrClick(e){
   const b=e.target.closest('button');if(!b)return;
   if(S.counter&&b.dataset.a!=='close'&&resumeIfPaused())return;
-  if(b.dataset.rm){trayRemove(b.dataset.rm);render(true);return;}
-  if(b.dataset.add){const id=b.dataset.add,res=trayAdd(id);if(res==='out')toast(`${PD[id].name}: non ne hai altri sullo scaffale.`,'warn');render(true);return;}
+  if(b.dataset.rm){trayRemove(b.dataset.rm);autoPos();render(true);return;}
+  if(b.dataset.add){const id=b.dataset.add,res=trayAdd(id);if(res==='ok')autoPos();if(res==='out')toast(`${PD[id].name}: non ne hai altri sullo scaffale.`,'warn');render(true);return;}
   const a=b.dataset.a;
   if((a==='give'||a==='credit')&&!Object.keys(S.tray).length&&anyAvail(S.counter)){
     toast('Prima metti sul banco quello che chiede: tocca i prodotti nello scaffale qui sotto, poi «Consegna».','warn');
