@@ -1069,7 +1069,7 @@ function deliver(credit){
   let reply;
   if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»','«Ma chi sta durmendu?»','«Rusbigghiati!»','«Vambonu va…»']);
   else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordato qualcosa… vabbè, lasciamo stare.»','«Vambonu va…»','«Ma chi sta durmendu?»']);
-  else if(missing.length){const y=dateOf(S.day).getFullYear();reply=`«${pick(['Sarà per un\'altra volta.','Vado da qualcun altro.','Andrò da un\'altra parte.'])} ${pick([`Siamo nel ${y}, cazzo!`,`Siamo nel ${y}! Aggiornatevi!`,`Siamo nel ${y}! Vergogna!`])}»`;}
+  else if(missing.length){const y=dateOf(S.day).getFullYear();reply=`«${pick(['Sarà per un\'altra volta.','Vado da qualcun altro.','Andrò da un\'altra parte.'])} ${chance(.25)?pick([`Siamo nel ${y}, cazzo!`,`Siamo nel ${y}! Aggiornatevi!`,`Siamo nel ${y}! Vergogna!`]):pick(['Aggiornatevi!','Vergogna!','Che vergogna!','Ma che tabacchino è?'])}»`;}
   else reply=pick(NICE);
   if(credit&&total>0){
     if(p.never===undefined)p.never=chance(.2);
