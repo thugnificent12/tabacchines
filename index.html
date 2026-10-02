@@ -1065,12 +1065,13 @@ function deliver(credit){
   if(missing.length)addRep(-.1*missing.length);
   T.missed+=missing.length+forgot.length;T.wrong=(T.wrong||0)+wrong.length;
   let reply;
-  if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»']);
-  else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordato qualcosa… vabbè, lasciamo stare.»']);
+  if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»','«Ma chi sta durmendu?»','«Rusbigghiati!»','«Vambonu va…»']);
+  else if(forgot.length)reply=pick(['«E il resto? Ce l\'ha lì dietro, l\'ho visto!»','«Si è scordato qualcosa… vabbè, lasciamo stare.»','«Vambonu va…»','«Ma chi sta durmendu?»']);
   else if(missing.length){const y=dateOf(S.day).getFullYear();reply=`«${pick(['Sarà per un\'altra volta.','Vado da qualcun altro.','Andrò da un\'altra parte.'])} ${pick([`Siamo nel ${y}, cazzo!`,`Siamo nel ${y}! Aggiornatevi!`,`Siamo nel ${y}! Vergogna!`])}»`;}
   else reply=pick(NICE);
   if(credit&&total>0){
     if(p.never===undefined)p.never=chance(.2);
+    if(!wrong.length&&!forgot.length&&chance(p.never?.75:.25))reply='«Apoi passu…»';
     p.debt=r2(p.debt+total);p.lent=r2(p.lent+total);T.credit=r2(T.credit+total);
     personHist(p,'credito',total,`${got} articoli`);tx('credito',total,`Segnato a credito: ${name}`,true);addRep(.3);
     log(`Segni ${fmt(total)} sul conto di ${name}. Ora ti deve ${fmt(p.debt)}.`,'warn');
