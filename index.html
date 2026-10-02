@@ -1846,19 +1846,26 @@ try{MUS.on=localStorage.getItem('tabacchines.music')!=='0';}catch(e){}
 const ICO_MUS_ON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3" fill="currentColor"/><circle cx="17" cy="16" r="3" fill="currentColor"/></svg>';
 const ICO_MUS_OFF='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3" fill="currentColor"/><circle cx="17" cy="16" r="3" fill="currentColor"/><path d="M3 3l18 18"/></svg>';
 function musicIcons(){try{document.querySelectorAll('[data-mus]').forEach(b=>{b.innerHTML=MUS.on?ICO_MUS_ON:ICO_MUS_OFF;b.setAttribute('aria-label',MUS.on?'Musica accesa: tocca per spegnere':'Musica spenta: tocca per accendere');b.setAttribute('aria-pressed',String(MUS.on));});}catch(e){}}
+/* musica con Web Audio: il giro ricomincia senza nessuna pausa */
 async function musicStart(){
   if(!MUS.on||typeof window==='undefined'||window.__TABTEST||document.hidden)return;
+  const c=sndCtx();if(!c)return;
   try{
-    if(!MUS.el){
+    if(!MUS.buf){
       if(MUS.loading)return;MUS.loading=true;
-      const a=new Audio();a.loop=true;a.volume=MUS_VOL;a.preload='auto';
-      try{const r=await fetch(MUSIC_URL);a.src=URL.createObjectURL(await r.blob());}catch(e){a.src=MUSIC_URL;}
-      MUS.el=a;MUS.loading=false;
+      const r=await fetch(MUSIC_URL);const ab=await r.arrayBuffer();
+      MUS.buf=await new Promise((ok,ko)=>c.decodeAudioData(ab,ok,ko));MUS.loading=false;
     }
-    if(MUS.on&&MUS.el.paused)await MUS.el.play();
+    if(!MUS.on||MUS.src)return;
+    const g=c.createGain();g.gain.value=MUS_VOL;g.connect(c.destination);
+    const src=c.createBufferSource();src.buffer=MUS.buf;src.loop=true;src.connect(g);
+    const off=(MUS.off||0)%MUS.buf.duration;src.start(0,off);
+    MUS.src=src;MUS.gain=g;MUS.t0=c.currentTime-off;
   }catch(e){MUS.loading=false;}
 }
-function musicStop(){try{if(MUS.el)MUS.el.pause();}catch(e){}}
+function musicStop(){
+  try{if(MUS.src){const c=SND.ctx;MUS.off=c?(c.currentTime-MUS.t0):0;MUS.src.stop();MUS.src.disconnect();MUS.src=null;}}catch(e){MUS.src=null;}
+}
 function setMusic(on){MUS.on=!!on;try{localStorage.setItem('tabacchines.music',on?'1':'0');}catch(e){}musicIcons();if(on)musicStart();else musicStop();}
 
 S=load();
@@ -2517,7 +2524,7 @@ function showSplash(){
   $('#spLoad').addEventListener('click',openLoadMenu);
   setTimeout(()=>{const g=$('#spGo');if(g)g.focus();},50);
 }
-if(typeof document!=="undefined"&&document.addEventListener&&!(typeof window!=="undefined"&&window.__TABTEST)){document.addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('[data-mus]');if(m){e.preventDefault();setMusic(!MUS.on);return;}const b=e.target.closest&&e.target.closest('[data-snd]');if(b){e.preventDefault();setSound(!SND.on);}if(MUS.on&&(!MUS.el||MUS.el.paused))musicStart();},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)musicStop();else if(MUS.on&&MUS.el)musicStart();});setTimeout(()=>{setSound(SND.on,true);musicIcons();},0);}
+if(typeof document!=="undefined"&&document.addEventListener&&!(typeof window!=="undefined"&&window.__TABTEST)){document.addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('[data-mus]');if(m){e.preventDefault();setMusic(!MUS.on);return;}const b=e.target.closest&&e.target.closest('[data-snd]');if(b){e.preventDefault();setSound(!SND.on);}if(MUS.on&&!MUS.src)musicStart();},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)musicStop();else if(MUS.on)musicStart();});setTimeout(()=>{setSound(SND.on,true);musicIcons();},0);}
 if(typeof window!=="undefined"&&window.__TABDBG){window.__R=rapina;window.__GS=()=>S;window.__INES=inesArrives;window.__CH=chooseHelper;window.__SP=()=>spawnCustomer(null,S.people.find(p=>p.fix==="carmela"));}
 if(typeof window!=="undefined"&&window.__TABTEST){window.__T={rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
