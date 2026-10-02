@@ -1592,12 +1592,6 @@ function extraWants(ctx,p){
   if(T.meteo&&T.meteo.temp>=30&&chance(.15))wantU(ctx,'bib');
   if(T.spec==='reggina'&&!teen&&chance(.1))wantU(ctx,'sco');
   if(LOTDAYS.includes(wd(S.day))&&S.t>=1050&&!teen&&chance(.25))want(ctx,'lot');
-  for(const id of (S.vetrina||[])){
-    if(!id||!PD[id]||!visible(id)||S.stock[id]<=0)continue;
-    if(teen&&['alc','cbd'].includes(PD[id].cat))continue;
-    if(teen&&id==='sv6')continue;
-    if(chance(.09))want(ctx,id);
-  }
 }
 
 /* --- rincari ufficiali: ogni due anni, nel giorno dell'anniversario --- */
@@ -2117,7 +2111,6 @@ function buildBot(){
     }
     root.appendChild(card);
   }
-  root.insertBefore(vetrinaCard(),root.firstChild);
   const card=el('section','card');card.appendChild(el('h2',null,'Il tabaccaio'));
   const o=OWD[S.owner];
   card.appendChild(el('div','counter-top',`${ownerHtml(o)}<div><b>${esc(S.ownerName)}</b><div style="font-size:12.5px;color:var(--good);font-weight:600">Pregio: ${esc(S.perkTxt)}</div><div style="font-size:12.5px;color:var(--bad);font-weight:600">Difetto: ${esc(S.malusTxt)}</div></div>`));
