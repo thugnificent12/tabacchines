@@ -461,8 +461,8 @@ const PRODUCTS=[
  {id:'tox',cat:'sig',name:'Tox',price:5.20,color:'#5E7A12',fam:'noir',stile:'Ciniche e industriali',motto:'Lo dice il nome, e non mente.',pop:5},
  {id:'ash',cat:'sig',name:'Ash & Co.',price:8.00,color:'#262626',fam:'noir',stile:'Decadenti',motto:'Dal 1900 trasformiamo soldi in cenere.',pop:3},
  {id:'bln',cat:'sig',name:'Blue Night',price:7.00,color:'#13234D',fam:'noir',stile:'Malinconiche, da detective privato',motto:'Per chi pedina qualcuno e fuma da solo.',pop:5},
- {id:'mrl',cat:'sig',name:'Marlboro',price:6.80,color:'#7A1426',pk:'frame',fam:'cla',stile:'Il rosso e bianco che tutti riconoscono',motto:'Rosso come il conto del cardiologo.',pop:11},
- {id:'cml',cat:'sig',name:'Camel Blue',price:6.30,color:'#8EC3EA',pk:'band',fam:'cla',stile:'Azzurre, da viaggio nel deserto',motto:'Lento come un cammello, puntuale come la tosse.',pop:8},
+ {id:'mrl',cat:'sig',name:'Marlboro',price:6.80,color:'#C8102E',fam:'cla',stile:'Il rosso e bianco che tutti riconoscono',motto:'Rosso come il conto del cardiologo.',pop:11},
+ {id:'cml',cat:'sig',name:'Camel Blue',price:6.30,color:'#3E78B2',fam:'cla',stile:'Azzurre, da viaggio nel deserto',motto:'Lento come un cammello, puntuale come la tosse.',pop:8},
  {id:'tri',cat:'tab',name:'Trinciato Pipa Fina 30 g',price:8.90,tag:'PIPA FINA',gate:'fumo'},
  {id:'trv',cat:'tab',name:'Trinciato Virginia Dorato 30 g',price:9.50,tag:'VIRGINIA',gate:'fumo'},
  {id:'trd',cat:'tab',name:'Trinciato Scirocco Scuro 30 g',price:9.20,tag:'SCIROCCO',gate:'fumo'},
@@ -558,12 +558,12 @@ const SV={
 };
 const EVENTI=[
  {t:'il concerto dei Bronzi Elettrici al PalaCalafiore',p:35},
- {t:'la partita Amaranto Reggio – Peloritana, in curva',p:15},
+ {t:'la partita della Reggina al Granillo',p:15},
+ {t:'la partita della Villese',p:8},
  {t:'la commedia «U zu Peppi e l\'eredità» al Teatro Cilea',p:22},
  {t:'il Tarantella Elettronica Festival sul Lungomare',p:25},
  {t:'il cabaret di Mimmo Spitaleri',p:18},
  {t:'la Notte all\'Opera al Teatro Cilea',p:40},
- {t:'Stretto Basket – Etna Giants al PalaCalafiore',p:12},
  {t:'il concerto di Rosaria e i Bergamotti in piazza',p:20}
 ];
 const svFee=(id,a)=>SV[id].fixed!=null?SV[id].fixed:r2(a*SV[id].rate);
