@@ -1035,7 +1035,7 @@ function spawnCustomer(forcedType,forcedP){
   const extra=nArt>=5?10*GMS*1.1:nArt>=3?5*GMS*1.1:0;
   const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
-    quote:pick(R?R.quotes:T.quotes),creditAsk:false,asked:false,reply:null};
+    nArt,quote:pick(R?R.quotes:T.quotes),creditAsk:false,asked:false,reply:null};
   if(R){if(R.credit){c.creditAsk=true;c.ask=pick(['«Apoi passu… me lo segna, vero?»','«Segni, segni, che a fine mese saldo tutto.»']);}}
   else if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.ask=pick(ASKCRED);}
   S.queue.push(c);return c;
@@ -1147,15 +1147,19 @@ function settle(c,tray,credit,by){
 }
 const moodOf=c=>{const r=c.patMax?c.pat/c.patMax:1;return r>.55?'ok':r>.25?'meh':'angry';};
 const GONE=['«Vabbè, torno un\'altra volta.»','«Qui si fa notte. Arrivederci.»','«Ma è un tabacchino o l\'ufficio postale?»','«Ho altro da fare, buona giornata.»'];
+/* più articoli chiede, più lentamente si spazientisce: soprattutto in coda */
+const nArtOf=c=>c.nArt||c.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
+const slowQ=c=>Math.max(.4,1/(1+.2*(nArtOf(c)-1)));
+const slowC=c=>Math.max(.6,1/(1+.09*(nArtOf(c)-1)));
 function patienceTick(dm){
   if(S.freeze>0)dm*=.5;
   for(let i=S.queue.length-1;i>=0;i--){
-    const c=S.queue[i];if(c.pat==null)continue;c.pat-=dm;
+    const c=S.queue[i];if(c.pat==null)continue;c.pat-=dm*slowQ(c); // chi chiede tanta roba aspetta più volentieri
     if(c.pat<=0){S.queue.splice(i,1);S.today.lost++;addRep(-.5);const p=getP(c);log(`${p.name} si stufa di aspettare e se ne va.`,'bad');RT.qSig='';}
   }
   const c=S.counter;
   if(c&&c.pat!=null){
-    c.pat-=dm*1.1;
+    c.pat-=dm*1.1*slowC(c);
     if(c.pat<=0){
       const p=getP(c);S.today.lost++;addRep(-.7);
       log(`${p.name} si stufa al banco e se ne va senza comprare.`,'bad');toast(`${p.name} se n'è andato: troppa attesa.`,'bad');
