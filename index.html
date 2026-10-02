@@ -345,7 +345,7 @@ body.alarm .nav button{color:#fff}
       <div class="card ctr" id="ctr"></div>
       <div class="card">
         <h2>Scaffale <small id="pkHint"></small></h2>
-        <div class="seg pseg" id="pkSeg" role="group" aria-label="Reparto"><button data-v="sig" aria-pressed="true">Sigarette</button><button data-v="gra" aria-pressed="false">Gratta</button><button data-v="lot" aria-pressed="false">Lotterie</button><button data-v="val" aria-pressed="false">Valori</button><button data-v="ban" aria-pressed="false">Banco</button><button data-v="alt" aria-pressed="false">Altro</button></div>
+        <div class="seg pseg" id="pkSeg" role="group" aria-label="Reparto"><button data-v="sig" aria-pressed="true">Tabacchi</button><button data-v="gra" aria-pressed="false">Gratta</button><button data-v="lot" aria-pressed="false">Lotterie</button><button data-v="val" aria-pressed="false">Valori</button><button data-v="ban" aria-pressed="false">Banco</button><button data-v="alt" aria-pressed="false">Altro</button></div>
         <div class="sgrid" id="stockgrid" style="margin-top:10px"></div>
       </div>
       <div class="card" id="helpCard" hidden><h2>Ti danno una mano</h2><div id="helpers"></div></div>
@@ -464,26 +464,20 @@ const PRODUCTS=[
  {id:'gco',cat:'sig',name:'Gold Coast',price:6.20,color:'#B88A1E',fam:'cla',stile:'Richiama spiagge e tabacco biondo',motto:'Il mare non c\'è, il catrame sì.',pop:9},
  {id:'rci',cat:'sig',name:'Red Circle',price:6.50,color:'#B3261E',fam:'cla',stile:'Un omaggio ai loghi circolari classici',motto:'Un cerchio rosso, come i tuoi polmoni.',pop:12},
  {id:'mon',cat:'sig',name:'Monarch',price:7.80,color:'#4B1E5A',fam:'cla',stile:'Lusso d\'altri tempi',motto:'Lusso d\'altri tempi, tosse di oggi.',pop:4},
- {id:'gpx',cat:'sig',name:'Grand Prix',price:6.90,color:'#1F5A3A',fam:'cla',stile:'Le corse del secolo scorso',motto:'Arrivi primo. Al pronto soccorso.',pop:6},
  {id:'sil',cat:'sig',name:'Silver Leaf',price:7.20,color:'#7D8794',fam:'cla',stile:'Semplice ed elegante',motto:'Elegante anche mentre ti rovina.',pop:5},
  {id:'naz',cat:'sig',name:'Nazzionali',price:5.00,color:'#7A5A3A',fam:'cla',stile:'Senza filtro',motto:'Senza filtro, come tuo zio.',pop:7},
- {id:'apx',cat:'sig',name:'Apex',price:5.80,color:'#1D4E89',fam:'mod',stile:'Lineare, giovanile',motto:'Il punto più alto. Poi si scende.',pop:9},
  {id:'nex',cat:'sig',name:'Nexus',price:6.10,color:'#2E7C83',fam:'mod',stile:'Suono tecnologico e pulito',motto:'Connesso a tutto, tranne che al buon senso.',pop:7},
  {id:'vib',cat:'sig',name:'Vibe',price:5.50,color:'#C23C70',fam:'mod',stile:'Per un pubblico giovane',motto:'Good vibes, cattivi polmoni.',pop:8},
  {id:'ble',cat:'sig',name:'Blends',price:5.30,color:'#5F6368',fam:'mod',stile:'Generiche, da sfondo in un film',motto:'Generiche come le scuse dei debitori.',pop:6},
  {id:'shf',cat:'sig',name:'Shift',price:6.40,color:'#3E3EA8',fam:'mod',stile:'Con filtro a click',motto:'Clicca il filtro e cambia idea: smetti.',pop:6},
- {id:'neo',cat:'sig',name:'Neo-Cig',price:6.60,color:'#0F8466',fam:'noir',stile:'Futuristiche',motto:'Il futuro è arrivato. E tossisce.',pop:5},
- {id:'chr',cat:'sig',name:'Chrome',price:7.50,color:'#56606B',fam:'noir',stile:'Fredde, metalliche',motto:'Fredde come la bolletta della luce.',pop:4},
  {id:'tox',cat:'sig',name:'Tox',price:5.20,color:'#5E7A12',fam:'noir',stile:'Ciniche e industriali',motto:'Lo dice il nome, e non mente.',pop:5},
- {id:'ash',cat:'sig',name:'Ash & Co.',price:8.00,color:'#262626',fam:'noir',stile:'Decadenti',motto:'Dal 1900 trasformiamo soldi in cenere.',pop:3},
- {id:'bln',cat:'sig',name:'Blue Night',price:7.00,color:'#13234D',fam:'noir',stile:'Malinconiche, da detective privato',motto:'Per chi pedina qualcuno e fuma da solo.',pop:5},
  {id:'mrl',cat:'sig',name:'Marlboro',price:6.80,color:'#C8102E',fam:'cla',stile:'Il rosso e bianco che tutti riconoscono',motto:'Rosso come il conto del cardiologo.',pop:11},
  {id:'cml',cat:'sig',name:'Camel Blue',price:6.30,color:'#3E78B2',fam:'cla',stile:'Azzurre, da viaggio nel deserto',motto:'Lento come un cammello, puntuale come la tosse.',pop:8},
  {id:'tri',cat:'tab',name:'Trinciato Scirocco 30 g',price:8.90,tag:'SCIROCCO',gate:'fumo'},
  {id:'trv',cat:'tab',name:'Trinciato Libeccio 30 g',price:9.50,tag:'LIBECCIO',gate:'fumo'},
  {id:'trd',cat:'tab',name:'Trinciato Maestrale 30 g',price:9.20,tag:'MAESTRALE',gate:'fumo'},
- {id:'car',cat:'tab',name:'Cartine corte e filtri',price:2.40,tag:'CARTINE',gate:'fumo'},
- {id:'cal',cat:'tab',name:'Cartine lunghe slim',price:1.20,tag:'LUNGHE',gate:'fumo'},
+ {id:'car',cat:'tab',name:'Cartine corte e filtri',price:2.40,tag:'CARTINE CORTE',gate:'fumo'},
+ {id:'cal',cat:'tab',name:'Cartine lunghe slim',price:1.20,tag:'CARTINE LUNGHE',gate:'fumo'},
  {id:'fil',cat:'tab',name:'Filtri slim 6 mm',price:1.50,tag:'FILTRI',gate:'fumo'},
  {id:'g2',cat:'gra',name:'Gratta e Vinci 2 €',price:2,tag:'2 €'},
  {id:'g3',cat:'gra',name:'Gratta e Vinci 3 €',price:3,tag:'3 €'},
@@ -679,7 +673,7 @@ const TYPES={
   wants:(c,p)=>{if(chance(.12))wantU(c,SVP());if(chance(.04))wantU(c,'sv6');if(chance(.35))wantU(c,'caf');if(chance(.25))wantU(c,'bir');if(chance(.25))wantU(c,'sco');if(chance(.15))wantU(c,'pat');if(chance(.1))wantU(c,'spo');if(chance(.7))want(c,chance(.25)?TRN():brandOf(p));if(chance(.15))want(c,CRT());if(chance(.3))want(c,ACC());if(chance(.3))want(c,pick(['g2','g5']));if(chance(.3))wantU(c,'bib');if(chance(.25))want(c,SNK());if(chance(.2))want(c,'del');}},
  cumenda:{role:'Lavoratore',g:.25,pat:90,
   quotes:['«Tenga il resto. No, il resto lo voglio.»','«Un gratta da venti. Anzi due, per scaramanzia.»','«L\'autista aspetta fuori. Faccia presto.»'],
-  wants:(c,p)=>{if(chance(.12))wantU(c,'evt');if(chance(.05))wantU(c,'sv5');if(chance(.25))wantU(c,'ava');if(chance(.15))wantU(c,'cor');if(chance(.12))wantU(c,'pon');if(chance(.06))wantU(c,'coh');if(chance(.06))wantU(c,'mtc');if(chance(.2))wantU(c,'vin');if(chance(.2))wantU(c,'sco');if(chance(.08))wantU(c,'olo');want(c,pick(['g10','g20']),ri(1,2));if(chance(.7))want(c,pick(['mon','ash','sil','chr','mrl']),ri(1,2));if(chance(.35))want(c,'sup');if(chance(.15))want(c,'acr');if(chance(.15))wantU(c,'pow');}},
+  wants:(c,p)=>{if(chance(.12))wantU(c,'evt');if(chance(.05))wantU(c,'sv5');if(chance(.25))wantU(c,'ava');if(chance(.15))wantU(c,'cor');if(chance(.12))wantU(c,'pon');if(chance(.06))wantU(c,'coh');if(chance(.06))wantU(c,'mtc');if(chance(.2))wantU(c,'vin');if(chance(.2))wantU(c,'sco');if(chance(.08))wantU(c,'olo');want(c,pick(['g10','g20']),ri(1,2));if(chance(.7))want(c,pick(['mon','sil','mrl','gco']),ri(1,2));if(chance(.35))want(c,'sup');if(chance(.15))want(c,'acr');if(chance(.15))wantU(c,'pow');}},
  studente:{role:'Studente universitario',g:.5,pat:170,
   quotes:['«Ho tutto in monetine da dieci centesimi.»','«Il treno per Reggio parte tra cinque minuti, faccia presto.»','«Mi fa uno sconto studenti? No? Ok.»','«Ho l\'esame alle nove, mi porti fortuna.»'],
   wants:(c,p)=>{if(chance(.12))wantU(c,'evt');if(chance(.2))wantU(c,SVP());if(chance(.06))wantU(c,'sv6');if(chance(.2))wantU(c,CAN());if(chance(.08))want(c,'nav');if(chance(.25))wantU(c,'pat');if(chance(.15))wantU(c,'ppc');if(chance(.12))wantU(c,'cbd');if(chance(.12))wantU(c,'vir');if(chance(.1))wantU(c,'bir');if(chance(.55))want(c,chance(.6)?'trr':'trs',ri(1,2));if(chance(.3))want(c,SNK());if(chance(.25))wantU(c,'bib');if(chance(.25))want(c,CRM());if(chance(.25))want(c,CRT());if(chance(.12))want(c,TRN());if(chance(.2))want(c,ACC());if(chance(.25))wantU(c,'ric');if(chance(.25))want(c,brandOf(p));}},
@@ -849,7 +843,7 @@ function fromObj(s){
     if(!m.start){const n=new Date();n.setDate(n.getDate()-(m.day-1));m.start=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
     if(!m.pk){const o=OWD[m.owner];m.pk=o.pk;m.perkTxt=o.perk;m.vz=o.vz;m.malusTxt=o.malus;}
     if(!m.tray)m.tray={};if(m.counter===undefined)m.counter=null;
-    const fixL=c=>{if(!c)return;c.lines.forEach(l=>{if(!PD[l.id]&&!SV[l.id])l.id='trr';});c.say=sayRequest(c.lines);};m.queue.forEach(fixL);fixL(m.counter);for(const k in m.tray)if(!PD[k]&&!SV[k])delete m.tray[k];
+    const fixL=c=>{if(!c)return;c.lines.forEach(l=>{if(!PD[l.id]&&!SV[l.id])l.id='gco';});c.say=sayRequest(c.lines);};m.queue.forEach(fixL);fixL(m.counter);for(const k in m.tray)if(!PD[k]&&!SV[k])delete m.tray[k];
     m.queue.forEach(c=>{if(!c.say)c.say=sayRequest(c.lines);if(c.pat==null){c.pat=c.patMax=120;}});if(m.counter&&m.counter.pat==null){m.counter.pat=m.counter.patMax=120;}if(m.counter&&!m.counter.say)m.counter.say=sayRequest(m.counter.lines);
     if(!m.calabro){m.people.forEach(pp=>{if(pp.id>=0){const f=pp.f?pick(FN_F):pick(FN_M);pp.name=`${f} ${pick(SURN)}`;}});m.calabro=1;}
     m.people.forEach(pp=>{if(!PD[pp.brand]){const w={};BRANDS.forEach(b=>w[b.id]=b.pop);pp.brand=pickW(w);}});
@@ -1899,6 +1893,8 @@ function setTab(name){
 /* ===== banco ===== */
 let PCAT='sig';
 function clearQueueDom(){RT.qSig='';RT.ctrSig='';}
+const TRINC=['tri','trv','trd'];
+const inTab=(p,t)=>t==='sig'?(p.cat==='sig'||TRINC.includes(p.id)):(PCATS[t].includes(p.cat)&&!TRINC.includes(p.id));
 const PCATS={sig:['sig'],gra:['gra'],val:['val'],ban:['tab','ban'],alt:['svp','can','sga','gio','alc','cbd','bar']};
 const SVTAG={vgv:'PAGA VINCITA',lot:'LOTTO',sup:'SUPER ENALOTTO',del:'10eLOTTO',ric:'RICARICA',pag:'BOLLETTINO',sco:'SCOMMESSE',vir:'VIRTUALI',evt:'EVENTI'};
 let SG={};
@@ -1913,7 +1909,7 @@ function buildStockGrid(){
     }
   }else{
     for(const p of PRODUCTS){
-      if(!PCATS[PCAT].includes(p.cat))continue;
+      if(!inTab(p,PCAT))continue;
       if(!visible(p.id)){if(PCAT==='alt')continue;
         const w=el('div','sitem');const b=el('button','si lock');b.type='button';b.dataset.lk=p.id;
         b.innerHTML=`${artOf(p.id)}<span class="nm">${esc(p.name)}</span><span class="ct">Da sbloccare in Bottega</span>`;
@@ -2015,7 +2011,7 @@ function renderCounter(){
   box.innerHTML=h;
 }
 function patW(c){const r=clamp(c.pat/c.patMax,0,1);return [(r*100).toFixed(1)+'%',r<.25?'low':r<.55?'mid':''];}
-const tabOf=id=>SV[id]?'lot':({sig:'sig',gra:'gra',val:'val',tab:'ban',ban:'ban'}[PD[id].cat]||'alt');
+const tabOf=id=>SV[id]?'lot':TRINC.includes(id)?'sig':({sig:'sig',gra:'gra',val:'val',tab:'ban',ban:'ban'}[PD[id].cat]||'alt');
 function setPCat(v){PCAT=v;$$('#pkSeg button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===v)));buildStockGrid();}
 function ctrClick(e){
   const b=e.target.closest('button');if(!b)return;
