@@ -1013,6 +1013,41 @@ function sayRequest(lines){
   const txt=parts.length===1?parts[0]:parts.slice(0,-1).join(', ')+' e '+parts[parts.length-1];
   return `«${pick(OPENERS)}${txt}${txt.endsWith('.')?'':'.'}»`;
 }
+/* quanti articoli chiede un cliente: di solito 1-2, a volte 3, raramente 4, rarissimo 5;
+   con la reputazione alta le richieste si allungano (80: fino a 7, 90: fino a 9, 100: fino a 10) */
+function orderSize(){
+  const r=S.rep,w={1:42,2:33,3:17,4:6,5:2};
+  if(r>=70){w[4]+=2;w[5]+=2;}
+  if(r>=80){w[5]+=1;w[6]=2.5;w[7]=1.5;}
+  if(r>=90){w[6]+=.5;w[7]+=.5;w[8]=1.2;w[9]=.8;}
+  if(r>=99.5){w[10]=.8;}
+  return +pickW(w);
+}
+function shapeOrder(ctx,p,T){
+  const N=orderSize(),cnt=()=>ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
+  const okL=l=>!(['trr','trs','nav'].includes(l.id)&&(S.day===1||ctx.lines.some(x=>['trr','trs','nav'].includes(x.id))))&&!(l.id==='sup'&&!S.up.licSup)&&!(l.id==='del'&&!S.up.licDel)&&!(l.id==='vgv'&&S.day<2)&&!(SV[l.id]&&ctx.lines.some(x=>x.id===l.id));
+  // troppa roba: prima si riducono le quantità, poi si tolgono le righe in coda
+  let g=0;
+  while(cnt()>N&&g++<60){
+    const big=ctx.lines.filter(l=>!SV[l.id]&&l.q>1).sort((a,b)=>b.q-a.q)[0];
+    if(big&&(ctx.lines.length===1||chance(.5)))big.q--;
+    else if(ctx.lines.length>1)ctx.lines.splice(ri(1,ctx.lines.length-1),1);
+    else break;
+  }
+  // poca roba ma il cliente vuole di più: aggiunge altre cose dal suo repertorio
+  g=0;
+  while(cnt()<N&&g++<12){
+    const tmp={lines:[]};T.wants(tmp,p);
+    for(const l of tmp.lines){
+      if(cnt()>=N)break;
+      const have=ctx.lines.find(x=>x.id===l.id);
+      if(have){if(!SV[l.id]&&!['trr','trs','nav'].includes(l.id)&&PD[l.id]&&have.q<4)have.q++;continue;}
+      if(!okL(l))continue;
+      const room=N-cnt();if(!SV[l.id])l.q=Math.max(1,Math.min(l.q,room));
+      ctx.lines.push(l);
+    }
+  }
+}
 function spawnCustomer(forcedType,forcedP){
   S.today.arrived++;
   if(S.queue.length>=queueCap()){
@@ -1033,6 +1068,7 @@ function spawnCustomer(forcedType,forcedP){
   // un solo viaggio per cliente: o un treno (una sola destinazione) o la nave
   {const TR=['trr','trs','nav'];let seen=false;ctx.lines=ctx.lines.filter(l=>{if(!TR.includes(l.id))return true;if(seen)return false;seen=true;return true;});}
   if(!ctx.lines.length)want(ctx,p.type==='liceale'?SNK():brandOf(p));
+  if(!R)shapeOrder(ctx,p,T);
   // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
   const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
   const extra=nArt>=5?10*GMS*1.1:nArt>=3?5*GMS*1.1:0;
