@@ -500,7 +500,9 @@ const PRODUCTS=[
  {id:'waf',cat:'ban',name:'Wafer alla nocciola',free:1,cost:.45,price:1.30,tag:'WAFER',gate:'snack'},
  {id:'crk',cat:'ban',name:'Cracker salati',free:1,cost:.40,price:1.20,tag:'CRACKER',gate:'snack'},
  {id:'tar',cat:'ban',name:'Taralli al finocchietto',free:1,cost:.60,price:1.80,tag:'TARALLI',gate:'snack'},
- {id:'bib',cat:'ban',name:'Bibita in lattina',free:1,cost:.60,price:2,tag:'BIBITA',gate:'frigo'},
+ {id:'bib',cat:'ban',name:'Coca Cola in lattina',free:1,cost:.60,price:2,tag:'COCA COLA',gate:'frigo'},
+ {id:'acq',cat:'ban',name:'Acqua naturale 50 cl',free:1,cost:.20,price:1,tag:'ACQUA',gate:'frigo'},
+ {id:'tef',cat:'ban',name:'Tè freddo',free:1,cost:.50,price:1.80,tag:'TÈ FREDDO',gate:'frigo'},
  {id:'pow',cat:'ban',name:'Powerbank di origine dubbia',free:1,cost:6,price:15,tag:'POWER',gate:'gadget'},
  {id:'sto',cat:'sga',name:'Sigaro Aspromonte Classico',price:5.00,tag:'SIGARO',gate:'umidor'},
  {id:'mez',cat:'sga',name:'Sigaro Tramontana',price:4.50,tag:'TRAMONTANA',gate:'umidor'},
@@ -513,9 +515,9 @@ const PRODUCTS=[
  {id:'gaz',cat:'gio',name:'La Gazzetta del Sud',price:1.50,tag:'GAZZETTA',gate:'giornali'},
  {id:'spo',cat:'gio',name:'Quotidiano sportivo',price:1.90,tag:'SPORT',gate:'giornali'},
  {id:'enm',cat:'gio',name:'Settimanale di enigmistica',price:2.00,tag:'ENIGMI',gate:'giornali'},
- {id:'bir',cat:'alc',name:'Birra in bottiglia',free:1,cost:.70,price:2,tag:'BIRRA',gate:'alcol'},
- {id:'vin',cat:'alc',name:'Vino rosso della casa',free:1,cost:3,price:7,tag:'VINO',gate:'alcol'},
- {id:'ama',cat:'alc',name:'Amaro mignon',free:1,cost:.90,price:2.50,tag:'AMARO',gate:'alcol'},
+ {id:'bir',cat:'alc',name:'Birra Peroni',free:1,cost:.70,price:2,tag:'PERONI',gate:'alcol'},
+ {id:'brs',cat:'alc',name:'Birra dello Stretto',free:1,cost:1,price:2.50,tag:'DELLO STRETTO',gate:'alcol'},
+ {id:'brm',cat:'alc',name:'Birra Messina',free:1,cost:.80,price:2.20,tag:'MESSINA',gate:'alcol'},
  {id:'cbd',cat:'cbd',name:'Cannabis light 2 g',free:1,cost:6,price:12,tag:'LIGHT',gate:'cbd'},
  {id:'olo',cat:'cbd',name:'Olio CBD 10 ml',free:1,cost:12,price:25,tag:'OLIO CBD',gate:'cbd'},
  {id:'caf',cat:'bar',name:'Caffè',free:1,cost:.25,price:1,tag:'CAFFÈ',gate:'caffe'},
@@ -553,7 +555,7 @@ const CATDEF={
 const PD={};
 PRODUCTS.forEach(p=>{const c=CATDEF[p.cat];p.aggio=p.aggio!=null?p.aggio:c.aggio;p.cap=p.cap||c.cap;p.start=p.start!=null?p.start:c.start;p.lot=p.lot||c.lot;p.ref=p.price;PD[p.id]=p;});
 PD.g10.cap=40;PD.g10.lot=10;PD.g20.cap=20;PD.g20.lot=5;PD.g20.start=6;PD.g10.start=12;
-PD.caf.cap=100;PD.caf.lot=50;PD.vin.cap=12;PD.vin.lot=6;for(const k of ['ava','cor','pon','coh','mtc'])PD[k].cap=10;PD.coh.lot=2;PD.mtc.lot=2;PD.olo.cap=10;PD.olo.lot=5;
+PD.caf.cap=100;PD.caf.lot=50;for(const k of ['ava','cor','pon','coh','mtc'])PD[k].cap=10;PD.coh.lot=2;PD.mtc.lot=2;PD.olo.cap=10;PD.olo.lot=5;
 PD.bol.cap=20;PD.bol.lot=5;PD.bol.start=6;PD.pow.cap=12;PD.pow.lot=4;PD.pow.start=0;PD.bib.start=0;for(const k of ['tri','trv','trd']){PD[k].cap=20;PD[k].lot=5;}PD.acm.lot=5;PD.acr.lot=5;
 const BRANDS=PRODUCTS.filter(p=>p.cat==='sig');
 const SALECAT={sig:'tab',tab:'tab',gra:'gra',val:'val',ban:'ban',sga:'tab',gio:'gio',alc:'bar',cbd:'cbd',bar:'bar',svp:'tab',can:'ban'};
@@ -648,6 +650,7 @@ const TOUR_S=['Müller','Dupont','Smith','Jansen','Tanaka','Novak','Larsen','O\'
 /* wants(c,p): c raccoglie righe, p è la persona */
 function wantU(c,id,q=1){const g=SV[id]?SV[id].gate:PD[id].gate;if(g&&!(typeof S!=='undefined'&&S&&S.up&&S.up[g]))return;want(c,id,q);}
 function want(c,id,q=1){const ex=c.lines.find(l=>l.id===id);if(ex){if(!SV[id])ex.q+=q;return;}c.lines.push(SV[id]?(SV[id].mk?Object.assign({id,q:1},SV[id].mk()):{id,q:1,amt:SV[id].amt()}):{id,q});}
+const BEER=()=>pick(['bir','bir','brs','brm']),DRINK=()=>pick(['bib','bib','acq','tef']);
 const SVP=()=>pick(['sv1','sv1','sv2','sv3','sv3','sv4','sv5']),CAN=()=>pick(['pen','pen','pco','evi','qua','col','nas']),POSTA=()=>pick(['bus','bau','bau','pen']);
 function brandOf(p){return PD[p.brand]?p.brand:BRANDS[0].id;}
 const SNK=()=>pick(['sna','waf','crk','tar']),CRM=()=>pick(['cam','cam','liq','gom']),ACC=()=>pick(['acc','acc','acc','acm','acr']),CRT=()=>pick(['car','car','cal','fil']),TRN=()=>pick(['tri','tri','trv','trd']);
@@ -658,7 +661,7 @@ const TYPES={
   wants:(c,p)=>{if(chance(.06))wantU(c,'evt');if(chance(.15))wantU(c,POSTA());if(chance(.2))wantU(c,'caf');if(chance(.25))wantU(c,'enm');if(chance(.1))wantU(c,'gaz');if(chance(.6))want(c,pick(['g2','g2','g3','g5']),ri(1,3));if(chance(.35))want(c,'lot');if(chance(.2))want(c,'sup');if(chance(.15))want(c,'fra',ri(1,3));if(chance(.15))want(c,CRM());if(chance(.06))want(c,'cpo',ri(1,2));if(chance(.2))wantU(c,'pag');}},
  nonno:{role:'Pensionato',g:0,pat:55,old:1,
   quotes:['«Sempre gli stessi numeri da quarant\'anni.»','«Prima o poi escono. Statisticamente.»','«Una volta si vinceva di più.»'],
-  wants:(c,p)=>{if(chance(.45))wantU(c,'gaz');if(chance(.2))wantU(c,'sto');if(chance(.1))wantU(c,'mez');if(chance(.08))wantU(c,'grc');if(chance(.15))wantU(c,'vin');if(chance(.15))wantU(c,'ama');if(chance(.1))wantU(c,'sco');want(c,pick(['lot','lot','sup','del']));if(chance(.35))want(c,'del');if(chance(.35))want(c,'g2',ri(1,2));if(chance(.25))want(c,chance(.5)?TRN():brandOf(p));if(chance(.1))want(c,ACC());}},
+  wants:(c,p)=>{if(chance(.45))wantU(c,'gaz');if(chance(.2))wantU(c,'sto');if(chance(.1))wantU(c,'mez');if(chance(.08))wantU(c,'grc');if(chance(.15))wantU(c,BEER());if(chance(.15))wantU(c,BEER());if(chance(.1))wantU(c,'sco');want(c,pick(['lot','lot','sup','del']));if(chance(.35))want(c,'del');if(chance(.35))want(c,'g2',ri(1,2));if(chance(.25))want(c,chance(.5)?TRN():brandOf(p));if(chance(.1))want(c,ACC());}},
  chiacchierone:{role:'Pensionato',g:.3,pat:60,old:1,mult:4,
   quotes:['«Ai miei tempi qui c\'era il cinema. Le racconto.»','«Sa chi ho incontrato stamattina? Si sieda.»'],
   wants:(c,p)=>{if(chance(.3))wantU(c,'gaz');if(chance(.3))wantU(c,'caf');want(c,brandOf(p));want(c,'g2');if(chance(.5))want(c,'lot');}},
@@ -670,19 +673,19 @@ const TYPES={
   wants:(c,p)=>{if(chance(.05))wantU(c,'evt');if(chance(.2))wantU(c,pick(['pen','bus','nas','evi']));if(chance(.3))wantU(c,'caf');if(chance(.2))wantU(c,'gaz');if(chance(.75))want(c,'bol',ri(1,3));if(chance(.4))wantU(c,'pag');if(chance(.25))want(c,'fra',ri(1,4));if(chance(.3))want(c,brandOf(p));}},
  operaio:{role:'Lavoratore',g:.15,pat:95,
   quotes:['«Ho dieci minuti di pausa. Dieci.»','«Il solito. Lei sa.»','«Un attimo, che il camion è in doppia fila.»'],
-  wants:(c,p)=>{if(chance(.12))wantU(c,SVP());if(chance(.04))wantU(c,'sv6');if(chance(.35))wantU(c,'caf');if(chance(.25))wantU(c,'bir');if(chance(.25))wantU(c,'sco');if(chance(.15))wantU(c,'pat');if(chance(.1))wantU(c,'spo');if(chance(.7))want(c,chance(.25)?TRN():brandOf(p));if(chance(.15))want(c,CRT());if(chance(.3))want(c,ACC());if(chance(.3))want(c,pick(['g2','g5']));if(chance(.3))wantU(c,'bib');if(chance(.25))want(c,SNK());if(chance(.2))want(c,'del');}},
+  wants:(c,p)=>{if(chance(.12))wantU(c,SVP());if(chance(.04))wantU(c,'sv6');if(chance(.35))wantU(c,'caf');if(chance(.25))wantU(c,BEER());if(chance(.25))wantU(c,'sco');if(chance(.15))wantU(c,'pat');if(chance(.1))wantU(c,'spo');if(chance(.7))want(c,chance(.25)?TRN():brandOf(p));if(chance(.15))want(c,CRT());if(chance(.3))want(c,ACC());if(chance(.3))want(c,pick(['g2','g5']));if(chance(.3))wantU(c,DRINK());if(chance(.25))want(c,SNK());if(chance(.2))want(c,'del');}},
  cumenda:{role:'Lavoratore',g:.25,pat:90,
   quotes:['«Tenga il resto. No, il resto lo voglio.»','«Un gratta da venti. Anzi due, per scaramanzia.»','«L\'autista aspetta fuori. Faccia presto.»'],
-  wants:(c,p)=>{if(chance(.12))wantU(c,'evt');if(chance(.05))wantU(c,'sv5');if(chance(.25))wantU(c,'ava');if(chance(.15))wantU(c,'cor');if(chance(.12))wantU(c,'pon');if(chance(.06))wantU(c,'coh');if(chance(.06))wantU(c,'mtc');if(chance(.2))wantU(c,'vin');if(chance(.2))wantU(c,'sco');if(chance(.08))wantU(c,'olo');want(c,pick(['g10','g20']),ri(1,2));if(chance(.7))want(c,pick(['mon','sil','mrl','gco']),ri(1,2));if(chance(.35))want(c,'sup');if(chance(.15))want(c,'acr');if(chance(.15))wantU(c,'pow');}},
+  wants:(c,p)=>{if(chance(.12))wantU(c,'evt');if(chance(.05))wantU(c,'sv5');if(chance(.25))wantU(c,'ava');if(chance(.15))wantU(c,'cor');if(chance(.12))wantU(c,'pon');if(chance(.06))wantU(c,'coh');if(chance(.06))wantU(c,'mtc');if(chance(.2))wantU(c,BEER());if(chance(.2))wantU(c,'sco');if(chance(.08))wantU(c,'olo');want(c,pick(['g10','g20']),ri(1,2));if(chance(.7))want(c,pick(['mon','sil','mrl','gco']),ri(1,2));if(chance(.35))want(c,'sup');if(chance(.15))want(c,'acr');if(chance(.15))wantU(c,'pow');}},
  studente:{role:'Studente universitario',g:.5,pat:170,
   quotes:['«Ho tutto in monetine da dieci centesimi.»','«Il treno per Reggio parte tra cinque minuti, faccia presto.»','«Mi fa uno sconto studenti? No? Ok.»','«Ho l\'esame alle nove, mi porti fortuna.»'],
-  wants:(c,p)=>{if(chance(.12))wantU(c,'evt');if(chance(.2))wantU(c,SVP());if(chance(.06))wantU(c,'sv6');if(chance(.2))wantU(c,CAN());if(chance(.08))want(c,'nav');if(chance(.25))wantU(c,'pat');if(chance(.15))wantU(c,'ppc');if(chance(.12))wantU(c,'cbd');if(chance(.12))wantU(c,'vir');if(chance(.1))wantU(c,'bir');if(chance(.55))want(c,chance(.6)?'trr':'trs',ri(1,2));if(chance(.3))want(c,SNK());if(chance(.25))wantU(c,'bib');if(chance(.25))want(c,CRM());if(chance(.25))want(c,CRT());if(chance(.12))want(c,TRN());if(chance(.2))want(c,ACC());if(chance(.25))wantU(c,'ric');if(chance(.25))want(c,brandOf(p));}},
+  wants:(c,p)=>{if(chance(.12))wantU(c,'evt');if(chance(.2))wantU(c,SVP());if(chance(.06))wantU(c,'sv6');if(chance(.2))wantU(c,CAN());if(chance(.08))want(c,'nav');if(chance(.25))wantU(c,'pat');if(chance(.15))wantU(c,'ppc');if(chance(.12))wantU(c,'cbd');if(chance(.12))wantU(c,'vir');if(chance(.1))wantU(c,BEER());if(chance(.55))want(c,chance(.6)?'trr':'trs',ri(1,2));if(chance(.3))want(c,SNK());if(chance(.25))wantU(c,DRINK());if(chance(.25))want(c,CRM());if(chance(.25))want(c,CRT());if(chance(.12))want(c,TRN());if(chance(.2))want(c,ACC());if(chance(.25))wantU(c,'ric');if(chance(.25))want(c,brandOf(p));}},
  liceale:{role:'Studente delle superiori',g:.5,pat:150,
   quotes:['«Faccia presto che suona la campanella.»','«Ho solo il resto della paghetta.»','«Mia madre ha detto di prendere anche questo.»','«Il pullman per la scuola è già lì.»'],
-  wants:(c,p)=>{if(chance(.1))wantU(c,'evt');if(chance(.15))wantU(c,pick(['sv1','sv2','sv3']));if(chance(.25))wantU(c,CAN());if(chance(.5))want(c,chance(.65)?'trr':'trs',ri(1,2));if(chance(.4))want(c,SNK(),chance(.2)?2:1);if(chance(.35))want(c,CRM());if(chance(.25))wantU(c,'bib');if(chance(.2))wantU(c,'pat');if(chance(.2))wantU(c,'ric');if(chance(.1))wantU(c,'spo');if(chance(.08))want(c,'fra');if(chance(.3))want(c,brandOf(p));if(chance(.25))want(c,pick(['g2','g2','g3','g5']));if(!c.lines.length)want(c,SNK());}},
+  wants:(c,p)=>{if(chance(.1))wantU(c,'evt');if(chance(.15))wantU(c,pick(['sv1','sv2','sv3']));if(chance(.25))wantU(c,CAN());if(chance(.5))want(c,chance(.65)?'trr':'trs',ri(1,2));if(chance(.4))want(c,SNK(),chance(.2)?2:1);if(chance(.35))want(c,CRM());if(chance(.25))wantU(c,DRINK());if(chance(.2))wantU(c,'pat');if(chance(.2))wantU(c,'ric');if(chance(.1))wantU(c,'spo');if(chance(.08))want(c,'fra');if(chance(.3))want(c,brandOf(p));if(chance(.25))want(c,pick(['g2','g2','g3','g5']));if(!c.lines.length)want(c,SNK());}},
  turista:{role:'Turista',g:.5,pat:120,
   quotes:['«Scusi, dov\'è il Colosseo? No, ok.»','«Is this a pharmacy? No? Un biglietto, please.»','«Quanto costa una cartolina? Due? Facciamo dieci.»','«Bello qui. Il Bronzi di Riace, dove?»'],
-  wants:(c,p)=>{if(chance(.1))wantU(c,'evt');if(chance(.3))want(c,'nav');if(chance(.15))wantU(c,'bir');if(chance(.15))wantU(c,'pat');want(c,chance(.7)?'trs':'trr',ri(1,3));if(chance(.6))want(c,'cpo',ri(1,4));if(chance(.5))want(c,'fra',ri(1,4));if(chance(.35))wantU(c,'bib');if(chance(.2))wantU(c,'pow');if(chance(.25))want(c,SNK());if(chance(.2))want(c,brandOf(p));}}
+  wants:(c,p)=>{if(chance(.1))wantU(c,'evt');if(chance(.3))want(c,'nav');if(chance(.15))wantU(c,BEER());if(chance(.15))wantU(c,'pat');want(c,chance(.7)?'trs':'trr',ri(1,3));if(chance(.6))want(c,'cpo',ri(1,4));if(chance(.5))want(c,'fra',ri(1,4));if(chance(.35))wantU(c,DRINK());if(chance(.2))wantU(c,'pow');if(chance(.25))want(c,SNK());if(chance(.2))want(c,brandOf(p));}}
 };
 const JOBS={
  pendolare:[['Impiegato','Impiegata'],['Ferroviere','Ferroviera'],['Infermiere','Infermiera'],['Insegnante','Insegnante'],['Commesso','Commessa'],['Postino','Postina'],['Bancario','Bancaria'],['Rappresentante','Rappresentante'],['Cameriere','Cameriera'],['Parrucchiere','Parrucchiera'],['Impiegato comunale','Impiegata comunale']],
@@ -771,7 +774,7 @@ const UPG=[
  {id:'registratore',grp:'neg',name:'Registratore e POS nuovi',max:1,cost:[500],desc:'Fa «bip» da solo: metti la merce sul banco e il cliente ha già pagato. Chi paga con la carta finisce dritto sul libretto.',eff:()=>'incasso automatico appena il banco è giusto, i pagamenti col POS vanno sul libretto, commissioni dimezzate (0,3%)'},
  {id:'sedie',grp:'neg',name:'Sedie e tavolini fuori',max:2,cost:[500,1200],desc:'Due tavolini sul marciapiede: chi aspetta si siede, fuma e non se ne va. Qualcuno ha portato il cruciverba.',eff:l=>`pazienza +${l*25}%`},
  {id:'telecamere',grp:'neg',name:'Telecamere',max:1,cost:[700],desc:'Vedono tutto. Peccato per il calendario dietro la cassa.',eff:()=>'furti e rapine spesso sventati'},
- {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[800],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca le bibite, luce +30 €/mese'},
+ {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[800],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca Coca Cola, acqua e tè freddo, luce +30 €/mese'},
  {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[300],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
  {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[300],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
  {id:'commesso',grp:'esp',name:'Assumi un commesso',max:1,cost:[800],req:'locale',desc:'Con il locale accanto serve un secondo banco. Scegli tu chi metterci: uno degli altri tabaccai del quartiere.',eff:()=>'serve da solo i clienti in coda (non fa credito); stipendio 1.100 €/mese'},
@@ -781,7 +784,7 @@ const UPG=[
  {id:'caffe',grp:'rep',name:'Macchina del caffè',max:1,cost:[800],desc:'Il caffè del tabacchino: non sarà il bar, ma è sempre caldo.',eff:()=>'sblocca il caffè (cialde a scaffale), luce +15 €/mese'},
  {id:'snackbar',grp:'rep',name:'Scaffale patatine',max:1,cost:[200],desc:'Patatine classiche e piccanti, per chi aspetta il treno.',eff:()=>'sblocca le patatine'},
  {id:'giornali',grp:'rep',name:'Scaffale per i giornali',max:1,cost:[500],desc:'Il quotidiano, lo sportivo e l\'enigmistica dei pensionati.',eff:()=>'sblocca i giornali (aggio 19%)'},
- {id:'alcol',grp:'rep',name:'Licenza alcolici',max:1,cost:[1800],desc:'Birra, vino della casa e amaro in mignon.',eff:()=>'sblocca birra, vino e amaro'},
+ {id:'alcol',grp:'rep',name:'Licenza alcolici',max:1,cost:[1800],desc:'Le birre fredde: Peroni, dello Stretto e Messina.',eff:()=>'sblocca 3 birre: Peroni, Birra dello Stretto e Birra Messina'},
  {id:'umidor',grp:'rep',name:'Scaffale per i sigari',max:1,cost:[1500],desc:'Legno, umidità controllata e un profumo che resta addosso.',eff:()=>'sblocca Aspromonte Classico, Tramontana e Grecale 5 Years'},
  {id:'sigaripremium',grp:'rep',name:'Sigari particolari',max:1,cost:[2500],req:'umidor',desc:'Ostro, Levante e Ponente, più Cohiba e Montecristo per chi vuole farsi notare.',eff:()=>'sblocca 3 sigari di pregio e 2 sigari cubani costosi'},
  {id:'cancelleria',grp:'rep',name:'Reparto cancelleria',max:1,cost:[200],desc:'Penne, quaderni, buste e biglietti d\'auguri: lo scaffale arriva insieme alla merce.',eff:()=>'sblocca 8 articoli di cancelleria e lo scaffale per esporli'},
@@ -970,15 +973,17 @@ const SAY={
   cam:q=>q===1?'le caramelle alla menta':`${nw(q)} pacchetti di caramelle alla menta`,
   sna:q=>q===1?'uno snack':`${nw(q)} snack`,
   cpo:q=>q===1?'una cartolina':`${nw(q)} cartoline`,
-  bib:q=>q===1?'una bibita in lattina':`${nw(q)} bibite in lattina`,
+  bib:q=>q===1?'una Coca Cola':`${nw(q)} Coca Cola`,
+  acq:q=>q===1?'una bottiglietta d\'acqua':`${nw(q)} bottigliette d\'acqua`,
+  tef:q=>q===1?'un tè freddo':`${nw(q)} tè freddi`,
   pow:q=>q===1?'un powerbank':`${nw(q)} powerbank`,
   caf:q=>q===1?'un caffè':`${nw(q)} caffè`,
   pat:q=>q===1?'un pacchetto di patatine classiche':`${nw(q)} pacchetti di patatine classiche`,
   ppc:q=>q===1?'un pacchetto di patatine piccanti':`${nw(q)} pacchetti di patatine piccanti`,
   ghi:q=>q===1?'una busta di ghiaccio':`${nw(q)} buste di ghiaccio`,
-  bir:q=>q===1?'una birra in bottiglia':`${nw(q)} birre in bottiglia`,
-  vin:q=>q===1?'una bottiglia di vino rosso':`${nw(q)} bottiglie di vino rosso`,
-  ama:q=>q===1?'un amaro mignon':`${nw(q)} amari mignon`,
+  bir:q=>q===1?'una Peroni':`${nw(q)} Peroni`,
+  brs:q=>q===1?'una birra dello Stretto':`${nw(q)} birre dello Stretto`,
+  brm:q=>q===1?'una Messina':`${nw(q)} Messina`,
   cbd:q=>q===1?'una bustina di cannabis light':`${nw(q)} bustine di cannabis light`,
   olo:q=>q===1?'un olio CBD':`${nw(q)} oli CBD`,
   sto:q=>q===1?'un Aspromonte Classico':`${nw(q)} Aspromonte Classico`,
@@ -1599,7 +1604,7 @@ function extraWants(ctx,p){
   const fe=T.festa?festaOf(S.day):null;
   if(fe&&fe.gift&&!teen&&chance(fe.gift))want(ctx,pick(['g5','g5','g10','g20']),ri(1,2));
   if(T.spec==='reggina'&&chance(.2)){const i=EVENTI.findIndex(e=>chance(.6)?/Reggina/.test(e.t):/Villese/.test(e.t));if(i>=0&&!ctx.lines.some(l=>l.id==='evt'))wantEv(ctx,i);}
-  if(T.meteo&&T.meteo.temp>=30&&chance(.15))wantU(ctx,'bib');
+  if(T.meteo&&T.meteo.temp>=30&&chance(.15))wantU(ctx,DRINK());
   if(T.spec==='reggina'&&!teen&&chance(.1))wantU(ctx,'sco');
   if(LOTDAYS.includes(wd(S.day))&&S.t>=1050&&!teen&&chance(.25))want(ctx,'lot');
 }
