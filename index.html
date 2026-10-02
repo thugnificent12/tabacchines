@@ -479,7 +479,7 @@ const PRODUCTS=[
  {id:'cpo',cat:'val',name:'Cartolina di Reggio',free:1,cost:.25,price:1,tag:'CARTOL.',gate:'valori'},
  {id:'trr',cat:'val',name:'Biglietto treno per Reggio 2,30 €',price:2.30,aggio:.07,tag:'TRENO RC',gate:'treni'},
  {id:'trs',cat:'val',name:'Biglietto treno per Scilla 1,40 €',price:1.40,aggio:.07,tag:'TRENO SCILLA',gate:'treni'},
- {id:'nav',cat:'val',name:'Nave veloce Villa–Messina 2,80 €',price:2.80,aggio:.07,tag:'NAVE MESSINA',gate:'treni'},
+ {id:'nav',cat:'val',name:'Nave veloce Villa–Messina 1,80 €',price:1.80,aggio:.07,tag:'NAVE MESSINA',gate:'treni'},
  {id:'acc',cat:'ban',name:'Accendino usa e getta',free:1,cost:.70,price:2,tag:'ACCEND.',gate:'fumo'},
  {id:'acm',cat:'ban',name:'Accendino antivento',free:1,cost:2.50,price:6,tag:'ANTIVENTO',gate:'fumo'},
  {id:'acr',cat:'ban',name:'Accendino ricaricabile USB',free:1,cost:4,price:9,tag:'USB',gate:'fumo'},
@@ -997,6 +997,8 @@ function spawnCustomer(forcedType){
   if(['signora','nonno','operaio','cumenda','studente','liceale'].includes(p.type)&&S.day>=2&&chance(.03))want(ctx,'vgv');
   // primo giorno niente treni e nave; SuperEnalotto e 10eLotto solo con la licenza; vincite dal secondo giorno
   ctx.lines=ctx.lines.filter(l=>!(S.day===1&&['trr','trs','nav'].includes(l.id))&&!(l.id==='sup'&&!S.up.licSup)&&!(l.id==='del'&&!S.up.licDel)&&!(l.id==='vgv'&&S.day<2));
+  // un solo viaggio per cliente: o un treno (una sola destinazione) o la nave
+  {const TR=['trr','trs','nav'];let seen=false;ctx.lines=ctx.lines.filter(l=>{if(!TR.includes(l.id))return true;if(seen)return false;seen=true;return true;});}
   if(!ctx.lines.length)want(ctx,p.type==='liceale'?SNK():brandOf(p));
   // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
   const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
