@@ -879,7 +879,8 @@ const credTotal=()=>S.people.reduce((a,p)=>a+p.debt,0);
 const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
 const rankName=()=>{const v=patrimonio();let n=RANKS[0][1];for(const[t,x]of RANKS)if(v>=t)n=x;return n;};
-const addRep=d=>{S.rep=clamp(S.rep+d*(d>0&&perk('rep')?1.4:1),-100,100);};
+/* più sei in alto, più è difficile salire; più sei in basso, più è facile scendere ancora */
+const addRep=d=>{let k=d>0?(perk('rep')?1.4:1)*(S.rep>0?Math.max(.15,1-S.rep/110):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
 const LOTS=['lot','sup','del'];
 const svAvail=id=>(!SV[id].gate||S.up[SV[id].gate]>0)&&!(LOTS.includes(id)&&S.lotDownUntil>S.t);
 const jackpot=()=>S.jackpotUntil>S.t;
@@ -1015,7 +1016,7 @@ function sayRequest(lines){
 function spawnCustomer(forcedType,forcedP){
   S.today.arrived++;
   if(S.queue.length>=queueCap()){
-    S.today.turned++;addRep(-.15);
+    S.today.turned++;addRep(-.4);
     if(S.t-RT.turnLogT>40){RT.turnLogT=S.t;log('Bottega piena: qualcuno guarda dentro, sospira e tira dritto.','warn');}
     return null;
   }
@@ -1082,7 +1083,7 @@ function settle(c,tray,credit,by){
   const T=S.today,p=getP(c),name=p?p.name:'Cliente';
   const W={};c.lines.forEach(l=>W[l.id]=(W[l.id]||0)+l.q);
   const ids=new Set([...Object.keys(W),...Object.keys(tray)]);
-  const byCat={};let total=0,got=0;const wrong=[],forgot=[],missing=[],noCred=[];
+  const byCat={};let total=0,got=0;const wrong=[],forgot=[],missing=[],noCred=[];let nLocked=0;
   for(const id of ids){
     const give=tray[id]||0,q=W[id]||0,ok=Math.min(give,q),extra=give-ok,short=q-ok;
     if(extra>0)wrong.push(`${extra}× ${SV[id]?SV[id].name:PD[id].name}`);
@@ -1096,18 +1097,18 @@ function settle(c,tray,credit,by){
         }
         else{const f=svFee(id,a);byCat.srv=(byCat.srv||0)+a;total+=a;T.gioc=r2((T.gioc||0)+a);T.gfee=r2((T.gfee||0)+f);got++;T.okItems++;}
       }
-      if(short>0){if(!svAvail(id))missing.push(SV[id].name);else forgot.push(SV[id].name);}
+      if(short>0){if(!svAvail(id)){missing.push(SV[id].name);if(SV[id].gate&&!S.up[SV[id].gate])nLocked++;}else forgot.push(SV[id].name);}
       continue;
     }
     if(ok>0){S.stock[id]-=ok;const v=S.price[id]*ok;const k=SALECAT[PD[id].cat];byCat[k]=(byCat[k]||0)+v;total+=v;got+=ok;T.okItems+=ok;}
-    if(short>0){if(S.stock[id]<=0||blockedP(id))missing.push(PD[id].name);else forgot.push(PD[id].name);}
+    if(short>0){if(S.stock[id]<=0||blockedP(id)){missing.push(PD[id].name);if(!visible(id)||blockedP(id))nLocked++;}else forgot.push(PD[id].name);}
   }
   total=r2(total);
   const perfect=!wrong.length&&!forgot.length&&!missing.length;
-  addRep(.04*got+(perfect?(perk('tips')?.24:.12):0));
-  if(wrong.length)addRep(pen(-.4*wrong.length));
-  if(forgot.length)addRep(pen(-.3*forgot.length));
-  if(missing.length)addRep(-.1*missing.length);
+  addRep(perfect?(perk('tips')?.05:.03):0);
+  if(wrong.length)addRep(pen(-1.2*wrong.length));
+  if(forgot.length)addRep(pen(-.9*forgot.length));
+  if(missing.length)addRep(-.08*nLocked-.3*(missing.length-nLocked)); // non ancora sbloccato: poco; finito sullo scaffale: di più
   T.missed+=missing.length+forgot.length;T.wrong=(T.wrong||0)+wrong.length;
   let reply,pos=false;
   if(wrong.length)reply=pick(['«Ma io le avevo chiesto altro! Questo se lo tenga.»','«Ma che mi ha dato? Non è roba mia.»','«Sbagliato. Ma oggi dove ha la testa?»','«Ma chi sta durmendu?»','«Rusbigghiati!»','«Vambonu va…»']);
@@ -1122,7 +1123,7 @@ function settle(c,tray,credit,by){
     if(p.never===undefined)p.never=chance(.2);
     if(!wrong.length&&!forgot.length&&chance(p.never?.75:.25))reply='«Apoi passu…»';
     p.debt=r2(p.debt+total);p.lent=r2(p.lent+total);T.credit=r2(T.credit+total);
-    personHist(p,'credito',total,`${got} articoli`);tx('credito',total,`Segnato a credito: ${name}`,true);addRep(.3);
+    personHist(p,'credito',total,`${got} articoli`);tx('credito',total,`Segnato a credito: ${name}`,true);addRep(.05);
     log(`Segni ${fmt(total)} sul conto di ${name}. Ora ti deve ${fmt(p.debt)}.`,'warn');
   }else if(total>0){
     pos=!!S.up.registratore&&chance(.4);
@@ -1153,13 +1154,13 @@ function patienceTick(dm){
   if(S.freeze>0)dm*=.5;
   for(let i=S.queue.length-1;i>=0;i--){
     const c=S.queue[i];if(c.pat==null)continue;c.pat-=dm;
-    if(c.pat<=0){S.queue.splice(i,1);S.today.lost++;addRep(-.5);const p=getP(c);log(`${p.name} si stufa di aspettare e se ne va.`,'bad');RT.qSig='';}
+    if(c.pat<=0){S.queue.splice(i,1);S.today.lost++;addRep(-1.2);const p=getP(c);log(`${p.name} si stufa di aspettare e se ne va.`,'bad');RT.qSig='';}
   }
   const c=S.counter;
   if(c&&c.pat!=null){
     c.pat-=dm*1.1;
     if(c.pat<=0){
-      const p=getP(c);S.today.lost++;addRep(-.6);
+      const p=getP(c);S.today.lost++;addRep(-1.5);
       log(`${p.name} si stufa al banco e se ne va senza comprare.`,'bad');toast(`${p.name} se n'è andato: troppa attesa.`,'bad');
       RT.last={name:p.name,face:p.face,perfect:false,wrong:[],forgot:[],missing:[],noCred:[],total:0,credit:false,reply:pick(GONE)};
       S.counter=null;S.tray={};RT.ctrVer++;callNext();
@@ -1217,7 +1218,7 @@ function refuseCredit(){
   const p=getP(c);
   if(chance(1-p.prone*.7)){c.creditAsk=false;c.reply='«Va bene, va bene. Pago.»';RT.ctrVer++;}
   else{
-    S.today.refused++;addRep(-.3);personHist(p,'rifiuto',0,'Credito rifiutato, se ne va');
+    S.today.refused++;addRep(-.6);personHist(p,'rifiuto',0,'Credito rifiutato, se ne va');
     log(`${p.name} se ne va offeso: «Mai successo in vent'anni.»`,'warn');
     RT.last={name:p.name,face:p.face,perfect:false,wrong:[],forgot:[],missing:[],noCred:[],total:0,credit:false,reply:'«Mai successo in vent\'anni.» E se ne va.'};
     S.counter=null;S.tray={};RT.ctrVer++;callNext();
@@ -1485,7 +1486,7 @@ function closeDay(){
   sfx('shutter');
   const T=S.today;
   const left=S.queue.length+(S.counter?1:0);
-  if(left){T.lost+=left;addRep(-.4*left);log(`Abbassi la saracinesca con ${left} clienti ancora dentro. Escono brontolando.`,'bad');}
+  if(left){T.lost+=left;addRep(-1*left);log(`Abbassi la saracinesca con ${left} clienti ancora dentro. Escono brontolando.`,'bad');}
   S.queue=[];S.counter=null;S.tray={};
   const charges=[];
   if(T.prize>0){S.cash=r2(S.cash+T.prize);tx('rimb',T.prize,'Rimborso delle vincite Gratta e Vinci pagate oggi');}
