@@ -461,9 +461,9 @@ const PRODUCTS=[
  {id:'bln',cat:'sig',name:'Blue Night',price:7.00,color:'#13234D',fam:'noir',stile:'Malinconiche, da detective privato',motto:'Per chi pedina qualcuno e fuma da solo.',pop:5},
  {id:'mrl',cat:'sig',name:'Marlboro',price:6.80,color:'#C8102E',fam:'cla',stile:'Il rosso e bianco che tutti riconoscono',motto:'Rosso come il conto del cardiologo.',pop:11},
  {id:'cml',cat:'sig',name:'Camel Blue',price:6.30,color:'#3E78B2',fam:'cla',stile:'Azzurre, da viaggio nel deserto',motto:'Lento come un cammello, puntuale come la tosse.',pop:8},
- {id:'tri',cat:'tab',name:'Trinciato Pipa Fina 30 g',price:8.90,tag:'PIPA FINA',gate:'fumo'},
- {id:'trv',cat:'tab',name:'Trinciato Virginia Dorato 30 g',price:9.50,tag:'VIRGINIA',gate:'fumo'},
- {id:'trd',cat:'tab',name:'Trinciato Scirocco Scuro 30 g',price:9.20,tag:'SCIROCCO',gate:'fumo'},
+ {id:'tri',cat:'tab',name:'Trinciato Scirocco 30 g',price:8.90,tag:'SCIROCCO',gate:'fumo'},
+ {id:'trv',cat:'tab',name:'Trinciato Libeccio 30 g',price:9.50,tag:'LIBECCIO',gate:'fumo'},
+ {id:'trd',cat:'tab',name:'Trinciato Maestrale 30 g',price:9.20,tag:'MAESTRALE',gate:'fumo'},
  {id:'car',cat:'tab',name:'Cartine corte e filtri',price:2.40,tag:'CARTINE',gate:'fumo'},
  {id:'cal',cat:'tab',name:'Cartine lunghe slim',price:1.20,tag:'LUNGHE',gate:'fumo'},
  {id:'fil',cat:'tab',name:'Filtri slim 6 mm',price:1.50,tag:'FILTRI',gate:'fumo'},
@@ -924,9 +924,9 @@ const SAY={
   bau:q=>q===1?'un biglietto di auguri per un compleanno':`${nw(q)} biglietti di auguri`,
   col:q=>q===1?'una colla stick':`${nw(q)} colle stick`,
   nas:q=>q===1?'un nastro adesivo':`${nw(q)} nastri adesivi`,
-  tri:q=>q===1?'un trinciato Pipa Fina':`${nw(q)} trinciati Pipa Fina`,
-  trv:q=>q===1?'un trinciato Virginia Dorato':`${nw(q)} trinciati Virginia Dorato`,
-  trd:q=>q===1?'un trinciato Scirocco':`${nw(q)} trinciati Scirocco`,
+  tri:q=>q===1?'un trinciato Scirocco':`${nw(q)} trinciati Scirocco`,
+  trv:q=>q===1?'un trinciato Libeccio':`${nw(q)} trinciati Libeccio`,
+  trd:q=>q===1?'un trinciato Maestrale':`${nw(q)} trinciati Maestrale`,
   cal:q=>q===1?'le cartine lunghe':`${nw(q)} pacchetti di cartine lunghe`,
   fil:q=>q===1?'i filtri slim':`${nw(q)} bustine di filtri slim`,
   acm:q=>q===1?'un accendino antivento':`${nw(q)} accendini antivento`,
@@ -1082,7 +1082,7 @@ function deliver(credit){
     personHist(p,'credito',total,`${got} articoli`);tx('credito',total,`Segnato a credito: ${name}`,true);addRep(.3);
     log(`Segni ${fmt(total)} sul conto di ${name}. Ora ti deve ${fmt(p.debt)}.`,'warn');
   }else if(total>0){
-    pos=!!S.up.registratore&&chance(.6);
+    pos=!!S.up.registratore&&chance(.4);
     for(const k in byCat){const v=r2(byCat[k]);if(pos)S.deposit=r2(S.deposit+v);else S.cash=r2(S.cash+v);for(const a of [S.aggD,S.aggM,S.aggA])a[k]=r2((a[k]||0)+v);}
     T.sales=r2(T.sales+total);
     S.tx.unshift({d:S.day,t:Math.floor(S.t),cat:'vendita',amt:total,label:`${name} · ${got} articol${got===1?'o':'i'}${perfect?'':' (con problemi)'}${pos?' · POS sul libretto':''}`});
