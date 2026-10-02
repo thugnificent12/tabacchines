@@ -1840,7 +1840,7 @@ function sfx(k){
 }
 
 /* --- musica di sottofondo (separata dai suoni) --- */
-const MUSIC_URL='music.mp3',MUS_VOL=.06;
+const MUSIC_URL='music.mp3',MUS_VOL=.035;
 const MUS={on:true,el:null,loading:false};
 try{MUS.on=localStorage.getItem('tabacchines.music')!=='0';}catch(e){}
 const ICO_MUS_ON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3" fill="currentColor"/><circle cx="17" cy="16" r="3" fill="currentColor"/></svg>';
