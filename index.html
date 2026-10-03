@@ -834,9 +834,12 @@ function load(){
 function fromObj(s){
   try{
     if(!s||s.v!==2||!s.owner||!s.people||!OWD[s.owner])return null;
-    const b=newState(s.owner);
+    const b=newState(s.owner),d0={stock:b.stock,price:b.price,up:b.up};
     const m=Object.assign(b,s);
-    m.stock=Object.assign(b.stock,s.stock);m.price=Object.assign(b.price,s.price);m.up=Object.assign(b.up,s.up);
+    m.stock=Object.assign({},d0.stock,s.stock);m.price=Object.assign({},d0.price,s.price);m.up=Object.assign({},d0.up,s.up);
+    // prodotti aggiunti dopo il salvataggio (o valori rovinati): niente NaN
+    for(const p of PRODUCTS){if(!(m.stock[p.id]>=0))m.stock[p.id]=0;if(!(m.price[p.id]>0))m.price[p.id]=p.price;}
+    for(const k in d0.up)if(typeof m.up[k]!=='number'||isNaN(m.up[k]))m.up[k]=d0.up[k];
     if(!s.lic2){for(const k of ['licLot','licSup','licDel','treni','snack','caramelle','valori','fumo'])if(!s.up||s.up[k]==null)m.up[k]=1;m.lic2=1;}
     if(!m.roles2){m.people.forEach(pp=>{if(pp.id>=0)pp.role=roleOf(pp.type,!!pp.f);});if(!m.people.some(pp=>pp.type==='liceale')){let id=m.people.length;for(let i=0;i<RESIDENT_TYPES.liceale;i++)m.people.push(makePerson('liceale',id++));}m.roles2=1;}
     m.people.forEach(pp=>{if(pp.role==='Barista')pp.role=roleOf(pp.type,!!pp.f);});
