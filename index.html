@@ -346,7 +346,7 @@ body.alarm .nav button{color:#fff}
       <div class="clock" id="clock">Chiuso</div>
       <div class="dprog"><i id="dprog"></i></div>
       <div class="speed" id="speedwrap" role="group" aria-label="Velocità del gioco">
-        <button data-speed="0" aria-label="Pausa">II</button><button data-speed="1">1×</button><button data-speed="2">2×</button>
+        <button data-speed="0" aria-label="Pausa">II</button><button data-speed="1">1×</button><button data-speed="2">2×</button><button data-speed="3" title="A tuo rischio e pericolo">3×</button>
       </div>
       <button class="sndbtn" data-snd type="button" aria-label="Suoni">🔊</button>
       <button class="btn gold sm" id="openbtn">Apri</button>
@@ -2986,7 +2986,7 @@ let last=0,rl=0;
 function frame(ts){
   const dt=Math.min(.12,Math.max(0,(ts-last)/1000));last=ts;
   if(S&&S.phase==='open'&&!RT.modal&&!RT.splash&&S.speed>0){
-    if(S.speed>2)S.speed=2;let gm=dt*GMS*S.speed;
+    if(S.speed>3)S.speed=3;let gm=dt*GMS*S.speed;
     while(gm>0&&S.phase==='open'&&!RT.modal){const c=Math.min(gm,.5);tick(c);gm-=c;}
   }
   if(S&&ts-rl>80){rl=ts;render();}
@@ -2995,7 +2995,7 @@ function frame(ts){
 }
 function init(){
   $$('.nav button').forEach(b=>b.addEventListener('click',()=>{if(S)setTab(b.dataset.tab);}));
-  $$('#speedwrap button').forEach(b=>b.addEventListener('click',()=>{S.speed=+b.dataset.speed;render(true);}));
+  $$('#speedwrap button').forEach(b=>b.addEventListener('click',()=>{const was=S.speed;S.speed=+b.dataset.speed;if(S.speed===3&&was!==3)toast('Velocità 3×: a tuo rischio e pericolo. I clienti arrivano a raffica.','warn');render(true);}));
   $('#openbtn').addEventListener('click',()=>{openDay();setTab('banco');});
   $('#ctr').addEventListener('click',ctrClick);
   $('#dock').addEventListener('click',ctrClick);
