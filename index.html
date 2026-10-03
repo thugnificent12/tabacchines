@@ -2528,7 +2528,7 @@ const INES_PROM=[
  'Per una settimana porti a spasso il cane della vicina, quello che morde.',
  'Le dici che ha ragione. Su tutto. Per sempre.'
 ];
-const PARENTI=['la prozia Concetta di Bagnara','lo zio Peppino, emigrato in Germania nel \'68','il cugino di secondo grado di Melito Porto Salvo','la zia Mimma, quella che non sorrideva mai','un prozio di Palmi che nessuno aveva mai visto','la nonna della cognata, che a quanto pare era anche parente sua','lo zio Ciccio, che diceva sempre di non avere una lira'];
+const PARENTI=[['il suo cane, Briciola',0],['il gatto Mimì',0],['il canarino Pippo',0],['la tartaruga Gina, che aveva ottant\'anni',1],['il pesce rosso vinto alla festa di San Rocco',0],['il pappagallo della nonna, quello che bestemmiava',0],['il criceto Ciccio',0],['la capra della zia di Cardeto',1],['uno zio che non conosceva',0],['una zia che non conosceva',1],['lo zio d\'America',0],['una signora con l\'Alzheimer che si credeva sua nonna',1]];
 function eredAmt(){const r=Math.random();
   if(r<.45)return Math.round(rnd(50,500)/10)*10;
   if(r<.75)return Math.round(rnd(500,3000)/50)*50;
@@ -2538,9 +2538,9 @@ function eredAmt(){const r=Math.random();
 function inesMorning(){
   // una partita su cinque, in un giorno a caso, muore un parente di Ines
   if(S.ered===undefined)S.ered=chance(.2)?{day:S.day+ri(20,600),done:false}:null;
-  if(S.ered&&!S.ered.done&&S.day>=S.ered.day){S.today.inesOffer={k:'ered',amt:eredAmt(),who:pick(PARENTI)};return;}
+  if(S.ered&&!S.ered.done&&S.day>=S.ered.day){{const p=pick(PARENTI);S.today.inesOffer={k:'ered',amt:eredAmt(),who:p[0],f:p[1]};}return;}
   // se sei in rosso, ogni tanto Ines ti aiuta
-  if(inRed()&&S.day-(S.inesHelpDay||-99)>=30&&chance(.35)){
+  if(inRed()&&S.day>=(S.inesNext||0)&&chance(.35)){
     const need=-(S.cash+S.deposit);const amt=Math.min(INES_MAX,Math.max(100,Math.ceil((need+100)/50)*50));
     S.today.inesOffer={k:'aiuto',amt,cap:need+100>INES_MAX,prom:pick(INES_PROM)};}
   // clienti che ti vogliono bene quando le cose vanno male
@@ -2549,12 +2549,12 @@ function inesMorning(){
 }
 function inesTake(){const o=S.today&&S.today.inesOffer;if(!o||o.taken)return;o.taken=1;
   S.cash=r2(S.cash+o.amt);
-  if(o.k==='ered'){S.ered.done=true;tx('vin',o.amt,`Eredità di Ines (${o.who})`);log(`È morto ${o.who}. Ines ha ereditato ${fmt(o.amt)} e li mette nella bottega.`,'good');toast(`+${fmt(o.amt)} dall'eredità di Ines`,'good');}
-  else{S.inesHelpDay=S.day;S.inesHelps=(S.inesHelps||0)+1;tx('fin',o.amt,'Aiuto di Ines');log(`Ines ti dà ${fmt(o.amt)}. Tu hai promesso: ${o.prom.charAt(0).toLowerCase()+o.prom.slice(1)}`,'info');toast(`Ines ti dà ${fmt(o.amt)}`,'good');}
+  if(o.k==='ered'){S.ered.done=true;tx('vin',o.amt,`Eredità di Ines (${o.who})`);log(`È mort${o.f?'a':'o'} ${o.who}. Ines ha ereditato ${fmt(o.amt)} e li mette nella bottega.`,'good');toast(`+${fmt(o.amt)} dall'eredità di Ines`,'good');}
+  else{S.inesHelpDay=S.day;S.inesNext=S.day+ri(60,80);S.inesHelps=(S.inesHelps||0)+1;tx('fin',o.amt,'Aiuto di Ines');log(`Ines ti dà ${fmt(o.amt)}. Tu hai promesso: ${o.prom.charAt(0).toLowerCase()+o.prom.slice(1)}`,'info');toast(`Ines ti dà ${fmt(o.amt)}`,'good');}
   save&&save();}
 function inesTick(){const o=S.today&&S.today.inesOffer;if(!o||o.shown||RT.modal||S.counter)return;o.shown=1;
   if(o.k==='ered'){S.ered.done=true;
-    openModal({html:`<h3>Una notizia per Ines</h3><p>Squilla il telefono, Ines risponde, si siede. È morto ${o.who}.</p><p>Dopo il rosario e le condoglianze arriva il notaio: ${o.amt<=500?`l'eredità è di <b>${fmt(o.amt)}</b>${o.amt<=100?' e una cassapanca tarlata':''}. «Meglio di niente», dice Ines.`:o.amt>=30000?`<b>${fmt(o.amt)}</b>. Ines si fa il segno della croce due volte, poi una terza.`:`<b>${fmt(o.amt)}</b>. Ines piange, ma non si capisce bene di cosa.`}</p><p>«Sono per la bottega», dice. «Ma il funerale lo paghi tu.»</p>`,actions:[{label:`Grazie, Ines (+${fmt(o.amt)})`,cls:'gold',fn:inesTake}]});return;}
+    openModal({html:`<h3>Una notizia per Ines</h3><p>Squilla il telefono, Ines risponde, si siede. È mort${o.f?'a':'o'} ${o.who}.</p><p>Dopo il rosario e le condoglianze arriva il notaio: ${o.amt<=500?`l'eredità è di <b>${fmt(o.amt)}</b>${o.amt<=100?' e una cassapanca tarlata':''}. «Meglio di niente», dice Ines.`:o.amt>=30000?`<b>${fmt(o.amt)}</b>. Ines si fa il segno della croce due volte, poi una terza.`:`<b>${fmt(o.amt)}</b>. Ines piange, ma non si capisce bene di cosa.`}</p><p>«Sono per la bottega», dice. «Ma il funerale lo paghi tu.»</p>`,actions:[{label:`Grazie, Ines (+${fmt(o.amt)})`,cls:'gold',fn:inesTake}]});return;}
   openModal({html:`<h3>Ines ti vede preoccupato</h3><p>Ha visto i conti. Apre la borsetta e tira fuori <b>${fmt(o.amt)}</b>${o.cap?`: «Di più non ne ho, e questi erano per la crociera.»`:'.'}</p><p>«Te li do. Però mi prometti una cosa.»</p><p style="font-style:italic">${o.prom}</p>`,actions:[{label:`Prometto (+${fmt(o.amt)})`,cls:'gold',fn:inesTake},{label:'No, grazie, ce la faccio da solo',fn(){log('Rifiuti i soldi di Ines. Lei alza le spalle: «Come vuoi tu. L\'offerta scade.»','info');}}]});}
 
 S=load();
