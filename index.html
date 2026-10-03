@@ -818,10 +818,12 @@ const NEU=['giro','credito','autoc'];
 const RANKS=[[0,'Tabaccaio Provetto'],[5000,'Cumpari'],[10000,'Principi i \'Zzareddu'],[20000,'Signore di Villa San Giovanni'],[30000,'Re dello Stretto'],[70000,'Presidente del Sud'],[100000,'Don Pietro']];
 const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e la sindaca passa in bottega.','Mance +5% e il commercialista costa il 20% in meno.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e la Radio quartiere parla di te.'];
 const rk=()=>S&&S.rankMax||0;
-function checkRank(){const v=patrimonio();let i=0;RANKS.forEach(([t],k)=>{if(v>=t)i=k;});const was=S.rankMax||0;if(i===was)return;S.rankMax=i;
+const patBase=()=>S.patBase!=null?S.patBase:((typeof CASHD!=='undefined'&&CASHD[S.cashMode]?CASHD[S.cashMode].n:2500)+1500);
+const rankVal=()=>patrimonio()-patBase();
+function checkRank(){const v=rankVal();let i=0;RANKS.forEach(([t],k)=>{if(v>=t)i=k;});const was=S.rankMax||0;if(i===was)return;S.rankMax=i;
   if(i>was){log(`Nuovo grado: sei «${RANKS[i][1]}»! ${RANK_FX[i]}`,'good');toast(`Nuovo grado: ${RANKS[i][1]}!`,'good');sfx('coin');
   if(i>=3&&!S.sindaca){S.sindaca=1;addRep(5);log('La sindaca Caminiti passa in bottega e si complimenta per come tieni il negozio. Reputazione +5.','good');}}
-  else{log(`Il patrimonio è sceso sotto ${fmt(RANKS[was][0])}: perdi il grado di «${RANKS[was][1]}» e torni «${RANKS[i][1]}». Lo riprendi quando risali.`,'bad');toast(`Grado perso: torni ${RANKS[i][1]}.`,'bad');}}
+  else{log(`Il patrimonio guadagnato è sceso sotto ${fmt(RANKS[was][0])}: perdi il grado di «${RANKS[was][1]}» e torni «${RANKS[i][1]}». Lo riprendi quando risali.`,'bad');toast(`Grado perso: torni ${RANKS[i][1]}.`,'bad');}}
 const QP=['Il commercialista approva, il che è sospetto.','Abbassi la saracinesca con la soddisfazione di chi ha venduto quattordici cartine.','Giornata onesta: nessuno ti ha chiesto che numeri escono al Lotto.','Il fumatore è una creatura abitudinaria, ed è il tuo migliore amico.'];
 const QN=['La cassa è in rosso. Anche la saracinesca, ma quella è ruggine.','Stasera la cena è un panino. Con le cartine come tovagliolo.','Il margine sui tabacchi è sottile come una cartina. Ormai lo sai.','Qualcuno ha detto «aprire un bar»? Non ascoltarlo.'];
 const EXCUSES=['«Ho lasciato il portafoglio nell\'altra giacca.»','«Mi deve arrivare la tredicesima. Di quale anno non lo so.»','«Ma non avevamo detto che era un regalo?»','«Il bancomat oggi è in sciopero.»','«Passa mio cugino a saldare. Quale cugino? Quello.»','«Aspetto che esca il mio numero al Lotto.»','«Ho solo buoni pasto, li prende?»','«Sto aspettando un bonifico dalla Svizzera.»','«Ma io pensavo di averla già pagata.»','«Oggi no, che è %DAY%.»'];
@@ -1529,7 +1531,7 @@ function openDay(){
   else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
-  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;albDay();S.today.rep0=S.rep;goalStart();S.today.pat0=patrimonio();S.ines=null;
+  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;goalStart();S.today.pat0=patrimonio();S.ines=null;
   // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
   const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
   let tg=rnd(75,165)*repF*(S.up.facciata?1.06:1)*(S.up.bancone?1.04:1)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
@@ -2200,8 +2202,8 @@ function renderAlbum(){
 function goalsHtml(){
   const pt=patrimonio(),G=[[5000,'Facciata rinnovata','facciata'],[10000,'Bancone nuovo in legno','bancone'],[UPD.locale.cost[0],'Il locale accanto','locale']];
   const next=G.find(g=>!S.up[g[2]]);
-  const ri0=rk(),nr=RANKS[ri0+1];
-  const rankBox=`<div class="goal done"><b>🎖</b><span>Grado: ${esc(RANKS[ri0][1])}<small>${esc(RANK_FX[ri0])}${nr?` Prossimo: «${esc(nr[1])}» con ${fmt(nr[0])} di patrimonio (ora ${fmt(pt)}).`:''}</small></span></div>`;
+  const ri0=rk(),nr=RANKS[ri0+1],gv=rankVal();
+  const rankBox=`<div class="goal done"><b>🎖</b><span>Grado: ${esc(RANKS[ri0][1])}<small>${esc(RANK_FX[ri0])}${nr?` Prossimo: «${esc(nr[1])}» quando avrai guadagnato ${fmt(nr[0])} (patrimonio di oggi meno quello di partenza: ora ${fmt(gv)}).`:''}</small></span></div>`;
   return `<h2>Traguardi</h2>`+rankBox+G.map(([v,t,id])=>{const done=S.up[id]>0,open=id==='locale'?S.cash+S.deposit>=v:pt>=v;
     return `<div class="goal ${done?'done':open?'open':''}"><b>${done?'✓':open?'★':'○'}</b><span>${t}<small>${done?'Fatto':id==='locale'?`Costa ${fmt(v)}: servono i soldi in cassa o sul libretto`:open?'Sbloccato: lo trovi qui sotto in Espansioni':`Si sblocca con ${fmt(v)} di patrimonio`}</small></span></div>`;}).join('')
     +(next?`<div class="abar" style="margin-top:8px"><i style="width:${Math.min(100,Math.round(Math.max(0,next[2]==='locale'?S.cash+S.deposit:pt)/next[0]*100))}%"></i></div><p class="muted" style="font-size:12px;margin:4px 0 0">Verso «${next[1]}»: ${fmt(Math.max(0,next[2]==='locale'?S.cash+S.deposit:pt))} su ${fmt(next[0])}${next[2]==='locale'?'':' di patrimonio'}.</p>`:'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Hai raggiunto tutti i traguardi. Ora tocca al grado di Barone delle Cartine.</p>');
@@ -2287,13 +2289,13 @@ function debtWarn(c){const p=getP(c);if(!p||!(p.debt>0)||c.asked)return;const ol
 function medServe(perfect,nerr){S.perfStreak=nerr?0:(S.perfStreak||0)+1;}
 /* iniziative di quartiere: una volta l'anno, in un periodo preciso, con il grado giusto */
 const INIZ=[
- {id:'briscola',t:'Premi del torneo di briscola al bar',cost:200,rep:1,rank:0,months:[0,1,2],per:'da gennaio a marzo',d:'Una coppa di plastica dorata e un salame. Al bar ne parleranno per settimane.'},
- {id:'sgiovanni',t:'Luminarie per San Giovanni',cost:400,rep:2,rank:1,months:[5],per:'a giugno',d:'Un arco di luci davanti alla bottega. Si vede da tutta la piazza.'},
+ {id:'briscola',t:'Premi del torneo di briscola',cost:200,rep:1,rank:0,months:[0,1,2],per:'da gennaio a marzo',d:'Una coppa di plastica dorata e un salame. In paese ne parleranno per settimane.'},
+ {id:'cosma',t:'Luminarie per i Santi Cosma e Damiano',cost:400,rep:2,rank:1,months:[8],from:20,per:'a fine settembre (dal 20)',d:'Un arco di luci davanti alla bottega per la festa. Si vede da tutta la piazza.'},
  {id:'villese',t:'Sponsorizza la Villese',cost:800,rep:4,rank:2,months:[8,9],per:'a settembre e ottobre',d:'Il nome della bottega sulle magliette. Ogni gol è pubblicità.'},
  {id:'pesca',t:'Pesca di beneficenza della parrocchia',cost:300,rep:2,rank:1,months:[11],per:'a dicembre',d:'Regali tu il primo premio. Il parroco ti cita alla messa di Natale.'}];
 function inizState(x){const y=dateOf(S.day).getFullYear(),m=dateOf(S.day).getMonth();const done=(S.iniz||{})[x.id]===y;
   if(done)return{ok:false,why:'Fatto quest\'anno'};if(rk()<x.rank)return{ok:false,why:`Serve il grado «${RANKS[x.rank][1]}»`};
-  if(!x.months.includes(m))return{ok:false,why:`Si fa ${x.per}`};if(S.cash<x.cost)return{ok:false,why:'Non hai abbastanza in cassa'};return{ok:true};}
+  if(!x.months.includes(m)||(x.from&&dateOf(S.day).getDate()<x.from))return{ok:false,why:`Si fa ${x.per}`};if(S.cash<x.cost)return{ok:false,why:'Non hai abbastanza in cassa'};return{ok:true};}
 function buyIniz(id){const x=INIZ.find(i=>i.id===id);if(!x)return;const st=inizState(x);if(!st.ok){toast(st.why,'warn');return;}
   S.cash=r2(S.cash-x.cost);tx('iniz',-x.cost,x.t);S.iniz=S.iniz||{};S.iniz[x.id]=dateOf(S.day).getFullYear();repFlat(x.rep);
   log(`${x.t}: il quartiere apprezza. Reputazione +${x.rep}.`,'good');toast(`${x.t}: +${x.rep} reputazione`,'good');save();}
@@ -2313,9 +2315,9 @@ const MEDALS=[
  ['feste','Un anno di feste','Vivi tutte le feste e le giornate speciali.',()=>ALB_FESTE.every(([k])=>alb().feste[k])],
  ['locale','Il muro è giù','Compra il locale accanto.',()=>S.up.locale>0],
  ['rep90','Stimato da tutti','Arriva a reputazione 90.',()=>S.rep>=90],
- ['rep100','Leggenda dello Stretto','Arriva a reputazione 100.',()=>S.rep>=99.95],
+ ['rep100','Don Pietro','Arriva a reputazione 100.',()=>S.rep>=99.95],
  ['anno','Tabaccheria dell\'anno','Vinci il premio di fine anno.',()=>(S.trofei||[]).length>0],
- ['donpietro','Don Pietro','Raggiungi il grado più alto.',()=>rk()>=RANKS.length-1]];
+ ['donpietro','Il più alto in grado','Raggiungi l\'ultimo grado del tabaccaio.',()=>rk()>=RANKS.length-1]];
 function medCheck(r){S.medals=S.medals||{};const got=[];for(const[id,t,,test]of MEDALS)if(!S.medals[id]&&test(r)){S.medals[id]=S.day;got.push(t);log(`Medaglia: «${t}»!`,'good');toast(`🏅 Medaglia: ${t}`,'good');}return got;}
 /* fine giornata (S.day è già il giorno dopo) */
 function endOfDayExtras(r){const ex=r.extra=[];const d=S.day-1,dt=dateOf(d);
