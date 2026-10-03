@@ -247,6 +247,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .dseg button b{display:block;font-size:15px;margin-bottom:3px}
 .dseg button b small{font-weight:500;opacity:.75}
 .dseg button span{display:block;opacity:.85}
+.career table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:14px}
+.career td{padding:7px 0;border-bottom:1px dashed var(--line);vertical-align:top}
+.career td:last-child{text-align:right;font-family:var(--f-mono,monospace);font-weight:700;white-space:nowrap;padding-left:10px}
+.career td small{display:block;opacity:.7;font-size:12.5px;margin-top:1px}
+.career tr.mul td{opacity:.8}
+.career tr.tot td{border-bottom:0;border-top:2px solid var(--fg);font-size:18px;font-weight:800;padding-top:9px}
+.career .rec{margin:8px 0 0;text-align:center;font-size:14px}
+.career .rec.new{font-weight:800;color:var(--good)}
 .dseg button[aria-pressed="true"]{background:var(--sign);color:var(--signfg);border-color:var(--sign)}
 .big-num{font:600 24px var(--f-mono);margin:2px 0 6px}
 .amtrow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
@@ -1555,7 +1563,7 @@ function upcoming(n){
 function tick(dm){
   S.t+=dm;
   if(S.fido&&S.day>=S.fido.day+2&&S.t>=FIDO_T)fidoCollect();
-  repTierCheck();inesTick();
+  repTierCheck();inesTick();sellTick();
   if(S.freeze>0)S.freeze=Math.max(0,S.freeze-dm);
   while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();albEv(ev.id);if(RT.modal)break;}
   spawnTick(dm);
@@ -1581,7 +1589,7 @@ function openDay(){
   else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
-  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;S.today.tip=startTip();mystPlan();rivalDay();camp();goalStart();inesMorning();S.today.pat0=patrimonio();S.ines=null;
+  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;S.today.tip=startTip();mystPlan();rivalDay();camp();goalStart();inesMorning();sellMorning();S.today.pat0=patrimonio();S.ines=null;
   // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
   const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
   let tg=rnd(75,165)*repF*rivalMult()*(S.campFesta===S.day?1.1:1)*(S.up.facciata?1.06:1)*(S.up.bancone?1.04:1)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
@@ -1639,10 +1647,10 @@ function closeDay(){
   log(`Chiusura di ${DAYS[wd(r.day)].toLowerCase()} ${dateTxt(r.day)}: saldo della giornata ${sgn(net)}.`,net>=0?'good':'bad');
   S.day++;S.phase='closed';S.t=OPEN;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.freeze=0;RT.events=[];
   endOfDayExtras(r);
-  const lose=S.debtDays>=30&&S.rep<=-50;
-  if(lose)S.over=true;
+  carTrack();const lose=S.debtDays>=30&&S.rep<=-50;const ret=!lose&&S.day-1>=CAREER_DAYS;
+  if(ret)S.retired=1;if(lose||ret)S.over=true;
   RT.closing=false;{const seen=new Set();r.extra=[...(r.extra||[]),...RT.closeMsgs].filter(x=>{const k=x.replace(/[^a-zà-ù0-9]/gi,'').toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});}RT.closeMsgs=[];
-  save();showReport(r,lose);
+  save();showReport(r,lose||ret);
 }
 
 /* ===== azioni di gestione ===== */
@@ -2557,6 +2565,57 @@ function inesTick(){const o=S.today&&S.today.inesOffer;if(!o||o.shown||RT.modal|
     openModal({html:`<h3>Una notizia per Ines</h3><p>Squilla il telefono, Ines risponde, si siede. È mort${o.f?'a':'o'} ${o.who}.</p><p>Dopo il rosario e le condoglianze arriva il notaio: ${o.amt<=500?`l'eredità è di <b>${fmt(o.amt)}</b>${o.amt<=100?' e una cassapanca tarlata':''}. «Meglio di niente», dice Ines.`:o.amt>=30000?`<b>${fmt(o.amt)}</b>. Ines si fa il segno della croce due volte, poi una terza.`:`<b>${fmt(o.amt)}</b>. Ines piange, ma non si capisce bene di cosa.`}</p><p>«Sono per la bottega», dice. «Ma il funerale lo paghi tu.»</p>`,actions:[{label:`Grazie, Ines (+${fmt(o.amt)})`,cls:'gold',fn:inesTake}]});return;}
   openModal({html:`<h3>Ines ti vede preoccupato</h3><p>Ha visto i conti. Apre la borsetta e tira fuori <b>${fmt(o.amt)}</b>${o.cap?`: «Di più non ne ho, e questi erano per la crociera.»`:'.'}</p><p>«Te li do. Però mi prometti una cosa.»</p><p style="font-style:italic">${o.prom}</p>`,actions:[{label:`Prometto (+${fmt(o.amt)})`,cls:'gold',fn:inesTake},{label:'No, grazie, ce la faccio da solo',fn(){log('Rifiuti i soldi di Ines. Lei alza le spalle: «Come vuoi tu. L\'offerta scade.»','info');}}]});}
 
+/* ===== carriera: pensione dopo 20 anni, punteggio e record ===== */
+const CAREER_YEARS=20,CAREER_DAYS=Math.round(CAREER_YEARS*365.25);
+const RANK_PTS=[0,1000,2500,4500,7000,10000,14000];
+const DIFF_MUL={f:.8,m:1,d:1.3};
+function carTrack(){const c=S.car=S.car||{repMax:0,rankTop:0};c.repMax=Math.max(c.repMax,Math.round(S.rep));c.rankTop=Math.max(c.rankTop,S.rankMax||0);}
+function careerScore(){carTrack();const c=S.car,yrs=(S.day-1)/365.25,nMed=Object.keys(S.medals||{}).length,earned=Math.round(rankVal());
+  const parts=[
+   ['Durata della carriera',(S.sold?S.sold.lbl:`${Math.floor(yrs)} anni${S.retired?'':' e '+Math.floor((yrs%1)*12)+' mesi'}`),Math.round(Math.min(CAREER_YEARS,yrs)*500)],
+   ['Grado più alto',RANKS[c.rankTop][1],RANK_PTS[c.rankTop]||0],
+   ['Reputazione massima',`${c.repMax} / 100`,Math.max(0,c.repMax)*50],
+   ['Medaglie',`${nMed} su ${MEDALS.length}`,nMed*400],
+   ['Patrimonio guadagnato',fmt(earned),earned>0?Math.round(10*Math.sqrt(earned)):0]];
+  if(S.retired)parts.push(['Pensione meritata','',5000]);
+  const base=parts.reduce((a,p)=>a+p[2],0),mul=DIFF_MUL[S.diff]||1;
+  return{parts,base,mul,tot:Math.round(base*mul)};}
+const REC_KEY='tabacchines.record';
+function getRecord(){try{return JSON.parse(localStorage.getItem(REC_KEY)||'null');}catch(e){return null;}}
+function saveRecord(sc){const old=getRecord();if(old&&old.tot>=sc.tot)return{old,isNew:false};
+  const rec={tot:sc.tot,name:S.ownerName,diff:S.diff||'m',yrs:Math.floor((S.day-1)/365.25),dur:S.sold?S.sold.lbl:S.retired?'20 anni':Math.floor((S.day-1)/365.25)+' anni',when:todayISO()};
+  try{localStorage.setItem(REC_KEY,JSON.stringify(rec));}catch(e){}return{old,isNew:true};}
+function careerHtml(){const sc=careerScore();if(S.scoreDone==null){S.scoreDone=1;const r=saveRecord(sc);S.recInfo={isNew:r.isNew,old:r.old};}
+  const ri=S.recInfo||{},old=ri.old;const DN={f:'Facile',m:'Normale',d:'Difficile'};
+  return `<div class="career"><table>${sc.parts.map(p=>`<tr><td>${p[0]}<small>${p[1]}</small></td><td>${p[2].toLocaleString('it-IT')}</td></tr>`).join('')}
+  <tr class="mul"><td>Difficoltà ${DN[S.diff||'m']}</td><td>× ${String(sc.mul).replace('.',',')}</td></tr>
+  <tr class="tot"><td>Punteggio</td><td>${sc.tot.toLocaleString('it-IT')}</td></tr></table>
+  ${ri.isNew?`<p class="rec new">🏆 Nuovo record!${old?` Battuto il ${old.tot.toLocaleString('it-IT')} di ${esc(old.name)}.`:''}</p>`:old?`<p class="rec">Record da battere: <b>${old.tot.toLocaleString('it-IT')}</b> (${esc(old.name)}, ${DN[old.diff]||''}, ${old.dur||old.yrs+' anni'})</p>`:''}</div>`;}
+
+/* ===== vendo e chiudo: a 6 mesi, 1, 5 e 10 anni arriva qualcuno con un'offerta ===== */
+const SELL_AT=[[183,'sei mesi'],[366,'un anno'],[1827,'cinque anni'],[3653,'dieci anni']];
+const BUYERS=[
+ ['un dentista di Reggio','vuole aprirci un bar per la figlia, «che tanto non ha voglia di studiare»'],
+ ['una coppia di milanesi in pensione','hanno visto il mare una volta e hanno deciso di non tornare più a Milano'],
+ ['un ex terzino della Reggina','dice che con i soldi della carriera vuole «restituire qualcosa al territorio»'],
+ ['l\'agente immobiliare di Villa','parla al telefono per tutto il tempo e firma con una penna d\'oro'],
+ ['un influencer di Scilla','vuole farne un locale per aperitivi «con vista Stretto, anche se la vista non c\'è»'],
+ ['la parrucchiera della piazza','vuole buttare giù il muro e fare il salone più grande della provincia'],
+ ['un americano di origini calabresi','cerca la casa del nonno, è sicuro che fosse questa, e la vuole a tutti i costi'],
+ ['il parroco','viene per conto di «un benefattore che vuole restare anonimo», e non dice altro'],
+ ['un avvocato in giacca scura','rappresenta un fondo d\'investimento di Lugano e non toglie mai gli occhiali da sole'],
+ ['la proprietaria della pizzeria accanto','vuole il locale per il forno a legna nuovo'],
+ ['un ingegnere del Ponte sullo Stretto','dice che tra poco qui passerà mezzo mondo. Lo dicono da cinquant\'anni']
+];
+function sellMorning(){const done=S.day-1;S.sellOff=S.sellOff||{};
+  for(const[d,lbl]of SELL_AT){if(done!==d||S.sellOff[d])continue;S.sellOff[d]=1;
+    if(patrimonio()<=0){log(`Sono ${lbl} che tieni la bottega. Si sparge la voce che cerchi un compratore, ma con tutti questi debiti nessuno si fa avanti.`,'warn');return;}
+    const b=pick(BUYERS),val=Math.max(500,Math.round((stockValue()+S.invested)/100)*100);
+    S.today.buyer={who:b[0],why:b[1],lbl,val};return;}}
+function sellTick(){const o=S.today&&S.today.buyer;if(!o||o.shown||RT.modal||S.counter)return;o.shown=1;
+  openModal({html:`<h3>Un'offerta per la bottega</h3><p>Sono ${o.lbl} che alzi questa saracinesca. Entra ${o.who}: ${o.why}.</p><p>«Le offro <b>${fmt(o.val)}</b> per merce e attrezzature. I muri restano suoi, l'insegna pure. Ci pensi, ma io domani non torno.»</p><p class="muted">Se vendi la partita finisce e vedi il punteggio della carriera. Se continui, il prossimo compratore arriverà ${o.lbl==='dieci anni'?'solo alla pensione, ai 20 anni':'più avanti'}.</p>`,
+   actions:[{label:'Vendo e chiudo',cls:'gold',fn(){S.sold={who:o.who,val:o.val,lbl:o.lbl};S.over=true;save();gameOver();}},{label:'No, continuo',fn(){log(`Rifiuti l'offerta di ${o.who}. La bottega resta tua.`,'info');}}]});}
+
 S=load();
 
 /* ===== finestre e avvisi ===== */
@@ -3076,11 +3135,16 @@ function showReport(r,lose){
   openModal({cls:'receipt',html,actions:lose?[{label:'Continua',cls:'red',fn:gameOver}]:[{label:'Vai al magazzino',cls:'gold',fn(){setTab('mag');}},{label:'Chiudi',cls:'alt',fn(){render(true);}}]});
 }
 function gameOver(){
+  if(S.sold){const o=S.sold;
+    openModal({cls:'finale',html:`<h3>Vendo e chiudo</h3><p>Firmi dal notaio, e ${o.who} si prende la bottega per ${fmt(o.val)}. L'ultima sera abbassi la saracinesca da solo, e per un attimo ti sembra di sentire Peppe Verduci che chiede di segnare.</p><p>Ines ti aspetta in macchina. «E adesso che fai tutto il giorno?»</p>`+careerHtml(),actions:[{label:'Una nuova carriera',cls:'gold',fn:resetGame}]});return;}
+  if(S.retired){
+    const html=`<h3>La pensione</h3><p>Vent'anni dietro al banco. L'ultimo pacchetto di Nazzionali lo vendi a Mastro Ciccio, che ti stringe la mano e dice: «E mo' a chi le chiedo a credito?»</p><p>Ines ha già prenotato la crociera. Le chiavi della bottega passano di mano, ma l'insegna resta quella: <b>Il TabacchInes</b>.</p>`+careerHtml();
+    openModal({cls:'finale',html,actions:[{label:'Una nuova carriera',cls:'gold',fn:resetGame}]});return;}
   const nd=chance(.5);
   const html=nd
    ?`<h3>Visita di cortesia</h3><p>Due signori in giacca scura entrano senza comprare niente. Uno sistema il Gratta e Vinci da 20 come se fosse suo. «Abbiamo saputo che ha qualche difficoltà. Noi aiutiamo le attività del quartiere.»</p><p>Da domani Il TabacchInes ha nuovi soci. Tu non sei tra questi.</p>`
    :`<h3>Il grossista vuole essere pagato</h3><p>Il grossista Cavallaro si presenta con l'avvocato, un decreto ingiuntivo e l'aria di chi aspetta da mesi. «Le stecche gliele ho date sulla fiducia. La fiducia è finita.»</p><p>Saracinesca abbassata, merce pignorata, insegna smontata.</p>`;
-  openModal({html:html+`<p class="muted">Partita persa dopo ${S.day-1} giorni. Rosso finale: ${fmt(-(S.cash+S.deposit))}. Reputazione ${Math.round(S.rep)}.</p>`,actions:[{label:'Ricomincia da capo',cls:'gold',fn:resetGame}]});
+  openModal({html:html+`<p class="muted">Partita persa dopo ${S.day-1} giorni. Rosso finale: ${fmt(-(S.cash+S.deposit))}. Reputazione ${Math.round(S.rep)}.</p>`+careerHtml(),actions:[{label:'Ricomincia da capo',cls:'gold',fn:resetGame}]});
 }
 function resetGame(){
   try{localStorage.removeItem(KEY);}catch(e){}
@@ -3246,7 +3310,7 @@ function showSplash(){
 }
 if(typeof document!=="undefined"&&document.addEventListener&&!(typeof window!=="undefined"&&window.__TABTEST)){document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-snd]');if(b){e.preventDefault();setSound(!SND.on);}},true);setTimeout(()=>setSound(SND.on,true),0);}
 if(typeof window!=="undefined"&&window.__TABDBG){window.__R=rapina;window.__GS=()=>S;window.__INES=inesArrives;window.__CH=chooseHelper;window.__SP=()=>spawnCustomer(null,S.people.find(p=>p.fix==="carmela"));}
-if(typeof window!=="undefined"&&window.__TABTEST){window.__T={inesTake,PD,UPD,withdraw,buyFido,payFido,buyIniz,INIZ,inizState,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
+if(typeof window!=="undefined"&&window.__TABTEST){window.__T={careerScore,inesTake,PD,UPD,withdraw,buyFido,payFido,buyIniz,INIZ,inizState,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
 })();
 </script>
