@@ -815,7 +815,7 @@ const CATL={tab:'Tabacchi',gra:'Gratta e Vinci',val:'Valori e trasporti',ban:'Ba
 const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','cred','vin','int','fin'];
 const EXP=['merce','vers','prem','boll','canoni','tasse','prof','pers','pos','rate','upg','vizi','furti','multe'];
 const NEU=['giro','credito','autoc'];
-const RANKS=[[0,'Garzone d\'Acciarello'],[5000,'Tabaccaio Provetto'],[10000,'Cumpari'],[20000,'Principi i \'Zzareddu'],[30000,'Signore di Villa San Giovanni'],[50000,'Re dello Stretto'],[70000,'Don Pietro']];
+const RANKS=[[0,'Tabaccaio Provetto'],[5000,'Cumpari'],[10000,'Principi i \'Zzareddu'],[20000,'Signore di Villa San Giovanni'],[30000,'Re dello Stretto'],[70000,'Presidente del Sud'],[100000,'Don Pietro']];
 const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e il commercialista costa il 20% in meno.','Mance +5% e visita della sindaca in bottega.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e la Radio quartiere parla di te.'];
 const rk=()=>S&&S.rankMax||0;
 function checkRank(){const v=patrimonio();let i=0;RANKS.forEach(([t],k)=>{if(v>=t)i=k;});if(i>(S.rankMax||0)){S.rankMax=i;
@@ -1097,7 +1097,7 @@ function spawnCustomer(forcedType,forcedP){
   const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*(S.up.bancone?1.1:1)*(rk()>=6?1.1:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:R&&R.say?R.say(ctx.lines):sayRequest(ctx.lines),pat,patMax:pat,
     nArt,quote:greet(p,pick(R?R.quotes:T.quotes)),creditAsk:false,asked:false,reply:null};
-  if(R){if(R.credit){c.creditAsk=true;c.ask=pick(R.ask||['«Apoi passu… me lo segna, vero?»','«Segni, segni, che a fine mese saldo tutto.»']);}}
+  if(R){if(R.credit&&chance(R.creditP||1)){c.creditAsk=true;c.ask=pick(R.ask||['«Apoi passu… me lo segna, vero?»','«Segni, segni, che a fine mese saldo tutto.»']);}}
   else if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.ask=pick(ASKCRED);}
   S.queue.push(c);return c;
 }
@@ -1733,7 +1733,7 @@ const REGULARS=[
   wants:c=>{want(c,'naz',ri(1,2));},
   say:L=>{const q=(L.find(l=>l.id==='naz')||{q:1}).q;return q>=2?'«Mi… mi dai ddu pachetti i Nazzionali, piffavuri?»':'«Mu… mu runi \'nu paccu i Nazzionali?»';},
   ask:['«Me… me lo segni, vero? Apoi passu.»','«Mi… mi fai credito? A fine mese sistemo tutto.»'],
-  credit:true},
+  credit:true,creditP:1/3},
  {key:'professore',type:'geometra',f:0,name:'Professor Demetrio Cotroneo',role:'Professore in pensione · cliente fisso',win:[450,540],days:[0,1,2,3,4,5,6],
   face:{skin:'#F3D2B6',hc:'#E8E4DE',shirt:'#1F2A44',bg:'#E4DDF2',hair:'slick',hat:null,hatc:'#000',glasses:true,beard:true,must:false,blush:false,ear:false,lip:null,old:true},
   quotes:['«La gazzetta, prego. Senza non comincia la giornata.»','«Ha letto? No, lei non legge. Male.»','«Ai miei alunni lo dicevo sempre: informatevi.»'],
