@@ -1888,7 +1888,8 @@ const FD="'Alfa Slab One',Georgia,serif",FS="'Pacifico',cursive",FB="'Bungee',Im
 let _gid=0;
 const xe=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 /* testo centrato; se è troppo lungo per lo spazio w lo stringe */
-function tx(x,y,sz,s,fill,font,o){o=o||{};const w=o.w,est=String(s).length*sz*(o.k||.62);
+const FK=f=>f===FD?.8:f===FB?.84:f===FO?.52:f===FS?.6:f===FR?.66:.64;
+function tx(x,y,sz,s,fill,font,o){o=o||{};const w=o.w,L=String(s).length,est=L*sz*(o.k||FK(font||FF))+(o.ls||0)*L;
   return `<text x="${x}" y="${y}" font-size="${sz}" font-family="${font||FF}" fill="${fill||'#fff'}" text-anchor="${o.a||'middle'}"${o.b?` font-weight="${o.b}"`:''}${o.ls?` letter-spacing="${o.ls}"`:''}${o.st?` stroke="${o.st}" stroke-width="${o.sw||.6}" paint-order="stroke"`:''}${o.it?' font-style="italic"':''}${w&&est>w?` textLength="${w}" lengthAdjust="spacingAndGlyphs"`:''}${o.r?` transform="rotate(${o.r} ${x} ${y})"`:''}>${xe(s)}</text>`;}
 const sv=(inner)=>`<svg viewBox="0 0 92 46" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${inner}</svg>`;
 const lg=(c1,c2,vert)=>{const id='g'+(++_gid);return [id,`<defs><linearGradient id="${id}" x1="0" y1="0" x2="${vert?0:1}" y2="${vert?1:0}"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>`];};
@@ -2041,6 +2042,23 @@ const SVART={
  /* scommesse virtuali: schermo con la corsa */
  vir:()=>sv(`<rect x="2" y="2" width="88" height="42" rx="4" fill="#2A1450"/><rect x="12" y="5" width="68" height="31" rx="2" fill="#0D0D1A" stroke="#9C6BFF" stroke-width="1"/><rect x="14" y="7" width="64" height="27" fill="#2F7D3A"/><rect x="14" y="7" width="64" height="3" fill="#6FB7E8"/><path d="M14 10.4 H78" stroke="#fff" stroke-width=".6"/><path d="M14 19 H78 M14 26.6 H78" stroke="#CFE8C4" stroke-width=".4" opacity=".7"/><path d="M71 10.4 V34" stroke="#fff" stroke-width="1" stroke-dasharray="1.4 1.4"/>`+horse(50,11,.56,'#6B3A1F','#1A0F08','#E53935')+horse(36,18.8,.56,'#A65A2A','#5A2E12','#1E88E5')+horse(18,18.8,.56,'#1E1E1E','#000','#43A047')+horse(44,26.4,.56,'#C9C9C9','#6E6E6E','#FDD835')+`<rect x="40" y="36" width="12" height="4" fill="#9C6BFF"/><rect x="34" y="40" width="24" height="2" rx="1" fill="#9C6BFF"/>`),
 };
+/* ===== pacchetti di sigarette: confezione verticale, design ispirato a nome, colore e descrizione ===== */
+function cpack(bg,inner,o){o=o||{};const lid=o.lid||'rgba(0,0,0,.18)',wk=o.wk||'#111',wb=o.wb||'#fff';
+  return sv(`<ellipse cx="46" cy="44.4" rx="18" ry="1.4" fill="rgba(0,0,0,.18)"/><rect x="29" y="1.5" width="34" height="42" rx="2.2" fill="${bg}"/>`+inner+`<path d="M29.4 11.5 H62.6" stroke="${lid}" stroke-width=".6"/><rect x="31" y="35.4" width="30" height="6.4" fill="${wb}"/><rect x="31.5" y="35.9" width="29" height="5.4" fill="none" stroke="${wk}" stroke-width=".45"/>`+tx(46,39.9,3.7,'IL FUMO UCCIDE',wk,FF,{b:800,w:26})+`<rect x="29" y="1.5" width="34" height="42" rx="2.2" fill="none" stroke="rgba(0,0,0,.25)" stroke-width=".5"/><rect x="30" y="2.4" width="3" height="40" rx="1" fill="#fff" opacity=".12"/>`);}
+Object.assign(ART,{
+ gco:()=>{const [id,d]=lg('#E3B547','#9C6F12',true);return cpack(`url(#${id})`,d+`<circle cx="46" cy="10" r="5.5" fill="#FFF1B8"/><path d="M30 14 q4 -2 8 0 t8 0 t8 0 t8 0 V19 H30Z" fill="#2E86AB"/><path d="M30 17 q4 -1.6 8 0 t8 0 t8 0 t8 0" stroke="#BFE6F5" stroke-width=".6" fill="none"/>`+tx(46,26,7.2,'Gold',"#3A2600",FS)+tx(46,32.4,5.4,'COAST','#3A2600',FR,{ls:1.2,w:28}));},
+ rci:()=>cpack('#F4EFE6',`<rect x="29" y="1.5" width="34" height="9" rx="2" fill="#B3261E"/><circle cx="46" cy="22" r="10.5" fill="#B3261E"/><circle cx="46" cy="22" r="8.6" fill="none" stroke="#F4EFE6" stroke-width=".9"/><circle cx="46" cy="22" r="6.8" fill="none" stroke="#F4EFE6" stroke-width=".5"/>`+tx(46,21.3,4.4,'RED','#fff',FB)+tx(46,26.2,3.2,'CIRCLE','#fff',FB,{w:11})+tx(46,8.2,3,'DAL 1952','#F4EFE6',FF,{b:700,ls:.8,w:28})),
+ mon:()=>cpack('#4B1E5A',`<rect x="31" y="3.5" width="30" height="30" rx="1" fill="none" stroke="#D9B45A" stroke-width=".8"/><rect x="32.4" y="4.9" width="27.2" height="27.2" fill="none" stroke="#D9B45A" stroke-width=".35"/><path d="M39 19 l1.2 -6 l3.2 3.6 l2.6 -5.2 l2.6 5.2 l3.2 -3.6 l1.2 6z" fill="#D9B45A"/><rect x="39" y="19.6" width="14" height="1.8" fill="#D9B45A"/><circle cx="46" cy="10.4" r=".9" fill="#F2D27C"/>`+tx(46,28.6,5.6,'MONARCH','#F2D27C',FD,{w:24}),{lid:'rgba(217,180,90,.5)'}),
+ sil:()=>{const [id,d]=lg('#E3E7EC','#8E98A4',true);return cpack(`url(#${id})`,d+`<path d="M46 9 q7 5 0 15 q-7 -10 0 -15z" fill="none" stroke="#4A5562" stroke-width=".8"/><path d="M46 10 V25" stroke="#4A5562" stroke-width=".5"/>`+tx(46,29.4,4.8,'SILVER LEAF','#2E3640',FO,{b:500,ls:.6,w:28}));},
+ naz:()=>cpack('#EFE2C4',`<rect x="29" y="1.5" width="34" height="10" rx="2" fill="#7A5A3A"/><rect x="31" y="13" width="30" height="20" fill="none" stroke="#7A5A3A" stroke-width=".7"/><rect x="31" y="13" width="10" height="2" fill="#2E7D32"/><rect x="41" y="13" width="10" height="2" fill="#fff"/><rect x="51" y="13" width="10" height="2" fill="#C62828"/>`+tx(46,24,6,'Nazzionali','#5A3A1E',FD,{w:27})+tx(46,30,3.4,'SENZA FILTRO','#7A5A3A',FF,{b:800,ls:.6,w:28})+tx(46,8.6,3.4,'ESPORTAZIONE','#EFE2C4',FF,{b:700,ls:.5,w:26}),{lid:'rgba(0,0,0,.3)'}),
+ nex:()=>cpack('#123B40',`<g stroke="#4FD1C5" stroke-width=".6" fill="none"><path d="M31 8 h6 l3 3 h8 M61 14 h-5 l-3 3 h-6 M31 19 h4 l2 2 h4"/></g>`+[[48,11],[47,17],[41,21],[37,8]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1" fill="#8EF0E0"/>`).join('')+tx(46,29,7,'NEXUS','#8EF0E0',FR)+tx(46,33,2.8,'DIGITAL BLEND','#4FD1C5',FF,{b:700,ls:.8,w:28}),{lid:'rgba(79,209,197,.4)'}),
+ vib:()=>{const [id,d]=lg('#FF6FA5','#7A2BD0',true);return cpack(`url(#${id})`,d+[3,6,9,5,8,4,7,10,6].map((h,i)=>`<rect x="${32.4+i*3.2}" y="${20-h}" width="2" height="${h}" rx="1" fill="#fff" opacity=".85"/>`).join('')+tx(46,30,9,'Vibe','#fff',FS,{st:'#7A2BD0',sw:.8}));},
+ ble:()=>cpack('#5F6368',`<rect x="29" y="15" width="34" height="11" fill="#fff"/>`+tx(46,23.4,6.6,'BLENDS','#5F6368',FF,{b:700})+tx(46,30.6,3,'SIGARETTE','#E0E0E0',FF,{b:600,ls:1.2,w:28})),
+ shf:()=>cpack('#3E3EA8',`<rect x="35" y="12" width="22" height="11" rx="5.5" fill="#23236E"/><circle cx="51.5" cy="17.5" r="4.2" fill="#9FA8FF"/><path d="M51.5 15 l2.2 2.4 h-1.3 v2.2 h-1.8 v-2.2 h-1.3z" fill="#23236E"/>`+tx(46,30.6,7,'SHIFT','#fff',FB)+tx(46,8.6,3,'FILTRO A CLICK','#C9CCFF',FF,{b:800,ls:.5,w:28})),
+ tox:()=>cpack('#5E7A12',`<rect x="29" y="1.5" width="34" height="8" fill="#F2C230"/>`+[0,1,2,3,4].map(i=>`<path d="M${31+i*6} 9.5 l4 -8 h3 l-4 8z" fill="#111"/>`).join('')+`<circle cx="46" cy="17" r="4.4" fill="#E8F0D0"/><rect x="43.8" y="20" width="4.4" height="3" rx=".6" fill="#E8F0D0"/><circle cx="44.4" cy="16.6" r="1.1" fill="#5E7A12"/><circle cx="47.6" cy="16.6" r="1.1" fill="#5E7A12"/><path d="M45 21 v1.6 M46 21 v1.6 M47 21 v1.6" stroke="#5E7A12" stroke-width=".4"/>`+tx(46,31.6,8.2,'TOX','#F2C230',FB),{lid:'rgba(0,0,0,.35)'}),
+ mrl:()=>cpack('#fff',`<rect x="29" y="1.5" width="34" height="15" rx="2" fill="#C8102E"/><rect x="29" y="12" width="34" height="4.5" fill="#C8102E"/>`+tx(46,27,6,'Marlboro','#111',FD,{w:28})+tx(46,32,2.8,'FILTER CIGARETTES','#444',FF,{b:700,ls:.4,w:28}),{lid:'rgba(255,255,255,.5)'}),
+ cml:()=>cpack('#3E78B2',`<rect x="29" y="1.5" width="34" height="20" rx="2" fill="#8EC3EA"/><circle cx="54" cy="9" r="3.4" fill="#FFE08A"/><path d="M29 19 q6 -6 12 -1 q6 -6 12 -1 q5 -4 10 0 V22 H29Z" fill="#E6B86A"/><path d="M29 21.5 q8 -4 16 0 t18 0 V22 H29Z" fill="#C9944A"/>`+tx(46,29,6.2,'CAMEL','#fff',FO,{b:700,ls:1,w:28})+tx(46,33.2,3.6,'BLUE','#DCEBFA',FF,{b:800,ls:1.6,w:28}))
+});
 
 S=load();
 
@@ -2069,6 +2087,7 @@ function closeModal(){RT.modal=false;const m=$('#modal');if(m)m.hidden=true;try{
 /* ===== grafica prodotti ===== */
 function artOf(id){
   const p=PD[id];
+  if(p.cat==='sig'&&ART[id])return `<div class="tile art sig">${ART[id]()}</div>`;
   if(p.cat==='sig')return `<div class="pack${p.pk?' '+p.pk:''}" style="background:${p.color}"><b>${esc(p.name)}</b><i>Il fumo uccide</i></div>`;
   if(ART[id])return `<div class="tile art ${p.cat}">${ART[id]()}</div>`;
   return `<div class="tile ${p.cat}">${esc(p.tag||p.name)}</div>`;
