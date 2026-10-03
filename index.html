@@ -19,7 +19,7 @@
 <title>Il TabacchInes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Bungee&family=Oswald:wght@500;700&family=Pacifico&family=Righteous&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* Layout: insegna blu, barra comandi fissa (orologio, velocità, cassa), cinque schede con navigazione in basso. */
 :root{
@@ -190,6 +190,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .pack.band i{background:#14365E;color:#fff}
 .pack i{font-style:normal;font-size:6.5px;line-height:1.1;background:#fff;color:#111;padding:1px 2px;border-radius:1px;text-transform:uppercase;font-weight:700;letter-spacing:.02em}
 .tile{height:46px;border-radius:5px;display:grid;place-items:center;font:400 13px var(--f-display);background:var(--surface2);color:var(--muted);letter-spacing:.03em}
+.tile.art{padding:0;background:var(--surface2);overflow:hidden}.tile.art svg{width:100%;height:46px;display:block}
 .tile.gra{background:#F6D35B;color:#5A3D00}
 .tile.val{background:#D7E3F4;color:#1B3B6B}
 .tile.svp{background:#2B2D42;color:#8EF0E0;font-size:11.5px;text-align:center;padding:0 3px}.tile.can{background:#FFF4C2;color:#3A3A8A;font-size:12px}
@@ -486,7 +487,7 @@ const PRODUCTS=[
  {id:'g20',cat:'gra',name:'Gratta e Vinci 20 €',price:20,tag:'20 €'},
  {id:'bol',cat:'val',name:'Marca da bollo 16 €',price:16,aggio:.04,tag:'BOLLO',gate:'valori'},
  {id:'fra',cat:'val',name:'Francobollo 1,30 €',price:1.30,aggio:.06,tag:'POSTA',gate:'valori'},
- {id:'cpo',cat:'val',name:'Cartolina di Reggio',free:1,cost:.25,price:1,tag:'CARTOL.',gate:'valori'},
+ {id:'cpo',cat:'val',name:'Cartolina illustrata',free:1,cost:.25,price:1,tag:'CARTOL.',gate:'valori'},
  {id:'trr',cat:'val',name:'Biglietto treno per Reggio 2,30 €',price:2.30,aggio:.07,tag:'TRENO RC',gate:'treni'},
  {id:'trs',cat:'val',name:'Biglietto treno per Scilla 1,40 €',price:1.40,aggio:.07,tag:'TRENO SCILLA',gate:'treni'},
  {id:'nav',cat:'val',name:'Nave veloce Villa–Messina 1,80 €',price:1.80,aggio:.07,tag:'NAVE MESSINA',gate:'treni'},
@@ -1882,6 +1883,127 @@ function sfx(k){
   }catch(e){}
 }
 
+/* ===== confezioni disegnate (tutte inventate, nessun marchio vero) ===== */
+const FD="'Alfa Slab One',Georgia,serif",FS="'Pacifico',cursive",FB="'Bungee',Impact,sans-serif",FO="'Oswald','Arial Narrow',sans-serif",FR="'Righteous',sans-serif",FF="'Figtree',system-ui,sans-serif";
+let _gid=0;
+const xe=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+/* testo centrato; se è troppo lungo per lo spazio w lo stringe */
+function tx(x,y,sz,s,fill,font,o){o=o||{};const w=o.w,est=String(s).length*sz*(o.k||.62);
+  return `<text x="${x}" y="${y}" font-size="${sz}" font-family="${font||FF}" fill="${fill||'#fff'}" text-anchor="${o.a||'middle'}"${o.b?` font-weight="${o.b}"`:''}${o.ls?` letter-spacing="${o.ls}"`:''}${o.st?` stroke="${o.st}" stroke-width="${o.sw||.6}" paint-order="stroke"`:''}${o.it?' font-style="italic"':''}${w&&est>w?` textLength="${w}" lengthAdjust="spacingAndGlyphs"`:''}${o.r?` transform="rotate(${o.r} ${x} ${y})"`:''}>${xe(s)}</text>`;}
+const sv=(inner)=>`<svg viewBox="0 0 92 46" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${inner}</svg>`;
+const lg=(c1,c2,vert)=>{const id='g'+(++_gid);return [id,`<defs><linearGradient id="${id}" x1="0" y1="0" x2="${vert?0:1}" y2="${vert?1:0}"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>`];};
+const warn=(x,y,w)=>`<rect x="${x}" y="${y}" width="${w}" height="5.5" fill="#fff"/><rect x="${x+.5}" y="${y+.5}" width="${w-1}" height="4.5" fill="none" stroke="#111" stroke-width=".5"/>`+tx(x+w/2,y+4.1,3.6,'IL FUMO UCCIDE','#111',FF,{b:800,w:w-3});
+
+/* --- pacchetti di trinciato --- */
+function pouch(c1,c2,name,font,deco,ink){
+  const [id,d]=lg(c1,c2,true);
+  return sv(d+`<path d="M17 6 Q17 3 20 3 H72 Q75 3 75 6 V41 Q75 44 72 44 H20 Q17 44 17 41Z" fill="url(#${id})"/>
+  <rect x="17" y="3" width="58" height="7" rx="2" fill="rgba(0,0,0,.25)"/><path d="M20 6.5 H72" stroke="rgba(255,255,255,.55)" stroke-width=".7" stroke-dasharray="2 1.5"/>
+  ${deco}${tx(46,24,9,name,ink||'#fff',font,{w:52,st:'rgba(0,0,0,.35)',sw:.8})}${tx(46,31,4,'TRINCIATO · 30 g',ink||'#fff',FF,{b:700,ls:.6})}${warn(20,35,52)}`);}
+
+/* --- articoli generici --- */
+const wrapper=(c,c2,inner)=>`<path d="M6 14 L9 15.5 L6 17 L9 18.5 L6 20 L9 21.5 L6 23 L9 24.5 L6 26 L9 27.5 L6 29 L9 30.5 L6 32 H86 L83 30.5 L86 29 L83 27.5 L86 26 L83 24.5 L86 23 L83 21.5 L86 20 L83 18.5 L86 17 L83 15.5 L86 14Z" fill="${c}"/><rect x="9" y="14" width="74" height="18" fill="${c2}"/>`+inner;
+const bag=(c,inner,c2)=>`<path d="M20 4 L24 2.5 L28 4 L32 2.5 L36 4 L40 2.5 L44 4 L48 2.5 L52 4 L56 2.5 L60 4 L64 2.5 L68 4 L72 2.5 L72 6 Q76 24 72 40 L72 43.5 L68 42 L64 43.5 L60 42 L56 43.5 L52 42 L48 43.5 L44 42 L40 43.5 L36 42 L32 43.5 L28 42 L24 43.5 L20 42 L20 40 Q16 24 20 6Z" fill="${c}"/>${c2?`<path d="M21 7 Q18 24 21 39" stroke="${c2}" stroke-width="1.6" fill="none" opacity=".6"/>`:''}`+inner;
+const bottle=(x,c,cap,label)=>`<path d="M${x-2.5} 3 h5 v6 q0 3 4 6 v26 q0 2.5 -2.5 2.5 h-8 q-2.5 0 -2.5 -2.5 v-26 q4 -3 4 -6z" fill="${c}"/><rect x="${x-3}" y="2" width="6" height="3" rx="1" fill="${cap}"/>`+(label||'');
+const box=(c,inner,stroke)=>`<rect x="6" y="5" width="80" height="36" rx="3" fill="${c}"${stroke?` stroke="${stroke}" stroke-width="1"`:''}/>`+inner;
+const perf=(x,y,w,h,fill)=>{let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"/>`;for(let i=x;i<=x+w;i+=3)s+=`<circle cx="${i}" cy="${y}" r=".9" fill="#F1E9D8"/><circle cx="${i}" cy="${y+h}" r=".9" fill="#F1E9D8"/>`;for(let j=y;j<=y+h;j+=3)s+=`<circle cx="${x}" cy="${j}" r=".9" fill="#F1E9D8"/><circle cx="${x+w}" cy="${j}" r=".9" fill="#F1E9D8"/>`;return s;};
+const ticket=(c,c2,inner)=>`<path d="M4 7 H88 V17 A4 4 0 0 0 88 25 V39 H4 V25 A4 4 0 0 0 4 17Z" fill="${c}"/><rect x="4" y="7" width="7" height="32" fill="${c2}"/><path d="M68 9 V37" stroke="rgba(0,0,0,.35)" stroke-width=".6" stroke-dasharray="1.5 1.2"/>`+inner;
+const cigar=(band,bandInk,name,y)=>`<rect x="8" y="${y}" width="78" height="10" rx="5" fill="#6B4024"/><path d="M14 ${y+3} H80 M14 ${y+7} H80" stroke="#4E2C17" stroke-width=".5" opacity=".7"/><rect x="80" y="${y}" width="6" height="10" rx="5" fill="#3A2416"/><rect x="24" y="${y-1.5}" width="26" height="13" rx="1.5" fill="${band}" stroke="#D9B45A" stroke-width=".8"/>`+tx(37,y+7.6,4.4,name,bandInk,FD,{w:23});
+const cbox=(wood,lbl,ink,name,sub,font)=>`<rect x="6" y="6" width="80" height="34" rx="2" fill="${wood}"/><path d="M6 12 H86" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><rect x="20" y="15" width="52" height="20" rx="2" fill="${lbl}" stroke="#D9B45A" stroke-width="1"/>`+tx(46,26.5,8,name,ink,font,{w:46})+tx(46,32.5,3.6,sub,ink,FF,{b:700,ls:.5});
+const paper=(bg,inner)=>`<rect x="10" y="3" width="72" height="40" fill="${bg}" stroke="#C9C2B0" stroke-width=".6"/>`+inner;
+const lines=(x,y,w,n,gap,c)=>{let s='';for(let i=0;i<n;i++)s+=`<rect x="${x}" y="${y+i*gap}" width="${w-(i%3===2?6:0)}" height="1.1" fill="${c||'#9A9488'}"/>`;return s;};
+const vbox=(c1,c2,dev,name,font,ink,sub)=>{const [id,d]=lg(c1,c2);return d+`<rect x="5" y="4" width="82" height="38" rx="4" fill="url(#${id})"/>`+dev+tx(58,22,8.2,name,ink,font,{w:48})+(sub?tx(58,31,4,sub,ink,FF,{b:700,ls:.5,w:46}):'')+`<rect x="34" y="35" width="48" height="5" fill="#fff"/>`+tx(58,38.9,3.2,'CONTIENE NICOTINA','#111',FF,{b:800,w:44});};
+const pod=(x,c,c2)=>`<rect x="${x}" y="8" width="9" height="30" rx="4" fill="${c}"/><rect x="${x+2.5}" y="5" width="4" height="5" rx="1.5" fill="${c2}"/><rect x="${x+2}" y="30" width="5" height="1.5" rx=".7" fill="rgba(255,255,255,.7)"/>`;
+const scratch=(x,y,w,h)=>{let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="#B9BEC6"/>`;for(let i=x+2;i<x+w;i+=3)s+=`<path d="M${i} ${y+h-1} L${i+3} ${y+1}" stroke="#D6DAE0" stroke-width=".7"/>`;return s;};
+const gcard=(bg,border,inner,price,pc)=>`<rect x="2" y="2" width="88" height="42" rx="3" fill="${bg}" stroke="${border}" stroke-width="1.4"/>`+inner+`<circle cx="80" cy="34" r="7.5" fill="${pc||'#fff'}" stroke="${border}" stroke-width="1"/>`+tx(80,36.6,price>=10?6.4:7.4,price+'€',border,FB);
+const star=(x,y,r,c)=>{let p='';for(let i=0;i<10;i++){const a=Math.PI/5*i-Math.PI/2,rr=i%2?r*.45:r;p+=(i?'L':'M')+(x+rr*Math.cos(a)).toFixed(1)+' '+(y+rr*Math.sin(a)).toFixed(1);}return `<path d="${p}Z" fill="${c}"/>`;};
+
+const ART={
+ /* trinciati */
+ tri:()=>pouch('#F2A541','#C4501C','Scirocco',FR,`<circle cx="66" cy="17" r="5" fill="#FFE08A" opacity=".85"/><path d="M22 15 q6 -3 12 0 t12 0" stroke="#FFE7B8" stroke-width=".8" fill="none"/>`),
+ trv:()=>pouch('#1F7A7A','#0E3F4A','LIBECCIO',FO,`<path d="M20 17 q4 -3 8 0 t8 0 t8 0 t8 0 t8 0 t8 0" stroke="#7FD6CF" stroke-width="1" fill="none"/>`),
+ trd:()=>pouch('#2B4A8C','#14244A','Maestrale',FD,`<path d="M22 15 h22 a3 3 0 1 0 -3 -3 M26 18 h30 a3 3 0 1 1 -3 3" stroke="#DCE6FF" stroke-width=".9" fill="none"/>`),
+ /* cartine e filtri */
+ car:()=>sv(`<rect x="12" y="10" width="68" height="26" rx="2" fill="#7A2E1E"/><rect x="12" y="10" width="68" height="9" rx="2" fill="#9C4630"/><path d="M14 19 H78" stroke="#F3D9B1" stroke-width=".5"/>`+tx(46,17,5.4,'CARTINE CORTE','#F3D9B1',FB,{w:60})+tx(46,28.5,7,'Classic','#fff',FS)+tx(46,34,3.6,'+ FILTRI IN CARTONCINO','#F3D9B1',FF,{b:700})),
+ cal:()=>sv(`<rect x="4" y="13" width="84" height="20" rx="2" fill="#1E3F66"/><rect x="4" y="13" width="84" height="6" rx="2" fill="#2F5E92"/>`+tx(46,17.6,4,'KING SIZE SLIM','#CFE2FF',FF,{b:800,ls:1})+tx(46,28.5,7.4,'CARTINE LUNGHE','#fff',FO,{b:700,w:76})),
+ fil:()=>sv(`<rect x="22" y="6" width="48" height="34" rx="4" fill="rgba(220,235,245,.9)" stroke="#9FB4C4" stroke-width=".8"/><rect x="22" y="6" width="48" height="6" rx="2" fill="#4A8A6A"/>`+[0,1,2,3,4,5,6,7].map(i=>`<circle cx="${29+i*5}" cy="${18+(i%2)*2}" r="2" fill="#F7F3EA" stroke="#C8BFA8" stroke-width=".4"/>`).join('')+tx(46,30,6.4,'FILTRI','#2E5E48',FB)+tx(46,36.5,3.8,'SLIM · 6 mm','#2E5E48',FF,{b:700})),
+ /* accendini */
+ acc:()=>sv([['#D93A3A',24],['#F2C230',40],['#2F7FD0',56]].map(([c,x])=>`<rect x="${x}" y="14" width="13" height="28" rx="2.5" fill="${c}"/><rect x="${x+1}" y="6" width="11" height="9" rx="1" fill="#B8BDC4"/><circle cx="${x+4.5}" cy="9" r="2.2" fill="#6D737B"/><rect x="${x+8}" y="7" width="2.5" height="5" fill="#2A2A2A"/>`).join('')+tx(46,33,4.2,'USA E GETTA','#fff',FF,{b:800,st:'rgba(0,0,0,.5)',sw:.8})),
+ acm:()=>sv(`<rect x="30" y="16" width="32" height="26" rx="3" fill="#8D949C"/><rect x="30" y="6" width="32" height="11" rx="3" fill="#B3B9C0"/><path d="M30 17 H62" stroke="#5E646B" stroke-width="1"/><path d="M46 29 q-5 -4 0 -9 q5 5 0 9z" fill="#3E6FD8"/><path d="M46 28 q-2.5 -2 0 -5 q2.5 3 0 5z" fill="#9FD0FF"/>`+tx(46,38.5,4.6,'ANTIVENTO','#1E2328',FB,{w:28})),
+ acr:()=>sv(`<rect x="22" y="12" width="40" height="22" rx="4" fill="#1B1E24"/><rect x="26" y="16" width="4" height="4" rx="2" fill="#3CE0FF"/><path d="M36 23 h18" stroke="#3B4250" stroke-width="2"/>`+tx(46,30.5,5,'ARC · USB','#A9B4C6',FO,{b:700})+`<path d="M62 23 h6 q6 0 6 6 v8" stroke="#E8E8E8" stroke-width="1.6" fill="none"/><rect x="71" y="36" width="6" height="6" rx="1" fill="#C9CED6"/>`),
+ /* caramelle */
+ cam:()=>sv(`<rect x="10" y="15" width="72" height="16" rx="8" fill="#1F9D6B"/><path d="M10 23 h72" stroke="#fff" stroke-width="6" opacity=".2"/><path d="M6 17 l6 6 -6 6z M86 17 l-6 6 6 6z" fill="#E8F7F0"/>`+tx(46,27,9,'Menta','#fff',FS)+tx(46,38,4,'CARAMELLE FORTI','#1F9D6B',FF,{b:800,ls:.8})),
+ liq:()=>sv(`<ellipse cx="46" cy="24" rx="22" ry="18" fill="#1A1A1A" stroke="#C9A24A" stroke-width="1.6"/><ellipse cx="46" cy="24" rx="17" ry="13.5" fill="none" stroke="#C9A24A" stroke-width=".6"/>`+tx(46,25,7.4,'Liquirizia','#F2D27C',FS,{w:30})+tx(46,31.5,3.6,'PURA DI CALABRIA','#C9A24A',FF,{b:700,w:28})),
+ gom:()=>sv(bag('#F05A8C',[['#FFD23F',30,18],['#7BD389',44,15],['#4FC3F7',58,19],['#FF8A3D',38,28],['#B388FF',54,29]].map(([c,x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="${c}"/><circle cx="${x-2}" cy="${y-2.6}" r="1.3" fill="${c}"/><circle cx="${x+2}" cy="${y-2.6}" r="1.3" fill="${c}"/>`).join('')+tx(46,39,6,'GOMMOSE','#fff',FB,{w:44}),'#FFB3CB')),
+ /* snack */
+ sna:()=>sv(wrapper('#5A2A14','#7B3A1C',`<rect x="9" y="14" width="22" height="18" fill="#C9302C"/>`+tx(20,25.5,5.2,'CHOCO','#fff',FB,{w:19})+tx(57,26.5,9,'Cioccolato','#F5D8A8',FS,{w:48}))),
+ waf:()=>sv(wrapper('#C99A5B','#E8C48A',`<path d="M12 14 V32 M18 14 V32 M24 14 V32 M12 20 H28 M12 26 H28" stroke="#B07A3A" stroke-width=".8"/>`+tx(54,24.5,8.4,'WAFER','#6B3A12',FD)+tx(54,30.5,4,'ALLA NOCCIOLA','#6B3A12',FF,{b:800,ls:.4}))),
+ crk:()=>sv(wrapper('#1E5AA8','#2E74CC',`<rect x="12" y="16" width="16" height="14" rx="1.5" fill="#E9C27A"/>`+[0,1,2].map(i=>[0,1].map(j=>`<circle cx="${16+i*4}" cy="${20+j*6}" r=".8" fill="#B8873A"/>`).join('')).join('')+tx(55,24.5,8,'CRACKER','#fff',FO,{b:700})+tx(55,30.5,4,'SALATI IN SUPERFICIE','#CFE2FF',FF,{b:700,w:44}))),
+ tar:()=>sv(bag('rgba(245,235,215,.95)',[[34,17],[46,15],[58,17],[40,25],[52,25]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4.6" fill="none" stroke="#C98A3E" stroke-width="2.6"/>`).join('')+`<rect x="24" y="31" width="44" height="10" rx="1" fill="#2E6B3A"/>`+tx(46,38.6,6.4,'Taralli','#fff',FS,{w:40}),'#C8BFA8')),
+ /* bibite */
+ bib:()=>sv(`<rect x="36" y="5" width="20" height="37" rx="3" fill="#D21F26"/><rect x="38" y="3" width="16" height="3" rx="1" fill="#B9BEC4"/><rect x="36" y="38" width="20" height="4" rx="2" fill="#B9BEC4"/><path d="M36 24 q10 -5 20 0 v4 q-10 -5 -20 0z" fill="#fff"/>`+tx(46,18,5.2,'COCA','#fff',FO,{b:700,ls:.6})+tx(46,35,5.2,'COLA','#fff',FO,{b:700,ls:.6})+tx(20,26,4,'33 cl','#D21F26',FF,{b:800})),
+ acq:()=>sv(bottle(46,'rgba(170,215,240,.85)','#2F7FD0',`<rect x="38" y="22" width="16" height="11" fill="#2F7FD0"/>`+tx(46,28.6,4.4,'ACQUA','#fff',FB,{w:14})+tx(46,32,2.6,'NATURALE','#DDEFFF',FF,{b:700}))+tx(72,26,4.6,'50 cl','#2F7FD0',FF,{b:800})),
+ tef:()=>sv(`<rect x="34" y="8" width="24" height="34" rx="2" fill="#F2B01E"/><path d="M34 8 l6 -5 h12 l6 5z" fill="#E09A0C"/><rect x="50" y="1" width="2" height="7" fill="#fff"/><circle cx="46" cy="21" r="6" fill="#FFE45C" stroke="#8AB33A" stroke-width="1"/><path d="M46 15 v12 M40 21 h12" stroke="#E8C93A" stroke-width=".6"/>`+tx(46,34,5.2,'TÈ FREDDO','#6B3A00',FO,{b:700,w:22})+tx(46,39,3.6,'AL LIMONE','#6B3A00',FF,{b:800})),
+ pow:()=>sv(`<rect x="16" y="9" width="60" height="28" rx="5" fill="#2A2D33"/>`+[0,1,2,3].map(i=>`<circle cx="${24+i*4}" cy="31" r="1.2" fill="${i<3?'#3CE07A':'#444'}"/>`).join('')+tx(46,22,7,'POWERRR','#E8E8E8',FB,{w:44})+`<rect x="44" y="27" width="28" height="8" fill="#F5E663" transform="rotate(-8 58 31)"/>`+tx(58,32.5,4,'ORIGINALE!!','#B00',FF,{b:800,r:-8})),
+ /* valori */
+ bol:()=>sv(perf(24,5,44,36,'#F3C3CE')+`<rect x="28" y="9" width="36" height="28" fill="none" stroke="#B24A63" stroke-width=".6"/><circle cx="46" cy="18" r="5.5" fill="none" stroke="#B24A63" stroke-width=".8"/>`+star(46,18,3.6,'#B24A63')+tx(46,30,7,'€16,00','#7A1F3A',FO,{b:700})+tx(46,35,3.2,'MARCA DA BOLLO','#7A1F3A',FF,{b:800})),
+ fra:()=>sv(perf(26,4,40,38,'#FFF7E6')+`<rect x="29" y="7" width="34" height="25" fill="#7FC4E8"/><circle cx="54" cy="14" r="4" fill="#FFD23F"/><path d="M29 26 q8 -6 17 0 t17 0 v6 h-34z" fill="#1E6FA8"/><path d="M36 22 l3 -8 l3 8z" fill="#fff"/>`+tx(32,38.6,4.6,'ITALIA','#1B3B6B',FO,{b:700,a:'start'})+tx(63,38.6,4.6,'1,30€','#1B3B6B',FO,{b:700,a:'end'})),
+ cpo:()=>sv(`<rect x="6" y="5" width="80" height="36" fill="#fff" stroke="#D8D0BC" stroke-width=".8"/><rect x="9" y="8" width="74" height="30" fill="#8FD3F0"/><circle cx="70" cy="15" r="5" fill="#FFD23F"/><path d="M9 26 l14 -10 l12 9 l10 -6 l14 9 v10 h-50z" fill="#5E8B4E"/><path d="M9 30 q9 -3 18 0 t18 0 t18 0 t20 0 v8 h-74z" fill="#1E7FC0"/><path d="M60 30 l3 -9 l3 9z" fill="#fff"/><path d="M63 30 v-11" stroke="#7A5A3A" stroke-width=".6"/>`+tx(32,21,9,'Saluti!','#fff',FS,{st:'#C23B6B',sw:1.2})),
+ trr:()=>sv(ticket('#F4F1E6','#1C7A3E',`<path d="M16 26 h14 v-7 q0 -3 -3 -3 h-8 q-3 0 -3 3z" fill="#1C7A3E"/><circle cx="19" cy="28" r="1.6" fill="#1C7A3E"/><circle cx="27" cy="28" r="1.6" fill="#1C7A3E"/><rect x="18" y="18" width="4" height="3" fill="#fff"/><rect x="24" y="18" width="4" height="3" fill="#fff"/>`+tx(49,19,4,'REGIONALE · 2ª CL.','#1C7A3E',FF,{b:800,w:30})+tx(49,28,7,'REGGIO C.','#1B1B1B',FO,{b:700,w:30})+tx(49,34,3.6,'VALIDO 1 CORSA','#555',FF,{b:700})+tx(78,26,6,'2,30€','#1B1B1B',FO,{b:700,w:16}))),
+ trs:()=>sv(ticket('#F4F1E6','#1C7A3E',`<path d="M16 26 h14 v-7 q0 -3 -3 -3 h-8 q-3 0 -3 3z" fill="#1C7A3E"/><circle cx="19" cy="28" r="1.6" fill="#1C7A3E"/><circle cx="27" cy="28" r="1.6" fill="#1C7A3E"/><rect x="18" y="18" width="4" height="3" fill="#fff"/><rect x="24" y="18" width="4" height="3" fill="#fff"/>`+tx(49,19,4,'REGIONALE · 2ª CL.','#1C7A3E',FF,{b:800,w:30})+tx(49,28,7,'SCILLA','#1B1B1B',FO,{b:700,w:30})+tx(49,34,3.6,'VALIDO 1 CORSA','#555',FF,{b:700})+tx(78,26,6,'1,40€','#1B1B1B',FO,{b:700,w:16}))),
+ nav:()=>sv(ticket('#E6F2FA','#0E5FA8',`<path d="M14 25 h20 l-3 5 h-15z" fill="#0E5FA8"/><rect x="19" y="20" width="10" height="5" fill="#0E5FA8"/><rect x="22" y="16" width="3" height="4" fill="#E04A3A"/><path d="M13 33 q3 -2 6 0 t6 0 t6 0" stroke="#0E5FA8" stroke-width=".8" fill="none"/>`+tx(51,19,4,'NAVE VELOCE','#0E5FA8',FF,{b:800,ls:.5})+tx(51,28,6.4,'VILLA ⇄ MESSINA','#0A2E52',FO,{b:700,w:30})+tx(51,34,3.6,'SOLO ANDATA','#555',FF,{b:700})+tx(78,26,6,'1,80€','#0A2E52',FO,{b:700,w:16}))),
+ /* sigarette elettroniche */
+ sv1:()=>sv(vbox('#3A2414','#8C5A2B',pod(14,'#C88A4A','#2A1A0E')+pod(24,'#A86E36','#2A1A0E'),'Bronze Lux',FD,'#F2D27C','USA E GETTA · 600 PUFF')),
+ sv2:()=>sv(vbox('#0B5D8C','#33B5D8',pod(14,'#E8F6FF','#0B3A5C')+`<rect x="24" y="12" width="9" height="9" rx="2" fill="#B01E2E"/>`+tx(28.5,18.6,4.6,'L','#fff',FB),'Stretto Breeze',FR,'#fff','LUPA EDITION')),
+ sv3:()=>sv(vbox('#F7E25A','#4FD1C5',pod(14,'#FFF7B0','#1E7A70')+`<ellipse cx="28" cy="26" rx="3.4" ry="4.6" fill="#FFE135" stroke="#C9A800" stroke-width=".6"/><path d="M28 21.5 q2 -2 4 -1" stroke="#3E8E3E" stroke-width="1" fill="none"/>`,'Scilla Feel',FS,'#0E4A44','GUSTO LIMONE')),
+ sv4:()=>sv(vbox('#1E5E2E','#7BBF4A',`<circle cx="22" cy="23" r="10" fill="#D9E84A"/><circle cx="22" cy="23" r="10" fill="none" stroke="#9AB52A" stroke-width=".8"/><path d="M22 13 q4 -4 8 -2 q-3 3 -8 2z" fill="#2E7A2E"/><circle cx="19" cy="20" r="1.4" fill="#F2F8B0"/>`,'BERGAMOTTO',FO,'#fff','KIT RICARICABILE')),
+ sv5:()=>sv(vbox('#141414','#4A4F57',`<rect x="12" y="10" width="18" height="26" rx="3" fill="#2B2F36" stroke="#9AA2AD" stroke-width=".8"/><rect x="15" y="14" width="12" height="8" rx="1" fill="#0F2A1A"/>`+tx(21,20.4,4.6,'100W','#3CE07A',FO,{b:700})+`<circle cx="21" cy="29" r="3" fill="#C62828"/>`,'BRUTIUM',FB,'#E53935','100 PRO · BOX MOD')),
+ sv6:()=>sv(vbox('#0D0D0D','#2B2B2B',pod(13,'#1F1F1F','#9CFF3A')+pod(23,'#1F1F1F','#9CFF3A'),'BIIIG',FB,'#9CFF3A','STIIIZY · POD THC')),
+ /* cancelleria */
+ pen:()=>sv(`<rect x="14" y="12" width="64" height="22" rx="2" fill="#E7EEF7" stroke="#B7C4D6" stroke-width=".6"/><path d="M18 23 h48 l8 0 l3 0" stroke="#1E4FA8" stroke-width="3.4" stroke-linecap="round"/><path d="M74 23 l5 0" stroke="#9AA2AD" stroke-width="2"/><rect x="22" y="20.5" width="8" height="5" fill="#1E4FA8"/><rect x="24" y="17" width="12" height="2" rx="1" fill="#1E4FA8"/>`+tx(46,32,4,'PENNA A SFERA · BLU','#1E4FA8',FF,{b:800})),
+ pco:()=>sv(`<rect x="12" y="7" width="68" height="32" rx="2" fill="#F4F4F4" stroke="#C8C8C8" stroke-width=".6"/>`+['#1E4FA8','#D32F2F','#2E7D32','#212121'].map((c,i)=>`<path d="M18 ${14+i*5.5} h50" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M68 ${14+i*5.5} l5 0" stroke="#9AA2AD" stroke-width="1.6"/>`).join('')+tx(46,37.5,3.8,'4 COLORI','#333',FF,{b:800,ls:1})),
+ evi:()=>sv(['#FFEB3B','#FF6FB5','#7CFC6A'].map((c,i)=>`<rect x="${16+i*21}" y="9" width="16" height="28" rx="3" fill="${c}"/><rect x="${18+i*21}" y="5" width="12" height="6" rx="1.5" fill="${c}" opacity=".7"/><rect x="${16+i*21}" y="30" width="16" height="7" rx="2" fill="rgba(0,0,0,.25)"/>`).join('')+tx(46,26,5.4,'FLUO','#222',FB,{w:52})),
+ qua:()=>sv(`<rect x="24" y="4" width="44" height="38" rx="1.5" fill="#E53935"/><rect x="29" y="12" width="34" height="12" rx="1" fill="#fff"/>`+tx(46,19.6,5,'QUADERNO','#E53935',FO,{b:700})+tx(46,22.6,2.6,'A RIGHE · A4','#555',FF,{b:700})+[0,1,2,3,4,5,6].map(i=>`<circle cx="26.5" cy="${8+i*5}" r="1" fill="#fff"/>`).join('')+tx(46,36,6,'Scuola','#fff',FS)),
+ bus:()=>sv(`<rect x="14" y="10" width="60" height="30" fill="#F2EBDD" stroke="#BDB39E" stroke-width=".6"/><path d="M14 10 L44 28 L74 10" fill="none" stroke="#BDB39E" stroke-width=".8"/><rect x="18" y="6" width="60" height="30" fill="#FAF6EE" stroke="#BDB39E" stroke-width=".6"/><path d="M18 6 L48 24 L78 6" fill="none" stroke="#BDB39E" stroke-width=".8"/>`+perf(64,9,10,10,'#E57373')+lines(24,28,30,2,3.5,'#BDB39E')+tx(84,40,4,'×10','#6B5E45',FF,{b:800,a:'end'})),
+ bau:()=>sv(`<rect x="20" y="4" width="52" height="38" rx="2" fill="#FFF3E0" stroke="#F5B971" stroke-width=".8"/><ellipse cx="34" cy="15" rx="5" ry="6" fill="#E53935"/><ellipse cx="44" cy="12" rx="5" ry="6" fill="#42A5F5"/><ellipse cx="56" cy="15" rx="5" ry="6" fill="#FFCA28"/><path d="M34 21 q1 5 4 8 M44 18 q0 6 2 11 M56 21 q-2 5 -6 8" stroke="#888" stroke-width=".5" fill="none"/>`+tx(46,36,8.4,'Auguri!','#D81B60',FS)),
+ col:()=>sv(`<rect x="36" y="10" width="20" height="32" rx="3" fill="#F2C230"/><rect x="36" y="4" width="20" height="9" rx="3" fill="#1E4FA8"/><rect x="36" y="18" width="20" height="14" fill="#1E4FA8"/>`+tx(46,27,6,'COLLA','#fff',FB,{w:17})+tx(46,38.5,3.6,'STICK 21 g','#5A3D00',FF,{b:800})),
+ nas:()=>sv(`<circle cx="40" cy="23" r="17" fill="#F2E7C9" opacity=".9"/><circle cx="40" cy="23" r="17" fill="none" stroke="#D9C79A" stroke-width="2"/><circle cx="40" cy="23" r="9" fill="#C6A36A"/><circle cx="40" cy="23" r="6.5" fill="#F1E9D8"/><path d="M57 23 h22 l-2 2 l2 2 h-22" fill="#F2E7C9" stroke="#D9C79A" stroke-width=".5"/>`+tx(70,36,4,'NASTRO','#6B5E45',FF,{b:800})),
+ /* sigari */
+ sto:()=>sv(cigar('#7A1426','#F2D27C','ASPROMONTE',18)+tx(46,40,3.8,'CLASSICO · AMMEZZATO','#6B4226',FF,{b:800})),
+ mez:()=>sv(cigar('#1E3F66','#DCE6FF','TRAMONTANA',18)+tx(46,40,3.8,'TAGLIO CORTO','#6B4226',FF,{b:800})),
+ grc:()=>sv(cigar('#0E5A4A','#F2D27C','GRECALE',18)+`<circle cx="62" cy="23" r="4" fill="#D9B45A"/>`+tx(62,24.6,4.4,'5','#3A2416',FD)+tx(46,40,3.8,'INVECCHIATO 5 ANNI','#6B4226',FF,{b:800})),
+ ava:()=>sv(cbox('#8A5A35','#F7EBD0','#6B1F1F','Ostro','TRADIZIONALE',FD)),
+ cor:()=>sv(cbox('#6B3F24','#1E2C48','#E7C46A','Levante','RESERVA',FS)),
+ pon:()=>sv(cbox('#9C6B3F','#7A1426','#F2D27C','PONENTE','BLEND',FO)),
+ coh:()=>sv(cbox('#5A3218','#F5E6B8','#2A2A2A','COHIBA','HABANA · CUBA',FD)+star(25,25,3,'#C9A24A')+star(67,25,3,'#C9A24A')),
+ mtc:()=>sv(cbox('#7A4A28','#FFFFFF','#8B1A1A','Montecristo','HABANA · CUBA',FS)),
+ /* giornali */
+ gaz:()=>sv(paper('#F7F4EC',tx(46,11,7,'Gazzetta del Sud','#1B3B6B',FD,{w:66})+`<rect x="13" y="13" width="66" height=".8" fill="#1B3B6B"/><rect x="13" y="16" width="26" height="18" fill="#9AA7B8"/>`+lines(42,16,37,6,3.2)+lines(13,37,66,2,3))),
+ spo:()=>sv(paper('#E9F5E3',tx(46,11.5,8,'SPORT','#1E7A3E',FB)+`<rect x="13" y="14" width="66" height="9" fill="#1E7A3E"/>`+tx(46,21,6,'CHE PARTITA!','#fff',FO,{b:700})+`<rect x="13" y="25" width="30" height="15" fill="#A8C9A0"/><circle cx="28" cy="32" r="4" fill="#fff" stroke="#333" stroke-width=".5"/>`+lines(46,26,33,5,3))),
+ enm:()=>sv(paper('#FFFDF5',tx(46,10.5,6.4,'ENIGMI','#C62828',FB)+tx(46,14.5,3,'SETTIMANALE DI PAROLE CROCIATE','#333',FF,{b:700,w:62})+(()=>{let s='';for(let i=0;i<6;i++)for(let j=0;j<12;j++)s+=`<rect x="${16+j*5}" y="${17+i*4.2}" width="5" height="4.2" fill="${(i*7+j*3)%5===0?'#222':'#fff'}" stroke="#555" stroke-width=".3"/>`;return s;})())),
+ /* birre */
+ bir:()=>sv(bottle(46,'#2E5A2E','#C9A24A',`<rect x="38" y="22" width="16" height="13" fill="#F5F1E4"/><rect x="38" y="22" width="16" height="2.4" fill="#1E3F8C"/>`+tx(46,31,4.8,'PERONI','#1E3F8C',FO,{b:700,w:14}))+tx(72,24,4.2,'33 cl','#2E5A2E',FF,{b:800})+tx(20,24,4.2,'BIRRA','#2E5A2E',FF,{b:800})),
+ brs:()=>sv(bottle(46,'#6B3E12','#1E6FA8',`<rect x="38" y="21" width="16" height="15" rx="1" fill="#1E6FA8"/><path d="M38 31 q4 -2 8 0 t8 0 v5 h-16z" fill="#7FC4E8"/>`+tx(46,26.5,3.2,'BIRRA DELLO','#fff',FF,{b:800})+tx(46,30.8,4.6,'STRETTO','#fff',FO,{b:700,w:14}))+tx(72,24,4.2,'33 cl','#6B3E12',FF,{b:800})),
+ brm:()=>sv(bottle(46,'#8C5A1E','#B01E2E',`<ellipse cx="46" cy="28" rx="8" ry="7" fill="#F2D27C" stroke="#B01E2E" stroke-width="1"/>`+tx(46,29.6,4,'MESSINA','#B01E2E',FO,{b:700,w:13}))+tx(72,24,4.2,'33 cl','#8C5A1E',FF,{b:800})),
+ /* cannabis light */
+ cbd:()=>sv(`<rect x="32" y="12" width="28" height="30" rx="4" fill="rgba(210,240,210,.75)" stroke="#5E9E5A" stroke-width=".8"/><rect x="30" y="6" width="32" height="8" rx="2" fill="#2E6B2E"/>`+[0,1,2,3,4,5,6].map(i=>{const a=(i-3)*24;return `<ellipse cx="46" cy="22" rx="1.6" ry="${i===3?7:5.5}" fill="#3F8A3A" transform="rotate(${a} 46 29)"/>`;}).join('')+tx(46,38.6,4.4,'LIGHT 2 g','#2E6B2E',FF,{b:800})),
+ olo:()=>sv(`<rect x="38" y="16" width="16" height="26" rx="3" fill="#8A5A12"/><rect x="40" y="9" width="12" height="8" rx="1" fill="#222"/><ellipse cx="46" cy="7" rx="4" ry="3" fill="#333"/><rect x="38" y="24" width="16" height="12" fill="#F5F1E4"/>`+tx(46,31,4.6,'CBD','#2E6B2E',FB)+tx(46,34.6,2.6,'OLIO 10%','#333',FF,{b:800})+tx(72,30,4.2,'10 ml','#8A5A12',FF,{b:800})),
+ /* bar */
+ caf:()=>sv(`<ellipse cx="46" cy="40" rx="20" ry="3" fill="#E8E2D6"/><path d="M33 22 h24 l-2 14 q-1 3 -4 3 h-12 q-3 0 -4 -3z" fill="#fff" stroke="#C8BFA8" stroke-width=".8"/><path d="M57 25 q6 0 5 5 q-1 4 -6 3" fill="none" stroke="#C8BFA8" stroke-width="1.4"/><ellipse cx="45" cy="22" rx="12" ry="2" fill="#5A341A"/><path d="M40 17 q-2 -3 0 -6 M46 17 q-2 -3 0 -7 M52 17 q-2 -3 0 -6" stroke="#B8B0A0" stroke-width=".8" fill="none"/>`+tx(46,33,4.4,'ESPRESSO','#7A5A3A',FO,{b:700})),
+ pat:()=>sv(bag('#F2C230',`<ellipse cx="46" cy="15" rx="9" ry="5.5" fill="#FFE8A0" stroke="#D99A1E" stroke-width=".7"/><ellipse cx="38" cy="18" rx="6" ry="4" fill="#FFE08A" stroke="#D99A1E" stroke-width=".6"/>`+tx(46,30,7.4,'PATATINE','#B3261E',FB,{w:44})+tx(46,37,4.2,'CLASSICHE · 50 g','#5A3D00',FF,{b:800}),'#FFE38A')),
+ ppc:()=>sv(bag('#B3261E',`<path d="M38 12 q8 -6 16 0 q-2 8 -8 10 q-6 -2 -8 -10z" fill="#E8492E"/><path d="M53 11 q3 -4 6 -3" stroke="#2E7A2E" stroke-width="1.4" fill="none"/><ellipse cx="40" cy="20" rx="5" ry="3" fill="#FFB36B"/>`+tx(46,30,5,'alla','#FFE08A',FS)+tx(46,38,7.4,"'NDUJA",'#FFE08A',FB,{w:40}),'#E25A44'))
+};
+/* gratta e vinci: biglietti inventati, ispirati ai temi di quelli veri */
+Object.assign(ART,{
+ g2:()=>sv(gcard('#2E9B4E','#0F4A22',`<path d="M14 12 a4 4 0 1 1 6 -4 a4 4 0 1 1 4 6 a4 4 0 1 1 -6 4 a4 4 0 1 1 -4 -6z" fill="#7BE08A"/><path d="M18 14 q1 6 -2 10" stroke="#0F4A22" stroke-width=".8" fill="none"/>`+tx(46,15.5,8.6,'Quadrifoglio',"#FFF6C8",FS,{w:46})+scratch(10,25,58,14)+tx(39,35,5,'GRATTA QUI','#7A8088',FB,{w:40}),2,'#FFF6C8')),
+ g3:()=>sv(gcard('#29B6D8','#0B4F72',`<rect x="3" y="30" width="86" height="13" fill="#F7D98B"/><path d="M3 30 q10 -3 20 0 t22 0 t22 0 t22 0" fill="#1E88C8"/><path d="M14 30 q0 -12 4 -20" stroke="#7A5A3A" stroke-width="1.6" fill="none"/><path d="M18 10 q-8 -1 -11 4 M18 10 q7 -3 11 1 M18 10 q-3 -6 -9 -6 M18 10 q4 -6 10 -4" stroke="#2E9B4E" stroke-width="2" fill="none"/>`+tx(48,12,5,'VACANZE','#fff',FB,{st:'#0B4F72',sw:.8})+tx(48,22,8,'per la vita','#FFE45C',FS,{st:'#0B4F72',sw:1})+scratch(34,30,34,11),3,'#FFE45C')),
+ g5:()=>sv(gcard('#5B2A86','#2A0F45',`<rect x="2" y="2" width="88" height="10" rx="3" fill="#2A0F45"/>`+tx(40,9.5,5.4,'RENDITA D\'ORO','#F2D27C',FB,{w:62})+tx(36,21,6.6,'2.000€ al mese','#fff',FO,{b:700,w:56})+tx(36,26.5,3.8,'PER 20 ANNI','#F2D27C',FF,{b:800,ls:1})+scratch(8,29,62,12)+[0,1,2,3,4].map(i=>`<circle cx="${16+i*12}" cy="35" r="3.6" fill="#9BA1AA"/>`).join(''),5,'#F2D27C')),
+ g10:()=>sv(gcard('#8E1B1B','#4A0A0A',`<rect x="10" y="10" width="22" height="14" rx="2" fill="#8A5A24" stroke="#F2C230" stroke-width="1"/><path d="M10 15 h22" stroke="#F2C230" stroke-width="1"/><rect x="19" y="13" width="4" height="5" fill="#F2C230"/><circle cx="14" cy="9" r="2" fill="#F2C230"/><circle cx="20" cy="7.6" r="2" fill="#FFE45C"/><circle cx="26" cy="9" r="2" fill="#F2C230"/>`+tx(52,15,7.4,'IL FORZIERE','#F2D27C',FD,{w:34})+tx(52,22,4,'FINO A 200.000€','#fff',FF,{b:800})+scratch(8,27,62,13),10,'#F2D27C')),
+ g20:()=>sv(gcard('#121212','#C9A24A',`<path d="M10 14 l5 -6 h12 l5 6 l-11 13z" fill="#7FE0FF" stroke="#fff" stroke-width=".6"/><path d="M10 14 h22 M15 8 l6 19 M27 8 l-6 19 M21 8 v6" stroke="#fff" stroke-width=".4" opacity=".8"/>`+tx(53,13,5,'MEGA','#C9A24A',FB)+tx(53,22,7.4,'Diamante','#fff',FS,{w:34})+scratch(8,29,62,11)+star(14,35,2.5,'#fff')+star(64,35,2.5,'#fff'),20,'#FFF6D8'))
+});
+/* biglietto per gli eventi (servizio) */
+const SVART={evt:()=>sv(ticket('#2B1B4A','#E53970',tx(40,19,4.2,'BIGLIETTERIA EVENTI','#F2D27C',FF,{b:800,w:50})+tx(40,30,8.4,'Ingresso','#fff',FS)+`<rect x="72" y="14" width="10" height="18" fill="#fff"/>`+[0,1,2,3,4,5,6].map(i=>`<rect x="${73+i*1.3}" y="16" width="${i%2?.5:.9}" height="14" fill="#111"/>`).join('')))};
+
 S=load();
 
 /* ===== finestre e avvisi ===== */
@@ -1910,6 +2032,7 @@ function closeModal(){RT.modal=false;const m=$('#modal');if(m)m.hidden=true;try{
 function artOf(id){
   const p=PD[id];
   if(p.cat==='sig')return `<div class="pack${p.pk?' '+p.pk:''}" style="background:${p.color}"><b>${esc(p.name)}</b><i>Il fumo uccide</i></div>`;
+  if(ART[id])return `<div class="tile art ${p.cat}">${ART[id]()}</div>`;
   return `<div class="tile ${p.cat}">${esc(p.tag||p.name)}</div>`;
 }
 const faceHtml=(f,m)=>`<div class="face">${faceSVG(f,m||'ok')}</div>`;
@@ -1945,7 +2068,7 @@ function buildStockGrid(){
   if(PCAT==='lot'){
     for(const id in SV){
       const w=el('div','sitem');const b=el('button','si');b.type='button';b.dataset.sv=id;
-      b.innerHTML=`<div class="tile lot">${SVTAG[id]}</div><span class="nm">${SV[id].name}</span><span class="ct"></span>`;
+      b.innerHTML=`${SVART[id]?`<div class="tile art lot">${SVART[id]()}</div>`:`<div class="tile lot">${SVTAG[id]}</div>`}<span class="nm">${SV[id].name}</span><span class="ct"></span>`;
       w.appendChild(b);w.appendChild(el('span','tq'));SG['sv_'+id]={b,ct:b.querySelector('.ct'),tq:w.querySelector('.tq'),sv:id};g.appendChild(w);
     }
   }else{
