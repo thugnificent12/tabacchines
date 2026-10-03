@@ -850,10 +850,10 @@ const UPG=[
  {id:'eventi',grp:'srv',name:'Biglietteria eventi',max:1,cost:[300],desc:'La stampante dei biglietti per concerti, partite e teatro. Fa la coda pure lei.',eff:()=>'vendi biglietti per eventi (provvigione 6%)'}
 ];const UPD={};UPG.forEach(u=>UPD[u.id]=u);
 const LOANS=[{amt:10000,n:120,rata:92},{amt:20000,n:180,rata:123},{amt:50000,n:365,rata:152}];
-const CATL={tab:'Tabacchi',gra:'Gratta e Vinci',val:'Valori e trasporti',ban:'Banco',srv:'Lotterie e servizi (incassato)',man:'Mance',cred:'Crediti incassati',int:'Interessi libretto',fin:'Finanziamenti ricevuti',vin:'Vincite del tabaccaio',pers:'Personale',vers:'Versamenti al concessionario',prem:'Vincite pagate ai clienti',rimb:'Rimborsi delle vincite',gio:'Giornali',bar:'Bar, alcolici e snack',cbd:'Cannabis light',slot:'Slot e distributore',vizi:'Vizi del tabaccaio',
+const CATL={succ:'Il TabacchInes 2',fam:'Famiglia',vil:'Villese e acquisti',tab:'Tabacchi',gra:'Gratta e Vinci',val:'Valori e trasporti',ban:'Banco',srv:'Lotterie e servizi (incassato)',man:'Mance',cred:'Crediti incassati',int:'Interessi libretto',fin:'Finanziamenti ricevuti',vin:'Vincite del tabaccaio',pers:'Personale',vers:'Versamenti al concessionario',prem:'Vincite pagate ai clienti',rimb:'Rimborsi delle vincite',gio:'Giornali',bar:'Bar, alcolici e snack',cbd:'Cannabis light',slot:'Slot e distributore',vizi:'Vizi del tabaccaio',
  merce:'Acquisto merce',iniz:'Iniziative di quartiere',boll:'Bollette',canoni:'Canoni terminali',tasse:'Tasse e contributi',prof:'Commercialista e assicurazione',pos:'Commissioni POS',rate:'Rate del finanziamento',upg:'Migliorie',furti:'Furti e rapine',multe:'Multe e imprevisti'};
-const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','cred','vin','int','fin'];
-const EXP=['merce','vers','prem','boll','canoni','tasse','prof','pers','pos','rate','upg','iniz','vizi','furti','multe'];
+const INC=['succ','tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','cred','vin','int','fin'];
+const EXP=['fam','vil','merce','vers','prem','boll','canoni','tasse','prof','pers','pos','rate','upg','iniz','vizi','furti','multe'];
 const NEU=['giro','credito','autoc'];
 const RANKS=[[0,'Tabaccaio Provetto'],[10000,'Cumpari'],[25000,'Principi i \'Zzareddu'],[50000,'Signore di Villa San Giovanni'],[100000,'Re dello Stretto'],[175000,'Presidente del Sud'],[250000,'Don Pietro']];
 const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e la sindaca passa in bottega.','Mance +5% e il commercialista costa il 20% in meno.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e Radio Sole parla di te.'];
@@ -954,7 +954,7 @@ function hourCurve(t){
 const offP=id=>PD[id].free?PD[id].ref:S.price[id];
 const pfOn=()=>!!(S&&S.rep>=70);
 const sellP=id=>PD[id].free?S.price[id]:(pfOn()&&S.sell&&S.sell[id]!=null?S.sell[id]:S.price[id]);
-function priceFactor(id){const d=PD[id];if(!d.free)return 1;return clamp(Math.pow(d.ref/S.price[id],1.7),0,1.5);}
+function priceFactor(id){const d=PD[id];if(!d.free)return 1;return clamp(Math.pow(d.ref/S.price[id],priceWar()?3.2:1.7),0,1.5);}
 const queueCap=()=>S.up.locale?50:20;
 function tx(cat,amt,label,neutral){
   amt=r2(amt);
@@ -1550,6 +1550,7 @@ function billsFor(d){
   if(g===28){b.push({cat:'tasse',amt:45+60*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2((S.up.locale?90:30)*pdisc),label:'Assicurazione della bottega'});}
   if(isLastOfMonth(d)&&S.up.commesso&&S.helper&&OWD[S.helper.owner])b.push({cat:'pers',amt:COMMESSO_PAY,label:`Stipendio del commesso (${OWD[S.helper.owner].name})`});
   if(isLastOfMonth(d)){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:taxOn(base,d),label:d>90?'Imposte del mese (15% fino a 1.500 € di utile, 25% oltre)':'Imposte del mese (agevolazione nuova attività: 10%)'});}
+  b.push(...kidBills(d));
   return b;
 }
 function upcoming(n){
@@ -1564,7 +1565,7 @@ function upcoming(n){
 function tick(dm){
   S.t+=dm;
   if(S.fido&&S.day>=S.fido.day+2&&S.t>=FIDO_T)fidoCollect();
-  repTierCheck();inesTick();sellTick();
+  repTierCheck();inesTick();sellTick();pendTick();
   if(S.freeze>0)S.freeze=Math.max(0,S.freeze-dm);
   while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();albEv(ev.id);if(RT.modal)break;}
   spawnTick(dm);
@@ -1590,7 +1591,7 @@ function openDay(){
   else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
-  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;S.today.tip=startTip();mystPlan();rivalDay();camp();goalStart();inesMorning();sellMorning();S.today.pat0=patrimonio();S.ines=null;
+  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;S.today.tip=startTip();mystPlan();rivalDay();camp();goalStart();inesMorning();sellMorning();midMorning();S.today.pat0=patrimonio();S.ines=null;
   // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
   const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
   let tg=rnd(75,165)*repF*rivalMult()*(S.campFesta===S.day?1.1:1)*(S.up.facciata?1.06:1)*(S.up.bancone?1.04:1)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
@@ -1603,6 +1604,7 @@ function openDay(){
   tg*=S.today.mfx.traffic;
   if(S.today.fe)tg*=S.today.fe.traffic;if(spc)tg*=spc.traffic;
   if(S.up.locale){const ld=S.localeDay?clamp((S.day-S.localeDay)/14,0,1):1;tg*=1.3+1.2*ld;}
+  tg*=midMult();
   S.today.target=Math.round(clamp(tg,20,S.up.locale?500:200));
   computeInteg();scheduleEvents();planRegulars();if(S.helper)S.helper={owner:S.helper.owner,served:0};
   if(vizio()==='late'&&chance(.3)){const m=ri(60,120);S.freeze=m;log(`${S.ownerName} arriva tardi: «avevo un'udienza». La saracinesca si alza con ${m} minuti di ritardo.`,'warn');}
@@ -1647,7 +1649,7 @@ function closeDay(){
   if(S.history.length>14)S.history.shift();
   log(`Chiusura di ${DAYS[wd(r.day)].toLowerCase()} ${dateTxt(r.day)}: saldo della giornata ${sgn(net)}.`,net>=0?'good':'bad');
   S.day++;S.phase='closed';S.t=OPEN;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.freeze=0;RT.events=[];
-  endOfDayExtras(r);
+  endOfDayExtras(r);midEvening(r);
   carTrack();const lose=S.debtDays>=30&&S.rep<=-50;const ret=!lose&&S.day-1>=CAREER_DAYS;
   if(ret)S.retired=1;if(lose||ret)S.over=true;
   RT.closing=false;{const seen=new Set();r.extra=[...(r.extra||[]),...RT.closeMsgs].filter(x=>{const k=x.replace(/[^a-zà-ù0-9]/gi,'').toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});}RT.closeMsgs=[];
@@ -1854,6 +1856,7 @@ function helpers(){
   const h=[];
   if(S.up.commesso&&S.helper&&OWD[S.helper.owner])h.push({k:'commesso',name:OWD[S.helper.owner].name,st:S.helper,err:.06,gap:[3,5]});
   if(S.ines&&S.t<S.ines.until)h.push({k:'ines',name:'Ines',st:S.ines,err:.02,gap:[2.5,4]});
+  const kh=kidHelper();if(kh)h.push(kh);
   return h;
 }
 function helperTick(){
@@ -2450,7 +2453,7 @@ const inSeason=d=>{const m=dateOf(d).getMonth();return m>=8||m<=4;};
 function camp(){const k=seasonKey(S.day);if(!S.camp||S.camp.season!==k){if(S.camp&&S.camp.season)campClose();S.camp={season:k,t:{reggina:{pt:0,g:0,v:0,n:0,p:0,gf:0,gs:0},villese:{pt:0,g:0,v:0,n:0,p:0,gf:0,gs:0}},tk:{reggina:0,villese:0},last:{}};}return S.camp;}
 function campTicket(l){if(!l||l.ev==null)return;const t=(EVENTI[l.ev]||{}).t||'';const c=camp(),n=l.n||1;if(/Reggina/.test(t))c.tk.reggina+=n;else if(/Villese/.test(t))c.tk.villese+=n;}
 function goals(lam){let k=0,p=Math.exp(-lam),s=p,u=Math.random();while(u>s&&k<7){k++;p*=lam/k;s+=p;}return k;}
-function campDay(ex){if(!isSunday(S.day-1)||!inSeason(S.day-1))return;const c=camp();const res={};
+function campDay(ex){if(!isSunday(S.day-1)||!inSeason(S.day-1))return;const c=camp();const res={};TEAMS.villese.f=vilF();
   for(const id of ['villese','reggina']){const T=TEAMS[id],st=c.t[id],tifo=Math.min(.12,c.tk[id]*.006);
     const a=goals(1.1+(T.f-.5)*2+tifo*3),b=goals(1.05-(T.f-.5)*1.5);const opp=pick(OPP[id]);
     st.g++;st.gf+=a;st.gs+=b;if(a>b){st.v++;st.pt+=3;}else if(a===b){st.n++;st.pt+=1;}else st.p++;
@@ -2459,11 +2462,12 @@ function campDay(ex){if(!isSunday(S.day-1)||!inSeason(S.day-1))return;const c=ca
   log(`⚽ Risultati: ${txt}.`,'info');ex.push(`⚽ ${txt}`);const r=res.villese;
   if(r.a>r.b){S.campFesta=S.day;repFlat(.5);ex.push('La Villese ha vinto: domani festa in paese, più clienti!');}
   else if(r.a<r.b)ex.push('La Villese ha perso: domani in bottega si parla solo dell\'arbitro.');}
-function campClose(){const c=S.camp;if(!c||!c.t.villese.g)return;const st=c.t.villese,ppg=st.pt/st.g;const out=ppg>=2?'promossa':ppg<=.9?'retrocessa':'salva';
+function campClose(){const c=S.camp;if(!c||!c.t.villese.g)return;const st=c.t.villese,ppg=st.pt/st.g;const out=ppg>=2?'promossa':ppg<1.05?'retrocessa':'salva';
   (S.campHist=S.campHist||[]).push({team:'villese',season:c.season,pt:st.pt,g:st.g,out,reg:c.t.reggina.pt});
   if(out==='promossa'){repFlat(3);log(`🏆 La Villese ${c.season} è promossa con ${st.pt} punti! Villa è in festa. Reputazione +3.`,'good');toast('🏆 Villese promossa!','good');}
   else if(out==='retrocessa'){repFlat(-2);log(`La Villese ${c.season} retrocede con ${st.pt} punti. Il paese è di cattivo umore. Reputazione −2.`,'bad');}
-  else log(`Stagione ${c.season} finita: la Villese si salva con ${st.pt} punti.`,'info');}
+  else log(`Stagione ${c.season} finita: la Villese si salva con ${st.pt} punti.`,'info');
+  vilSeasonEnd(out);}
 function campLine(){if(!inSeason(S.day)||!S.camp)return '';const c=S.camp,r=c.t.reggina,v=c.t.villese,L=c.last.villese;
   return `⚽ ${c.season}: Villese ${v.pt} punti in ${v.g} partite${L?` (ultima ${L.a}-${L.b} col ${L.opp})`:''} · Reggina ${r.pt} punti. I biglietti venduti in settimana danno la carica.`;}
 
@@ -2471,13 +2475,13 @@ function campLine(){if(!inSeason(S.day)||!S.camp)return '';const c=S.camp,r=c.t.
 const RIVALS=[['carrozzo','Carrozzo',45,56],['passalacqua','Passalacqua',50,58]];
 function rivalDay(){S.rivals=S.rivals||{};if(S.rival!=null&&S.rivals.carrozzo==null)S.rivals.carrozzo=S.rival;
   S.rivUp=S.rivUp||{};let above=true;
-  for(const[id,nm,st,tgt]of RIVALS){let r=S.rivals[id];if(r==null)r=st;const diff=S.rep-r;
+  for(const[id,nm,st,tgt0]of RIVALS){if(rivClosed(id))continue;const tgt=tgt0+(id==='passalacqua'&&vapeOn()?10:0);let r=S.rivals[id];if(r==null)r=st;const diff=S.rep-r;
     r=clamp(r+(tgt-r)*.03+rnd(-1.6,1.6)+(diff>8?.35:0),10,92);S.rivals[id]=r;const up=S.rep>r;if(!up)above=false;
     if(S.rivUp[id]!=null&&S.rivUp[id]!==up){log(up?`Hai superato ${nm}: in paese si dice che il servizio migliore ora è il tuo.`:`${nm} ti ha superato. Radio Sole: «C'è chi dice che da ${nm} si sta meglio.»`,up?'good':'bad');toast(up?`Hai superato ${nm}!`:`${nm} ti ha superato.`,up?'good':'bad');}
     S.rivUp[id]=up;}
   S.rivalStreak=above?(S.rivalStreak||0)+1:0;}
-const rivalMult=()=>{if(!S.rivals)return 1;let d=0;for(const[id]of RIVALS)if(S.rivals[id]!=null)d+=S.rep-S.rivals[id];return clamp(1+d/800,.9,1.1);};
-const rivalTxt=()=>S.rivals?'Rivali: '+RIVALS.map(([id,nm])=>`<em class="rv1">${nm} ${Math.round(S.rivals[id]??0)}</em>`).join(''):'';
+const rivalMult=()=>{if(!S.rivals)return 1;let d=0;for(const[id]of RIVALS)if(rivClosed(id))d+=20;else if(S.rivals[id]!=null)d+=S.rep-S.rivals[id];return clamp(1+d/800,.9,1.1);};
+const rivalTxt=()=>S.rivals?'Rivali: '+RIVALS.map(([id,nm])=>`<em class="rv1">${nm} ${rivClosed(id)?'(chiuso)':Math.round(S.rivals[id]??0)}</em>`).join(''):'';
 
 /* ===== prodotti speciali: compaiono solo con la reputazione alta (sorpresa) ===== */
 const SPEC_TIERS=[[80,'sale, ombrelli, fazzoletti, pile e carte napoletane'],[85,'occhiali da sole e da lettura, biglietti dell\'autobus della Costa Viola e figurine'],[90,'cornetti, souvenir dei Bronzi e l\'accendino a forma di Pilone dello Stretto']];
@@ -2578,6 +2582,7 @@ function careerScore(){carTrack();const c=S.car,yrs=(S.day-1)/365.25,nMed=Object
    ['Reputazione massima',`${c.repMax} / 100`,Math.max(0,c.repMax)*50],
    ['Medaglie',`${nMed} su ${MEDALS.length}`,nMed*400],
    ['Patrimonio guadagnato',fmt(earned),earned>0?Math.round(10*Math.sqrt(earned)):0]];
+  midScoreParts(parts);
   if(S.retired)parts.push(['Pensione meritata','',5000]);
   const base=parts.reduce((a,p)=>a+p[2],0),mul=DIFF_MUL[S.diff]||1;
   return{parts,base,mul,tot:Math.round(base*mul)};}
@@ -2616,6 +2621,161 @@ function sellMorning(){const done=S.day-1;S.sellOff=S.sellOff||{};
 function sellTick(){const o=S.today&&S.today.buyer;if(!o||o.shown||RT.modal||S.counter)return;o.shown=1;
   openModal({html:`<h3>Un'offerta per la bottega</h3><p>Sono ${o.lbl} che alzi questa saracinesca. Entra ${o.who}: ${o.why}.</p><p>«Le offro <b>${fmt(o.val)}</b> per merce e attrezzature. I muri restano suoi, l'insegna pure. Ci pensi, ma io domani non torno.»</p><p class="muted">Se vendi la partita finisce e vedi il punteggio della carriera. Se continui, il prossimo compratore arriverà ${o.lbl==='dieci anni'?'solo alla pensione, ai 20 anni':'più avanti'}.</p>`,
    actions:[{label:'Vendo e chiudo',cls:'gold',fn(){S.sold={who:o.who,val:o.val,lbl:o.lbl};S.over=true;save();gameOver();}},{label:'No, continuo',fn(){log(`Rifiuti l'offerta di ${o.who}. La bottega resta tua.`,'info');}}]});}
+
+/* =====================================================================
+   METÀ CARRIERA: Villese, il figlio, il paese che cambia, i rivali
+   ===================================================================== */
+
+/* --- decisioni in sospeso: compaiono al banco quando non c'è nessuno --- */
+const DEC={};
+function pend(k,o){(S.pend=S.pend||[]).push(Object.assign({k},o||{}));}
+function pendTick(){if(!S.pend||!S.pend.length||RT.modal||S.counter)return;const o=S.pend.shift(),D=DEC[o.k];if(!D)return;
+  const opts=D.opts(o);openModal({html:D.html(o),actions:opts.map((x,i)=>({label:x.label,cls:x.cls||(i===0?'gold':''),disabled:x.disabled,fn(){x.fn();render(true);save();}}))});}
+function pendAuto(){while(S.pend&&S.pend.length){const o=S.pend.shift(),D=DEC[o.k];if(!D)continue;const opts=D.opts(o);let i=D.auto?D.auto(o,opts):0;if(opts[i]&&opts[i].disabled)i=opts.findIndex(x=>!x.disabled);if(i>=0&&opts[i])opts[i].fn();}}
+const money2=()=>S.cash+S.deposit;
+function payOut(amt,cat,label){S.cash=r2(S.cash-amt);if(S.cash<0&&S.deposit>0){const w=Math.min(S.deposit,-S.cash);S.deposit=r2(S.deposit-w);S.cash=r2(S.cash+w);}tx(cat,-amt,label);}
+
+/* ===== 1. LA VILLESE: categorie e presidenza ===== */
+const VCAT=['Prima Categoria','Promozione','Eccellenza','Serie D','Serie C','Serie B'];
+const VBASE=[3000,6000,15000,40000,100000,250000];
+const VLVL=[['Niente mercato',0,0],['Qualche rinforzo',1,.08],['Squadra da playoff',2.5,.16],['Squadrone',5,.26]];
+const PRES_COST=50000,PRES_RANK=4;
+const vil=()=>S.vil||(S.vil={cat:1,best:1,pres:false,lvl:0,lvlSeason:null,presDay:null});
+const vilLvl=()=>{const v=vil();return v.lvlSeason===seasonKey(S.day)?v.lvl:0;};
+const vilF=()=>{const v=vil();return .63-v.cat*.07+(v.pres?VLVL[vilLvl()][2]:0);};
+const vilCost=(lv,cat)=>Math.round(VBASE[cat==null?vil().cat:cat]*VLVL[lv][1]);
+function vilSeasonEnd(out){const v=vil(),was=v.cat;
+  if(out==='promossa'){if(v.cat<VCAT.length-1){v.cat++;v.best=Math.max(v.best,v.cat);log(`⚽ La Villese sale in ${VCAT[v.cat]}!`,'good');}
+    else log('⚽ La Villese vince il campionato di Serie B. In paese si sogna la Serie A, ma il comune dice che lo stadio non è a norma.','good');
+    if(v.pres){repFlat(3);log(`Da presidente ti portano in trionfo per il corso. Reputazione +3 in più.`,'good');}}
+  else if(out==='retrocessa'){if(v.cat>0){v.cat--;log(`⚽ La Villese scende in ${VCAT[v.cat]}.`,'bad');}
+    if(v.pres){repFlat(-3);log('Contestazione davanti alla saracinesca: «Presidente, cacci i soldi!». Reputazione −3 in più.','bad');}}
+  v.lvl=0;v.lvlSeason=null;return was!==v.cat;}
+function vilMorning(){const v=vil(),dt=dateOf(S.day);
+  if(v.pres&&dt.getMonth()===7&&dt.getDate()===1)pend('mercato');}
+function becomePres(){const v=vil();if(v.pres||rk()<PRES_RANK||money2()<PRES_COST)return;payOut(PRES_COST,'vil','Quote della Villese: diventi presidente');v.pres=true;v.presDay=S.day;
+  log(`Firmi dal notaio: sei il nuovo presidente della Villese, in ${VCAT[v.cat]}. Il bar della piazza ti offre il caffè per una settimana.`,'good');toast('Sei presidente della Villese!','good');repFlat(2);
+  const m=dateOf(S.day).getMonth();if(m>=7||m<=1)pend('mercato');}
+function chooseMercato(lv){const v=vil(),c=vilCost(lv);if(lv>0){if(money2()<c){toast('Non hai abbastanza soldi.','bad');return;}payOut(c,'vil',`Mercato della Villese: ${VLVL[lv][0].toLowerCase()}`);}
+  v.lvl=lv;v.lvlSeason=seasonKey(S.day);log(lv?`Mercato della Villese: ${VLVL[lv][0].toLowerCase()} per ${fmt(c)}. In paese non si parla d'altro.`:'Quest\'anno niente mercato: la Villese gioca con quelli che ha.','info');}
+DEC.mercato={html:o=>{const v=vil();return `<h3>Il calciomercato della Villese</h3><p>L'allenatore ti aspetta al bar con la lista dei giocatori. La Villese è in <b>${VCAT[v.cat]}</b>.</p><p class="muted">Più spendi, più è facile salire di categoria. Senza mercato, più in alto si gioca e più si rischia di scendere.</p>`;},
+  opts:()=>VLVL.map((x,i)=>{const c=vilCost(i);return{label:i?`${x[0]} · ${fmt(c)}`:x[0],cls:i===0?'alt':i===3?'gold':'',disabled:i>0&&money2()<c,fn(){chooseMercato(i);}};}),
+  auto:(o,opts)=>{const m=money2()-20000;let best=0;for(let i=3;i>0;i--){if(vilCost(i)<=m*.3){best=i;break;}}return best;}};
+function vilHtml(){const v=vil();const sea=inSeason(S.day)&&S.camp?S.camp.t.villese:null;
+  const head=`<h2>La Villese</h2><p style="margin:0 0 6px">Categoria: <b>${VCAT[v.cat]}</b>${v.best>v.cat?` · la più alta raggiunta: ${VCAT[v.best]}`:''}${sea?` · ${sea.pt} punti in ${sea.g} partite`:''}</p>`;
+  if(v.pres)return head+`<p class="muted" style="font-size:12.5px;margin:0">Sei il presidente. Ad agosto decidi quanto spendere per il mercato${vilLvl()?`; quest'anno: ${VLVL[vilLvl()][0].toLowerCase()}`:''}. Promozioni e retrocessioni pesano il doppio sulla reputazione.</p>`;
+  const ok=rk()>=PRES_RANK&&money2()>=PRES_COST;
+  return head+`<div class="upg"><div><h3>Diventa presidente</h3><p>Compri le quote della squadra: ogni estate scegli il mercato e provi a portarla in alto, fino alla Serie B.</p><div class="eff">${rk()<PRES_RANK?`Serve il grado «${RANKS[PRES_RANK][1]}»`:'Promozioni +3 reputazione in più, retrocessioni −3 in più'}</div></div><button class="btn sm ${ok?'gold':'alt'}" data-vil="pres" ${ok?'':'disabled'}>${fmt(PRES_COST)}</button></div>`;}
+const vilSunday=()=>isSunday(S.day)&&inSeason(S.day)?1+.04*vil().cat:1;
+
+/* ===== 2. IL FIGLIO (o la figlia) ===== */
+const KID_M=['Antonio','Giuseppe','Francesco','Domenico','Pasquale','Rocco'],KID_F=['Maria','Caterina','Giuseppina','Annunziata','Rosa','Teresa'];
+const kidAge=()=>S.kid&&S.kid.born!=null?Math.floor((S.day-S.kid.born)/365.25):-1;
+const kidA=(m,f)=>S.kid&&S.kid.f?f:m;
+function kidMorning(){
+  if(!S.kid){if(S.kidAnn==null)S.kidAnn=ri(150,300);if(S.day>=S.kidAnn){S.kid={ann:S.day,due:S.day+ri(250,275),f:chance(.5)?1:0};pend('incinta');}return;}
+  const k=S.kid;
+  if(k.born==null){if(S.day>=k.due)pend('nascita');return;}
+  const a=kidAge();k.ev=k.ev||{};
+  const once=(id,fn)=>{if(!k.ev[id]){k.ev[id]=S.day;fn();}};
+  if(a>=1)once('a1',()=>{log(`Primo compleanno di ${k.name}: torta in bottega, e mezzo quartiere passa a fare gli auguri.`,'good');repFlat(.5);});
+  if(a>=6)once('a6',()=>log(`Primo giorno di scuola per ${k.name}. Ines piange, tu fai finta di no.`,'info'));
+  if(a>=9)once('a9',()=>pend('comunione'));
+  if(a>=14)once('a14',()=>pend('motorino'));
+  if(a>=16)once('a16',()=>log(`${k.name} ha sedici anni: da oggi il sabato ${kidA('ti dà','ti dà')} una mano al banco.`,'good'));
+  if(a>=18&&!k.path)once('a18',()=>pend('diciotto'));
+  if(k.path==='uni'&&S.day-k.uniFrom>=Math.round(5*365.25))once('laurea',()=>{log(`${k.name} si laurea a Messina! Festa grande, confetti rossi per tutti i clienti. Reputazione +3.`,'good');repFlat(3);});
+  if(a>=4&&a<=12&&chance(1/40)){const it=PRODUCTS.filter(p=>p.cat==='ban'&&S.stock[p.id]>0&&!p.rep);if(it.length){const p=pick(it);S.stock[p.id]--;log(`${k.name} gioca dietro al banco e si mangia ${p.name.toLowerCase()}. «Lo segni a papà.»`,'info');}}
+  if(a>=13&&a<=17&&chance(1/60)){const it=PRODUCTS.filter(p=>(p.cat==='ban'||p.cat==='bar')&&S.stock[p.id]>=2&&!p.rep);if(it.length){const p=pick(it);S.stock[p.id]-=2;log(`Mancano due ${p.name.toLowerCase()}. ${k.name} giura di non saperne niente, ma ha le dita arancioni.`,'info');}}
+  S.kidSt=null;
+  const sat=wd(S.day)===5;
+  if((k.path==='bottega')||(a>=16&&a<18&&sat))S.kidSt={next:null,served:0,until:k.path==='bottega'?closeT()+60:(k.moto?closeT()+60:780)};
+}
+function kidHelper(){return S.kidSt&&S.t<S.kidSt.until&&S.kid?{k:'kid',name:S.kid.name,st:S.kidSt,err:.04,gap:[3,5]}:null;}
+const KID_FACE=f=>({skin:'#EBC09C',hc:'#4A3020',shirt:f?'#B4415A':'#2F5D8A',bg:'#D6E6E4',hair:f?'long':'spiky',hat:null,hatc:'#000',glasses:null,beard:false,must:false,blush:true,ear:!!f,lip:null,old:false});
+function kidBills(d){const k=S.kid;if(!k||k.born==null||dom(d)!==10)return[];const a=Math.floor((d-k.born)/365.25);
+  if(k.path==='uni')return S.day-k.uniFrom<Math.round(5*365.25)?[{cat:'fam',amt:500,label:`Università di ${k.name} a Messina`}]:[];
+  if(k.path==='bottega')return[];
+  if(a<3)return[{cat:'fam',amt:180,label:'Pannolini e latte'}];if(a<6)return[{cat:'fam',amt:120,label:'Asilo'}];
+  if(a<14)return[{cat:'fam',amt:100,label:`Scuola, libri e sport di ${k.name}`}];return[{cat:'fam',amt:120,label:`Paghetta e telefono di ${k.name}`}];}
+DEC.incinta={html:()=>`<h3>Ines ha una notizia</h3><p>Ines entra in bottega, chiude la porta e gira il cartello su «Torno subito». Poi ti mette in mano un test.</p><p>«Hai capito bene. E adesso niente più straordinari fino a mezzanotte.»</p>`,opts:()=>[{label:'Che bella notizia!',fn(){log('Ines aspetta un bambino. Il quartiere lo sa prima di tua madre.','good');repFlat(1);}}]};
+DEC.nascita={html:()=>{const k=S.kid;return `<h3>${k.f?'Fiocco rosa':'Fiocco azzurro'}!</h3><p>Stanotte all'ospedale di Reggio è ${k.f?'nata una bambina':'nato un bambino'}. Ines sta bene e ha già litigato con l'ostetrica.</p><p>Come ${k.f?'la':'lo'} chiamate?</p>`;},
+  opts:()=>{const L=S.kid.f?KID_F:KID_M;const ns=[];while(ns.length<3){const n=pick(L);if(!ns.includes(n))ns.push(n);}
+    return ns.map(n=>({label:n,cls:'',fn(){const k=S.kid;k.name=n;k.born=S.day;payOut(300,'fam','Confetti e bomboniere');repFlat(2);log(`È ${k.f?'nata':'nato'} ${n}! Confetti per tutti i clienti. Reputazione +2.`,'good');toast(`Benvenut${k.f?'a':'o'} ${n}!`,'good');}}));}};
+DEC.comunione={html:()=>`<h3>La Prima Comunione di ${S.kid.name}</h3><p>Ines ha già la lista degli invitati: «Sono solo centoventi persone, i parenti stretti».</p>`,
+  opts:()=>[{label:`Festa grande al ristorante · ${fmt(4000)}`,cls:'gold',disabled:money2()<4000,fn(){payOut(4000,'fam','Festa della Prima Comunione');repFlat(3);log('Festa grande: tre portate di antipasti e il cantante neomelodico. Il paese ne parlerà per anni. Reputazione +3.','good');}},
+    {label:`Festa in famiglia · ${fmt(800)}`,fn(){payOut(800,'fam','Prima Comunione in famiglia');repFlat(.5);log('Festa in famiglia, a casa della nonna. Ines dice che «la gente parla».','info');}}],
+  auto:()=>money2()>20000?0:1};
+DEC.motorino={html:()=>`<h3>${S.kid.name} vuole il motorino</h3><p>«Ce l'hanno tutti! Pure il figlio di Carrozzo!» Ha quattordici anni e ha già scelto il colore.</p>`,
+  opts:()=>[{label:`Va bene · ${fmt(2000)}`,cls:'gold',disabled:money2()<2000,fn(){payOut(2000,'fam',`Motorino di ${S.kid.name}`);S.kid.moto=1;log(`${S.kid.name} ha il motorino. Ti abbraccia, poi sparisce fino a cena. In cambio, a sedici anni, il sabato ti aiuterà tutto il giorno.`,'good');}},
+    {label:'No, è pericoloso',fn(){S.kid.moto=0;log(`Niente motorino. ${S.kid.name} non ti parla per una settimana; a sedici anni il sabato ti aiuterà, ma solo la mattina.`,'info');}}],
+  auto:()=>money2()>10000?0:1};
+DEC.diciotto={html:()=>{const k=S.kid;return `<h3>${k.name} ha diciott'anni</h3><p>A cena, tra la pasta e la frutta: «Papà, ho deciso.»</p><p>Può andare all'università a Messina (${fmt(500)} al mese per cinque anni, ma in famiglia ci sarà ${k.f?'una dottoressa':'un dottore'}) oppure restare in bottega con te, tutti i giorni, e un giorno prenderne il posto.</p>`;},
+  opts:()=>[{label:'Università a Messina',fn(){S.kid.path='uni';S.kid.uniFrom=S.day;log(`${S.kid.name} parte per Messina. Ines prepara un pacco da venti chili di provviste.`,'good');}},
+    {label:'Resta in bottega',fn(){S.kid.path='bottega';log(`${S.kid.name} resta in bottega: da domani è al banco con te ogni giorno, gratis. «Gratis per adesso», precisa.`,'good');}}],
+  auto:()=>chance(.5)?0:1};
+
+/* ===== 3. IL PAESE CAMBIA: un grande evento ogni anno o due ===== */
+const BIG={
+ ponte:{t:'Il cantiere del Ponte sullo Stretto',dur:[240,360],m:1.10,start:'Riaprono i cantieri del Ponte sullo Stretto: mezzo paese pieno di operai con il caschetto. La mattina c\'è la fila per le sigarette.',end:'I lavori del Ponte si fermano di nuovo «per approfondimenti tecnici». Gli operai tornano a casa.'},
+ centro:{t:'Il centro commerciale',dur:[90,150],m:.85,start:'Apre il centro commerciale sulla statale, con il parcheggio gratis e la tabaccheria dentro. Molti clienti vanno a vedere com\'è.',end:'La novità del centro commerciale è passata: «Troppa strada e troppa gente». I clienti tornano da te.'},
+ strada:{t:'I lavori in strada',dur:[60,120],m:.9,start:'Il comune apre un cantiere proprio davanti alla bottega: marciapiede chiuso e transenne. Per entrare bisogna fare il giro.',end:'Finalmente tolgono le transenne. L\'asfalto nuovo dura già da due giorni.'},
+ elezioni:{t:'Le elezioni comunali',dur:[30,30],m:1.02,start:'Arrivano le elezioni comunali: manifesti dappertutto e candidati che offrono il caffè.',end:null},
+ crociere:{t:'L\'estate delle crociere',dur:[100,120],m:1.08,month:5,start:'Quest\'estate le navi da crociera fanno scalo a Reggio: ogni settimana arrivano pullman di turisti in giro per lo Stretto.',end:'L\'ultima nave da crociera riparte. I turisti lasciano cartoline e qualche infradito.'}
+};
+const CAND=[['l\'avvocato Romeo','promette il parcheggio davanti alla bottega'],['la professoressa Musolino','promette di sistemare le luci della piazza']];
+function bigMorning(){
+  if(S.bigNext==null)S.bigNext=ri(250,400);
+  const b=S.big;
+  if(b&&S.day>=b.to){const E=BIG[b.id];if(b.id==='elezioni')elezioniEnd();else log(E.end,'info');S.big=null;S.bigNext=S.day+ri(90,300);return;}
+  if(!b&&S.day>=S.bigNext){const used=S.bigUsed=S.bigUsed||[];let pool=Object.keys(BIG).filter(k=>!used.includes(k));if(!pool.length){S.bigUsed=[];pool=Object.keys(BIG);}
+    const m=dateOf(S.day).getMonth();pool=pool.filter(k=>BIG[k].month==null||BIG[k].month===m);if(!pool.length)return;
+    const id=pick(pool),E=BIG[id];S.bigUsed.push(id);S.big={id,from:S.day,to:S.day+ri(E.dur[0],E.dur[1])};log(`📰 ${E.t}. ${E.start}`,id==='centro'||id==='strada'?'warn':'info');toast(E.t,'warn');
+    if(id==='elezioni')pend('elezioni');}}
+function elezioniEnd(){const sup=S.bigCand,win=ri(0,1);const w=CAND[win][0];
+  if(sup==null)log(`Elezioni: vince ${w}. Tu non ti eri schierato, e nessuno se lo ricorda.`,'info');
+  else if(sup===win){repFlat(3);log(`Elezioni: vince ${w}, che avevi sostenuto! Il primo giorno passa a ringraziarti davanti a tutti. Reputazione +3.`,'good');}
+  else{repFlat(-2);log(`Elezioni: vince ${w}. Tu avevi il manifesto dell'altro candidato in vetrina. Reputazione −2.`,'bad');}
+  S.bigCand=null;}
+DEC.elezioni={html:()=>`<h3>Le elezioni comunali</h3><p>I due candidati passano in bottega lo stesso giorno, a un'ora di distanza. Ognuno ti chiede di mettere il suo manifesto in vetrina.</p><p>${CAND.map(c=>`<b>${c[0][0].toUpperCase()+c[0].slice(1)}</b> ${c[1]}.`).join(' ')}</p>`,
+  opts:()=>[...CAND.map((c,i)=>({label:`Sostieni ${c[0]}`,cls:'',fn(){S.bigCand=i;log(`Metti in vetrina il manifesto di ${c[0]}. Mezzo paese ti guarda storto, l'altra metà ti offre il caffè.`,'info');}})),{label:'Io vendo sigarette, non faccio politica',cls:'alt',fn(){S.bigCand=null;}}],
+  auto:()=>ri(0,2)};
+const bigMult=()=>S.big?BIG[S.big.id].m:1;
+
+/* ===== 4. I RIVALI SI MUOVONO ===== */
+const rivClosed=id=>!!(S.rivClosed&&S.rivClosed[id]);
+function rivMorning(){S.rivEv=S.rivEv||{};
+  // Passalacqua apre un negozio di sigarette elettroniche
+  if(!S.rivEv.vape&&S.day>=365&&chance(1/400)){S.rivEv.vape={from:S.day,to:S.day+ri(180,300)};log('Passalacqua apre un negozio di sigarette elettroniche con le luci viola e la musica alta. I ragazzi ci passano le serate.','warn');toast('Passalacqua apre lo svapo shop','warn');}
+  if(S.rivEv.vape&&!S.rivEv.vape.done&&S.day>=S.rivEv.vape.to){S.rivEv.vape.done=1;log('Il negozio di svapo di Passalacqua chiude: «la moda è passata». Le luci viola restano accese per un mese, poi le staccano.','good');}
+  // guerra dei prezzi
+  if((!S.rivEv.war||S.day-S.rivEv.war.from>700)&&S.day>=400&&chance(1/500)){S.rivEv.war={from:S.day,to:S.day+30};log('Guerra dei prezzi: Passalacqua abbassa tutto quello che può e mette il cartello «I prezzi più bassi dello Stretto». Per un mese i clienti guardano i prezzi col righello.','warn');toast('Guerra dei prezzi!','warn');}
+  // Carrozzo in crisi ti offre la licenza
+  const cz=S.rivals&&S.rivals.carrozzo;
+  if(!rivClosed('carrozzo')&&cz!=null&&S.day>=540&&(S.rivEv.czNext==null||S.day>=S.rivEv.czNext)&&S.rep-cz>=15&&chance(1/120)){S.rivEv.czNext=S.day+730;pend('carrozzo');}
+}
+const priceWar=()=>!!(S.rivEv&&S.rivEv.war&&S.day<S.rivEv.war.to);
+const vapeOn=()=>!!(S.rivEv&&S.rivEv.vape&&!S.rivEv.vape.done&&S.day<S.rivEv.vape.to);
+const SUCC_COST=30000;
+const succDaily=()=>S.succ?Math.round((40+.8*Math.max(0,S.rep))*(isSunday(S.day)?.5:1)):0;
+DEC.carrozzo={html:()=>`<h3>Carrozzo vuole vendere</h3><p>'Nti Carrozzu entra senza comprare niente, si siede sulla sedia dei clienti e sospira: «Non ce la faccio più. Mia moglie vuole andare a vivere a Torino da nostra figlia.»</p><p>Ti offre la sua licenza e la bottega per <b>${fmt(SUCC_COST)}</b>. Ci metteresti un commesso: ogni giorno ti porta un incasso che cresce con la tua reputazione, e Carrozzo non è più un rivale.</p>`,
+  opts:()=>[{label:`Compro · ${fmt(SUCC_COST)}`,cls:'gold',disabled:money2()<SUCC_COST,fn(){payOut(SUCC_COST,'vil','Licenza e bottega di Carrozzo');S.succ={from:S.day};(S.rivClosed=S.rivClosed||{}).carrozzo=S.day;log('Compri la tabaccheria di Carrozzo. Sopra la porta appare un cartello scritto a mano: «Il TabacchInes 2».','good');toast('Il TabacchInes 2 è tuo!','good');}},
+    {label:'No, grazie',fn(){log('Rifiuti. Carrozzo alza le spalle: «Allora la vendo al primo che passa.» Tra due anni, chissà.','info');}}],
+  auto:()=>money2()>SUCC_COST+15000?0:1};
+
+/* ===== agganci ===== */
+function midMorning(){vilMorning();kidMorning();bigMorning();rivMorning();}
+function midMult(){return bigMult()*(vapeOn()?.95:1)*vilSunday();}
+function midEvening(r){if(S.succ&&!S.over){const g=succDaily();if(g>0){S.cash=r2(S.cash+g);tx('succ',g,'Incasso del TabacchInes 2');}}}
+MEDALS.push(
+ ['presidente','Il presidente','Diventa presidente della Villese.',()=>!!(S.vil&&S.vil.pres)],
+ ['seriec','La Villese tra i professionisti','Porta la Villese in Serie C.',()=>!!(S.vil&&S.vil.best>=4)],
+ ['fiocco','Fiocco in bottega','Nasce tuo figlio.',()=>!!(S.kid&&S.kid.born!=null)],
+ ['erede','L\'erede','Tuo figlio resta in bottega con te.',()=>!!(S.kid&&S.kid.path==='bottega')],
+ ['tabacchines2','Il TabacchInes 2','Compra la tabaccheria di Carrozzo.',()=>!!S.succ]);
+function midScoreParts(parts){const v=S.vil;if(v&&v.best>=2)parts.push(['La Villese più in alto',VCAT[v.best],[0,0,1000,2500,4500,7000][v.best]]);
+  const k=S.kid;if(k&&k.path==='bottega'&&S.retired)parts.push(['Passaggio di consegne',`lasci la bottega a ${k.name}`,4000]);
+  if(k&&k.path==='uni')parts.push([k.f?'La dottoressa di famiglia':'Il dottore di famiglia',`${k.name} all'università`,2500]);}
 
 S=load();
 
@@ -2910,6 +3070,7 @@ function buildBot(){
   const shop=el('section','card');shop.innerHTML='<h2>La tua bottega</h2><div class="shopv"></div>';root.appendChild(shop);BR._shop=shop.querySelector('.shopv');BR._shopSig=null;
   const gl=el('section','card');root.appendChild(gl);BR._goals=gl;
   const iz=el('section','card');root.appendChild(iz);BR._iniz=iz;
+  const vs=el('section','card');root.appendChild(vs);BR._vil=vs;
   for(const[g,title]of [['base','Licenze e reparti di base'],['neg','Il negozio'],['esp','Espansioni'],['rep','Nuovi reparti'],['svago','Svago e comfort'],['srv','Servizi a provvigione']]){
     const card=el('section','card');card.appendChild(el('h2',null,title));
     if(g==='base')card.appendChild(el('p','muted','All\'inizio vendi solo sigarette e Gratta e Vinci. Qui sblocchi il resto: chi chiede una cosa che non hai se ne va un po\' scontento.'));
@@ -2933,6 +3094,7 @@ function refreshBot(){
   if(BR._shop){const sg=JSON.stringify(S.up);if(BR._shopSig!==sg){BR._shopSig=sg;BR._shop.innerHTML=shopSVG();}}
   if(BR._goals)BR._goals.innerHTML=goalsHtml();
   if(BR._iniz){const h=inizHtml();if(BR._iniz._h!==h){BR._iniz._h=h;BR._iniz.innerHTML=h;}}
+  if(BR._vil){const h=vilHtml();if(BR._vil._h!==h){BR._vil._h=h;BR._vil.innerHTML=h;}}
   for(const u of UPG){
     const r=BR[u.id];if(!r)continue;const lv=S.up[u.id];
     r.eff.textContent=lv>0?'Attivo: '+u.eff(lv):'Effetto: '+u.eff(1);
@@ -2943,7 +3105,7 @@ function refreshBot(){
     else{r.btn.textContent=fmt(u.cost[lv]);r.btn.disabled=S.cash<u.cost[lv];r.btn.className='btn gold sm';}
   }
 }
-function botClick(e){const bi=e.target.closest('button[data-iniz]');if(bi){buyIniz(bi.dataset.iniz);render(true);return;}const b=e.target.closest('button[data-up]');if(!b)return;const id=b.dataset.up;buyUp(id);if(id==='commesso'&&S.up.commesso&&!S.helper)chooseHelper();buildMag();buildBot();render(true);}
+function botClick(e){const bv=e.target.closest('button[data-vil]');if(bv){becomePres();render(true);return;}const bi=e.target.closest('button[data-iniz]');if(bi){buyIniz(bi.dataset.iniz);render(true);return;}const b=e.target.closest('button[data-up]');if(!b)return;const id=b.dataset.up;buyUp(id);if(id==='commesso'&&S.up.commesso&&!S.helper)chooseHelper();buildMag();buildBot();render(true);}
 /* chi ti aiuta al banco */
 function renderRadio(){
   const c=$('#newsCard');if(!c)return;const n=S.phase==='open'&&S.today&&S.today.news;
@@ -2955,7 +3117,7 @@ function renderHelpers(){
   const hs=helpers();
   const sig=hs.map(h=>h.k+h.st.served+h.st.last).join('|');if(box._sig===sig)return;box._sig=sig;
   card.hidden=!hs.length;
-  box.innerHTML=hs.map(h=>{const face=h.k==='ines'?faceHtml(INES_FACE,'ok'):ownerHtml(OWD[S.helper.owner]);
+  box.innerHTML=hs.map(h=>{const face=h.k==='ines'?faceHtml(INES_FACE,'ok'):h.k==='kid'?faceHtml(KID_FACE(S.kid.f),'ok'):ownerHtml(OWD[S.helper.owner]);
     const tx=h.st.served?`ha servito ${h.st.served} client${h.st.served===1?'e':'i'} oggi${h.st.last?' · ultimo: '+esc(h.st.last):''}`:'serve chi è in coda e paga in contanti';
     return `<div class="hrow">${face}<div><b>${esc(h.name)}</b>${h.k==='ines'?' <span class="muted" style="font-size:12px">fino alle '+timeStr(S.ines.until)+'</span>':''}<small>${tx}</small></div></div>`;}).join('');
 }
@@ -3139,7 +3301,7 @@ function gameOver(){
   if(S.sold){const o=S.sold;
     openModal({cls:'finale',html:`<h3>Vendo e chiudo</h3><p>Firmi dal notaio, e ${o.who} si prende la bottega per ${fmt(o.val)}. L'ultima sera abbassi la saracinesca da solo, e per un attimo ti sembra di sentire Peppe Verduci che chiede di segnare.</p><p>Ines ti aspetta in macchina. «E adesso che fai tutto il giorno?»</p>`+careerHtml(),actions:[{label:'Una nuova carriera',cls:'gold',fn:resetGame}]});return;}
   if(S.retired){
-    const html=`<h3>La pensione</h3><p>Vent'anni dietro al banco. L'ultimo pacchetto di Nazzionali lo vendi a Mastro Ciccio, che ti stringe la mano e dice: «E mo' a chi le chiedo a credito?»</p><p>Ines ha già prenotato la crociera. Le chiavi della bottega passano di mano, ma l'insegna resta quella: <b>Il TabacchInes</b>.</p>`+careerHtml();
+    const kidB=S.kid&&S.kid.path==='bottega';const html=`<h3>La pensione</h3><p>Vent'anni dietro al banco. L'ultimo pacchetto di Nazzionali lo vendi a Mastro Ciccio, che ti stringe la mano e dice: «E mo' a chi le chiedo a credito?»</p><p>Ines ha già prenotato la crociera. ${kidB?`Le chiavi le dai a ${esc(S.kid.name)}, che le prende come si prende un'eredità: con paura e con orgoglio.`:'Le chiavi della bottega passano di mano'}, ma l'insegna resta quella: <b>Il TabacchInes</b>.</p>`+careerHtml();
     openModal({cls:'finale',html,actions:[{label:'Una nuova carriera',cls:'gold',fn:resetGame}]});return;}
   const nd=chance(.5);
   const html=nd
@@ -3311,7 +3473,7 @@ function showSplash(){
 }
 if(typeof document!=="undefined"&&document.addEventListener&&!(typeof window!=="undefined"&&window.__TABTEST)){document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-snd]');if(b){e.preventDefault();setSound(!SND.on);}},true);setTimeout(()=>setSound(SND.on,true),0);}
 if(typeof window!=="undefined"&&window.__TABDBG){window.__R=rapina;window.__GS=()=>S;window.__INES=inesArrives;window.__CH=chooseHelper;window.__SP=()=>spawnCustomer(null,S.people.find(p=>p.fix==="carmela"));}
-if(typeof window!=="undefined"&&window.__TABTEST){window.__T={careerScore,inesTake,PD,UPD,withdraw,buyFido,payFido,buyIniz,INIZ,inizState,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
+if(typeof window!=="undefined"&&window.__TABTEST){window.__T={pendAuto,becomePres,careerScore,inesTake,PD,UPD,withdraw,buyFido,payFido,buyIniz,INIZ,inizState,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
 })();
 </script>
