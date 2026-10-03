@@ -1,12 +1,14 @@
 /* Il TabacchInes: funzionamento offline.
    Cambia VERSION a ogni nuova versione del gioco per aggiornare la cache. */
-const VERSION = 'tabacchines-v143';
+const VERSION = 'tabacchines-b145';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // scarica sempre dalla rete, mai dalla cache del browser, così la versione nuova è davvero nuova
+  e.waitUntil(caches.open(VERSION).then(c => Promise.all(CORE.map(u =>
+    fetch(u, {cache: 'reload'}).then(r => { if (r.ok) return c.put(u, r); })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -28,10 +30,18 @@ self.addEventListener('fetch', e => {
   }
   if (url.origin !== location.origin) return;
 
-  // Pagina e file del gioco: subito dalla cache, aggiornati in sottofondo quando c'è rete
-  const key = req.mode === 'navigate' ? './index.html' : req;
-  e.respondWith(caches.open(VERSION).then(c => c.match(key).then(hit => {
-    const net = fetch(req).then(res => { if (res.ok) c.put(key, res.clone()); return res; }).catch(() => hit);
+  // La pagina del gioco: prima dalla rete (così si vede sempre l'ultima versione), dalla cache solo senza rete
+  if (req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
+    e.respondWith(fetch(req, {cache: 'no-store'}).then(res => {
+      if (res.ok) caches.open(VERSION).then(c => c.put('./index.html', res.clone()));
+      return res;
+    }).catch(() => caches.open(VERSION).then(c => c.match('./index.html'))));
+    return;
+  }
+
+  // Icone e altri file: dalla cache, aggiornati in sottofondo quando c'è rete
+  e.respondWith(caches.open(VERSION).then(c => c.match(req).then(hit => {
+    const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
     return hit || net;
   })));
 });
