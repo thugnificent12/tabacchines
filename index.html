@@ -824,7 +824,7 @@ const CATL={tab:'Tabacchi',gra:'Gratta e Vinci',val:'Valori e trasporti',ban:'Ba
 const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','cred','vin','int','fin'];
 const EXP=['merce','vers','prem','boll','canoni','tasse','prof','pers','pos','rate','upg','iniz','vizi','furti','multe'];
 const NEU=['giro','credito','autoc'];
-const RANKS=[[0,'Tabaccaio Provetto'],[5000,'Cumpari'],[10000,'Principi i \'Zzareddu'],[20000,'Signore di Villa San Giovanni'],[30000,'Re dello Stretto'],[70000,'Presidente del Sud'],[100000,'Don Pietro']];
+const RANKS=[[0,'Tabaccaio Provetto'],[5000,'Cumpari'],[10000,'Principi i \'Zzareddu'],[20000,'Signore di Villa San Giovanni'],[30000,'Re dello Stretto'],[120000,'Presidente del Sud'],[250000,'Don Pietro']];
 const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e la sindaca passa in bottega.','Mance +5% e il commercialista costa il 20% in meno.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e Radio Sole parla di te.'];
 const rk=()=>S&&S.rankMax||0;
 const patBase=()=>S.patBase!=null?S.patBase:((typeof CASHD!=='undefined'&&CASHD[S.cashMode]?CASHD[S.cashMode].n:2500)+1500);
