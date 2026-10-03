@@ -2208,7 +2208,7 @@ function renderAlbum(){
   const list=(arr,have)=>`<ul class="alist">${arr.map(([k,t])=>`<li class="${have[k]?'on':''}">${have[k]?esc(t):'? ? ?'}</li>`).join('')}</ul>`;
   root.innerHTML=`<section class="card"><h2>Le tue stelle</h2><div class="minirow"><span>Stelle prese in tutto</span><b class="mono">★ ${a.stelle}</b></div><div class="minirow"><span>Giornate perfette (3 stelle)</span><b class="mono">${a.tre}</b></div><div class="minirow"><span>Giornate perfette di fila: ora / record</span><b class="mono">${a.serie} / ${a.best}</b></div></section>`
    +sec('Medaglie',Object.keys(S.medals||{}).length,MEDALS.length,`<ul class="alist">${MEDALS.map(([id,t,d])=>`<li class="${(S.medals||{})[id]?'on':''}">${(S.medals||{})[id]?'🏅 ':'○ '}<b>${esc(t)}</b> <span class="muted" style="font-size:12px">· ${esc(d)}</span></li>`).join('')}</ul>${(S.trofei||[]).length?`<p style="margin:8px 0 0">🏆 Tabaccheria dell'anno: ${S.trofei.join(', ')}</p>`:''}`)
-   +((S.campHist||[]).length?`<section class="card"><h2>Le stagioni della Reggina</h2>${S.campHist.map(h=>`<div class="minirow"><span>${h.season} · ${h.pt} punti in ${h.g} partite</span><b>${h.out==='promossa'?'🏆 promossa':h.out==='retrocessa'?'retrocessa':'salva'}</b></div>`).join('')}</section>`:'')
+   +((S.campHist||[]).some(h=>h.team==='villese')?`<section class="card"><h2>Le stagioni della Villese</h2>${S.campHist.filter(h=>h.team==='villese').map(h=>`<div class="minirow"><span>${h.season} · ${h.pt} punti in ${h.g} partite</span><b>${h.out==='promossa'?'🏆 promossa':h.out==='retrocessa'?'retrocessa':'salva'}</b></div>`).join('')}</section>`:'')
    +sec('Clienti conosciuti',known.length,ppl.length,`<div class="agrid">${known.map(p=>`<div class="acli" title="${esc(p.name)}${p.role?' · '+esc(p.role):''}">${faceHtml(p.face,'ok')}<small>${esc(p.name.split(' ')[0])}</small></div>`).join('')}${ppl.length>known.length?`<div class="acli no"><div class="face">?</div><small>altri ${ppl.length-known.length}</small></div>`:''}</div>${known.length?'':'<p class="muted" style="font-size:13px;margin:6px 0 0">Servi i clienti: chi passa al banco entra nell\'album.</p>'}`)
    +sec('Frasi in dialetto sentite',Object.keys(a.frasi).length,ALB_FRASI.length,list(ALB_FRASI.map(([k,t])=>[k,'«'+t+'»']),a.frasi))
    +sec('Feste e giornate speciali',ALB_FESTE.filter(([k])=>a.feste[k]).length,ALB_FESTE.length,list(ALB_FESTE,a.feste))
@@ -2393,29 +2393,29 @@ function mystResult(c,perfect,nerr){if(!c.mystery)return;const M=MYST[c.mystery]
   else log(`${M.name} se ne va un po' deluso. Peccato, era l'occasione della vita.`,'warn');}
 
 /* ===== il campionato di Reggina e Villese ===== */
-const OPP={reggina:['Siracusa','Messina','Cosenza','Crotone','Rende','Catanzaro','Catania','Palermo','Castrovillari','Acireale','Giarre','Juveterranova','Enna','Modica'],villese:['Catona','Gallico','Scillese','Campese','San Roberto','Bagnarese','Palmese','Gioiese','Locri','Siderno']};
-const TEAMS={reggina:{n:'Reggina',f:.55},villese:{n:'Villese',f:.48}};
+const OPP={reggina:['Siracusa','Messina','Cosenza','Crotone','Rende','Catanzaro','Catania','Palermo','Castrovillari','Acireale','Giarre','Juveterranova','Enna','Modica'],villese:['Catona','Gallico','Scillese','Campese','San Roberto','Bagnarese','Palmese','Gioiese','Locri','Siderno','Amantea','Scalea','Cittanova','Taurianovese','Archi','Rosarno','Pro Pellaro','Ravagnese','Brancaleone','San Luca','Polistena']};
+const TEAMS={reggina:{n:'Reggina',f:.5},villese:{n:'Villese',f:.56}};
 const seasonKey=d=>{const x=dateOf(d),y=x.getFullYear(),m=x.getMonth();return m>=7?`${y}/${String(y+1).slice(2)}`:`${y-1}/${String(y).slice(2)}`;};
 const inSeason=d=>{const m=dateOf(d).getMonth();return m>=8||m<=4;};
 function camp(){const k=seasonKey(S.day);if(!S.camp||S.camp.season!==k){if(S.camp&&S.camp.season)campClose();S.camp={season:k,t:{reggina:{pt:0,g:0,v:0,n:0,p:0,gf:0,gs:0},villese:{pt:0,g:0,v:0,n:0,p:0,gf:0,gs:0}},tk:{reggina:0,villese:0},last:{}};}return S.camp;}
 function campTicket(l){if(!l||l.ev==null)return;const t=(EVENTI[l.ev]||{}).t||'';const c=camp(),n=l.n||1;if(/Reggina/.test(t))c.tk.reggina+=n;else if(/Villese/.test(t))c.tk.villese+=n;}
 function goals(lam){let k=0,p=Math.exp(-lam),s=p,u=Math.random();while(u>s&&k<7){k++;p*=lam/k;s+=p;}return k;}
-function campDay(ex){if(!isSunday(S.day-1)||!inSeason(S.day-1))return;const c=camp();const res=[];
-  for(const id of ['reggina','villese']){const T=TEAMS[id],st=c.t[id],tifo=Math.min(.12,c.tk[id]*.006);
+function campDay(ex){if(!isSunday(S.day-1)||!inSeason(S.day-1))return;const c=camp();const res={};
+  for(const id of ['villese','reggina']){const T=TEAMS[id],st=c.t[id],tifo=Math.min(.12,c.tk[id]*.006);
     const a=goals(1.1+(T.f-.5)*2+tifo*3),b=goals(1.05-(T.f-.5)*1.5);const opp=pick(OPP[id]);
     st.g++;st.gf+=a;st.gs+=b;if(a>b){st.v++;st.pt+=3;}else if(a===b){st.n++;st.pt+=1;}else st.p++;
-    c.last[id]={opp,a,b};res.push({id,a,b,opp});c.tk[id]=0;}
-  const r=res[0];const txt=res.map(x=>`${TEAMS[x.id].n}–${x.opp} ${x.a}-${x.b}`).join(', ');
-  log(`⚽ Risultati: ${txt}.`,'info');ex.push(`⚽ ${txt}`);
-  if(r.a>r.b){S.campFesta=S.day;repFlat(.5);ex.push('La Reggina ha vinto: domani festa in paese, più clienti!');}
-  else if(r.a<r.b)ex.push('La Reggina ha perso: domani in bottega si parla solo dell\'arbitro.');}
-function campClose(){const c=S.camp;if(!c||!c.t.reggina.g)return;const st=c.t.reggina,ppg=st.pt/st.g;const out=ppg>=2?'promossa':ppg<=.9?'retrocessa':'salva';
-  (S.campHist=S.campHist||[]).push({season:c.season,pt:st.pt,g:st.g,out,vil:c.t.villese.pt});
-  if(out==='promossa'){repFlat(3);log(`🏆 La Reggina ${c.season} è promossa con ${st.pt} punti! Il paese è in festa. Reputazione +3.`,'good');toast('🏆 Reggina promossa!','good');}
-  else if(out==='retrocessa'){repFlat(-2);log(`La Reggina ${c.season} retrocede con ${st.pt} punti. Il quartiere è di cattivo umore. Reputazione −2.`,'bad');}
-  else log(`Stagione ${c.season} finita: la Reggina si salva con ${st.pt} punti.`,'info');}
-function campLine(){if(!inSeason(S.day)||!S.camp)return '';const c=S.camp,r=c.t.reggina,v=c.t.villese,L=c.last.reggina;
-  return `⚽ ${c.season}: Reggina ${r.pt} punti in ${r.g} partite${L?` (ultima ${L.a}-${L.b} col ${L.opp})`:''} · Villese ${v.pt} punti. I biglietti venduti in settimana danno la carica.`;}
+    c.last[id]={opp,a,b};res[id]={id,a,b,opp};c.tk[id]=0;}
+  const txt=['villese','reggina'].map(id=>{const x=res[id];return `${TEAMS[id].n}–${x.opp} ${x.a}-${x.b}`;}).join(', ');
+  log(`⚽ Risultati: ${txt}.`,'info');ex.push(`⚽ ${txt}`);const r=res.villese;
+  if(r.a>r.b){S.campFesta=S.day;repFlat(.5);ex.push('La Villese ha vinto: domani festa in paese, più clienti!');}
+  else if(r.a<r.b)ex.push('La Villese ha perso: domani in bottega si parla solo dell\'arbitro.');}
+function campClose(){const c=S.camp;if(!c||!c.t.villese.g)return;const st=c.t.villese,ppg=st.pt/st.g;const out=ppg>=2?'promossa':ppg<=.9?'retrocessa':'salva';
+  (S.campHist=S.campHist||[]).push({team:'villese',season:c.season,pt:st.pt,g:st.g,out,reg:c.t.reggina.pt});
+  if(out==='promossa'){repFlat(3);log(`🏆 La Villese ${c.season} è promossa con ${st.pt} punti! Villa è in festa. Reputazione +3.`,'good');toast('🏆 Villese promossa!','good');}
+  else if(out==='retrocessa'){repFlat(-2);log(`La Villese ${c.season} retrocede con ${st.pt} punti. Il paese è di cattivo umore. Reputazione −2.`,'bad');}
+  else log(`Stagione ${c.season} finita: la Villese si salva con ${st.pt} punti.`,'info');}
+function campLine(){if(!inSeason(S.day)||!S.camp)return '';const c=S.camp,r=c.t.reggina,v=c.t.villese,L=c.last.villese;
+  return `⚽ ${c.season}: Villese ${v.pt} punti in ${v.g} partite${L?` (ultima ${L.a}-${L.b} col ${L.opp})`:''} · Reggina ${r.pt} punti. I biglietti venduti in settimana danno la carica.`;}
 
 /* ===== i rivali: Carrozzo ('Nti Carrozzu) e Passalacqua ===== */
 const RIVALS=[['carrozzo','Carrozzo',45,56],['passalacqua','Passalacqua',50,58]];
