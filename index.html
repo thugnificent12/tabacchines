@@ -364,8 +364,9 @@ body.alarm .nav button{color:#fff}
     <section class="tab" id="tab-mag" hidden>
       <div class="card">
         <h2>Grossista</h2>
-        <p class="muted" style="margin:0 0 10px;font-size:13.5px">La merce si paga subito e arriva subito. Di ogni prodotto puoi tenerne al massimo 200. I tabacchi e le lotterie hanno il prezzo fissato dallo Stato; al banco il prezzo lo decidi tu.</p>
+        <p class="muted" style="margin:0 0 10px;font-size:13.5px">La merce si paga subito e arriva subito. Di ogni prodotto puoi tenerne al massimo 200. I tabacchi e le lotterie hanno il prezzo fissato dallo Stato; al banco il prezzo lo decidi tu. Se la cassa non basta, il grossista ti fa credito fino a 1.500 € per due giorni.</p>
         <button class="btn sm" id="refillAll">Rifornisci tutto ciò che sta finendo</button>
+        <div id="fidoBox" hidden></div>
       </div>
       <div id="mag-list" style="display:grid;gap:12px"></div>
     </section>
@@ -779,7 +780,7 @@ const UPG=[
  {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[300],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
  {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[300],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
  {id:'commesso',grp:'esp',name:'Assumi un commesso',max:1,cost:[800],req:'locale',desc:'Con il locale accanto serve un secondo banco. Scegli tu chi metterci: uno degli altri tabaccai del quartiere.',eff:()=>'serve da solo i clienti in coda (non fa credito); stipendio 1.100 €/mese'},
- {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[20000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese'},
+ {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[15000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese'},
  {id:'scommesse',grp:'srv',name:'Licenza scommesse sportive',max:1,cost:[2500],desc:'Schedine, quote e discussioni sul rigore che non c\'era.',eff:()=>'provvigione 8% sulle giocate, canone 40 €/mese'},
  {id:'virtuali',grp:'srv',name:'Schermo per scommesse virtuali',max:1,cost:[1500],desc:'Cavalli finti, partite finte, soldi veri.',eff:()=>'provvigione 10%, +3% clienti, canone 20 €/mese'},
  {id:'caffe',grp:'rep',name:'Macchina del caffè',max:1,cost:[800],desc:'Il caffè del tabacchino: non sarà il bar, ma è sempre caldo.',eff:()=>'sblocca il caffè (cialde a scaffale), luce +15 €/mese'},
@@ -823,7 +824,7 @@ function newState(owner,tr){
   const st={v:2,start:todayISO(),billMode:'m',calabro:1,lic2:1,cashMode:'m',counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:2500,deposit:0,rep:0,speed:1,stock,price,
     up:{licLot:0,licSup:0,licDel:0,treni:0,snack:0,caramelle:0,valori:0,fumo:0,commesso:0,licSvapo:0,espSvapo:0,cancelleria:0,eventi:0,insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0,locale:0,scommesse:0,virtuali:0,caffe:0,snackbar:0,giornali:0,alcol:0,ghiaccio:0,umidor:0,sigaripremium:0,cbd:0,tv:0,slot:0,condiz:0,distrib:0},
     people,queue:[],nid:1,today:newToday(),aggD:{},aggM:{},aggA:{},tx:[],history:[],log:[],
-    freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,helper:null,ines:null,vetrina:[],invested:0,loan:null,debtDays:0,over:false,intro:false};
+    freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,helper:null,ines:null,vetrina:[],invested:0,loan:null,fido:null,debtDays:0,over:false,intro:false};
   addRegulars(st);return st;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -1479,6 +1480,7 @@ function upcoming(n){
 /* ===== ciclo ===== */
 function tick(dm){
   S.t+=dm;
+  if(S.fido&&S.day>=S.fido.day+2&&S.t>=FIDO_T)fidoCollect();
   if(S.freeze>0)S.freeze=Math.max(0,S.freeze-dm);
   while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();if(RT.modal)break;}
   spawnTick(dm);
@@ -1499,6 +1501,9 @@ function openDay(){
   S.counter=null;S.tray={};RT.last=null;RT.ovLog=RT.ovFin=RT.ovRap=0;
   if(S.speed===0)S.speed=1;
   if(isRincaroDay(S.day))rincaroUfficiale();
+  if(S.fido&&S.day>S.fido.day+2)fidoCollect();
+  else if(S.fido&&S.day===S.fido.day+2){log(`Stasera alle 19:30 passa il grossista: vuole ${fmt(r2(S.fido.amt*1.1))}, il 10% in più. Se lo paghi prima costa lo stesso.`,'warn');toast('Stasera passa il grossista a riscuotere.','warn');}
+  else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
   const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;S.ines=null;
@@ -1534,6 +1539,7 @@ function closeDay(){
   const left=S.queue.length+(S.counter?1:0);
   if(left){T.lost+=left;addRep(-.5*left);log(`Abbassi la saracinesca con ${left} clienti ancora dentro. Escono brontolando.`,'bad');}
   S.queue=[];S.counter=null;S.tray={};
+  if(S.fido&&S.day>=S.fido.day+2)fidoCollect();
   const charges=[];
   if(T.prize>0){S.cash=r2(S.cash+T.prize);tx('rimb',T.prize,'Rimborso delle vincite Gratta e Vinci pagate oggi');}
   if(T.gioc>0){charges.push({cat:'vers',amt:r2(T.gioc-T.gfee),label:`Versamento giocate e servizi (incassati ${fmt(T.gioc)}, tua provvigione ${fmt(T.gfee)})`});}
@@ -1562,6 +1568,33 @@ function closeDay(){
 }
 
 /* ===== azioni di gestione ===== */
+/* ===== grossista a credito: due giorni, +5% se paghi entro domani, +10% se viene lui ===== */
+const FIDO_MAX=1500,FIDO_T=1170;
+const fidoRate=()=>!S.fido?0:(S.day-S.fido.day<=1?.05:.10);
+const fidoOwed=()=>S.fido?r2(S.fido.amt*(1+fidoRate())):0;
+const canFido=c=>c>0&&(!S.fido||S.fido.day===S.day)&&r2((S.fido?S.fido.amt:0)+c)<=FIDO_MAX;
+function buyFido(list){
+  let cost=0;for(const x of list){x.n=Math.min(x.n,space(x.id));cost+=x.n*costOf(x.id);}cost=r2(cost);
+  if(cost<=0)return false;
+  if(!canFido(cost)){toast(S.fido&&S.fido.day!==S.day?'Il grossista vuole prima i soldi della volta scorsa.':`Il grossista fa credito fino a ${fmt(FIDO_MAX)}.`,'bad');return false;}
+  for(const x of list)if(x.n>0)S.stock[x.id]+=x.n;
+  S.fido=S.fido?{amt:r2(S.fido.amt+cost),day:S.fido.day}:{amt:cost,day:S.day};
+  log(`Il grossista ti lascia merce a credito per ${fmt(cost)}. Se lo paghi entro domani vuole il 5% in più; dopodomani alle 19:30 passa lui e vuole il 10%.`,'warn');
+  save();return true;
+}
+function payFido(){
+  if(!S.fido)return false;const o=fidoOwed(),pct=Math.round(fidoRate()*100);
+  if(S.cash+S.deposit<o){toast('Non hai abbastanza soldi per pagare il grossista.','bad');return false;}
+  const fd=payForced(o);tx('merce',-o,`Pagato il grossista: merce a credito ${fmt(S.fido.amt)} + ${pct}%`);
+  log(`Paghi il grossista: ${fmt(o)} (+${pct}%).${fd>0?` ${fmt(fd)} presi dal libretto.`:''}`,'good');toast(`Grossista pagato: ${fmt(o)}.`,'good');
+  S.fido=null;save();return true;
+}
+function fidoCollect(){
+  if(!S.fido)return;const o=r2(S.fido.amt*1.10);payForced(o);
+  tx('merce',-o,`Il grossista passa a riscuotere: ${fmt(S.fido.amt)} + 10%`);
+  log(`Entra il grossista con il blocchetto in mano: «Sono ${fmt(o)}, col dieci per cento.» Paghi.${S.cash<0?' La cassa va in rosso.':''}`,'bad');
+  toast(`Il grossista si prende ${fmt(o)}.`,'bad');sfx('alarm');S.fido=null;
+}
 function buy(id,n){
   n=Math.min(n,space(id));if(n<=0){toast('Non c\'è più spazio sugli scaffali.','warn');return false;}
   const cost=r2(n*costOf(id));
@@ -2283,8 +2316,9 @@ function buySheet(id){
     +(p.motto?`<p style="font-style:italic">«${esc(p.motto)}»</p>`:'')
     +(sp<=0?'<p>Hai già il massimo: 200 pezzi.</p>':`<p class="muted" style="font-size:13px">In cassa ${fmt(S.cash)}${S.deposit>0?` · sul libretto ${fmt(S.deposit)}`:''}. La merce arriva subito.</p>`);
   const acts=opts.map(n=>{const c=r2(n*u);const lbl=n===sp&&opts.length>1?`Fino al massimo di 200: ${n} pezzi (${fmt(c)})`:`Compra ${n} pezzi${n===lot?' ('+CATDEF[p.cat].lotName+')':''} · ${fmt(c)}`;return{label:lbl,cls:'gold',disabled:c>S.cash,fn(){if(buy(id,n)){toast(`+${n} ${p.name}`,'good');render(true);}}};});
+  let nf=0;for(const n of opts){const c=r2(n*u);if(c>S.cash&&canFido(c)&&nf<2){nf++;acts.push({label:`A credito dal grossista: ${n} pezzi · ${fmt(c)}`,cls:'',fn(){if(buyFido([{id,n}])){toast(`+${n} ${p.name} a credito`,'warn');render(true);}}});}}
   acts.push({label:'Chiudi',cls:'alt'});
-  openModal({html,actions:acts});
+  openModal({html:html+(nf?`<p class="muted" style="font-size:12.5px">A credito: lo ripaghi entro domani col 5% in più; dopodomani alle 19:30 passa il grossista e vuole il 10%.${S.fido?` Hai già ${fmt(S.fido.amt)} a credito.`:''}</p>`:''),actions:acts});
 }
 
 /* magazzino */
@@ -2307,7 +2341,14 @@ function buildMag(){
   }
   refreshMag();
 }
+function renderFido(){
+  const b=$('#fidoBox');if(!b)return;const sig=S.fido?S.fido.amt+'|'+S.fido.day+'|'+S.day:'';if(b._sig===sig)return;b._sig=sig;
+  if(!S.fido){b.hidden=true;b.innerHTML='';return;}
+  const age=S.day-S.fido.day,o=fidoOwed();
+  b.hidden=false;b.innerHTML=`<p style="margin:10px 0 8px"><b>Devi al grossista ${fmt(S.fido.amt)}</b> (merce a credito). ${age<=1?`Se lo paghi ${age===0?'entro domani':'oggi'} sono ${fmt(o)} (+5%). Dopodomani alle 19:30 passa lui e vuole ${fmt(r2(S.fido.amt*1.1))} (+10%).`:`Stasera alle 19:30 passa lui: sono ${fmt(o)} (+10%).`}</p><button class="btn sm gold" id="fidoPay">Paga ora ${fmt(o)}</button>`;
+}
 function refreshMag(){
+  renderFido();
   if(MR._pf!==pfOn()){buildMag();return;}
   for(const id in MR){if(id[0]==="_")continue;
     const r=MR[id],cap=capOf(id),st=S.stock[id],cost=costOf(id),pr=sellP(id);
@@ -2334,7 +2375,8 @@ function refillAll(){
   if(!list.length){toast('Niente sta finendo.','good');return;}
   const tot=r2(list.reduce((a,x)=>a+x.n*costOf(x.id),0));
   const html=`<h3>Rifornisci</h3><p>${list.length} prodotti stanno finendo: ${list.map(x=>`${x.n}× ${esc(PD[x.id].name)}`).join(', ')}.</p><p><b>Totale ${fmt(tot)}</b> · in cassa ${fmt(S.cash)}</p>`;
-  openModal({html,actions:[{label:`Compra tutto (${fmt(tot)})`,cls:'gold',disabled:tot>S.cash,fn(){for(const x of list)buy(x.id,x.n);toast('Scaffali riempiti.','good');render(true);}},{label:'Annulla',cls:'alt'}]});
+  openModal({html,actions:[{label:`Compra tutto (${fmt(tot)})`,cls:'gold',disabled:tot>S.cash,fn(){for(const x of list)buy(x.id,x.n);toast('Scaffali riempiti.','good');render(true);}},
+    ...(tot>S.cash&&canFido(tot)?[{label:`Tutto a credito dal grossista (${fmt(tot)})`,fn(){if(buyFido(list.map(x=>({id:x.id,n:x.n})))){toast('Scaffali riempiti a credito.','warn');render(true);}}}]:[]),{label:'Annulla',cls:'alt'}]});
 }
 
 /* bottega */
@@ -2613,6 +2655,7 @@ function init(){
   segBind('#pkSeg',v=>{PCAT=v;buildStockGrid();});
   $('#mag-list').addEventListener('click',magClick);
   $('#refillAll').addEventListener('click',refillAll);
+  $('#fidoBox').addEventListener('click',e=>{if(e.target.closest('#fidoPay')){if(payFido()){$('#fidoBox')._sig=null;render(true);}}});
   $('#bot-root').addEventListener('click',botClick);
   $('#loanbox').addEventListener('click',loanClick);
   $('#amtchips').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;$('#amt').value=b.dataset.v==='all'?Math.max(0,Math.floor(S.cash)):b.dataset.v;});
@@ -2729,7 +2772,7 @@ function showSplash(){
 }
 if(typeof document!=="undefined"&&document.addEventListener&&!(typeof window!=="undefined"&&window.__TABTEST)){document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-snd]');if(b){e.preventDefault();setSound(!SND.on);}},true);setTimeout(()=>setSound(SND.on,true),0);}
 if(typeof window!=="undefined"&&window.__TABDBG){window.__R=rapina;window.__GS=()=>S;window.__INES=inesArrives;window.__CH=chooseHelper;window.__SP=()=>spawnCustomer(null,S.people.find(p=>p.fix==="carmela"));}
-if(typeof window!=="undefined"&&window.__TABTEST){window.__T={PD,UPD,withdraw,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
+if(typeof window!=="undefined"&&window.__TABTEST){window.__T={PD,UPD,withdraw,buyFido,payFido,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
 })();
 </script>
