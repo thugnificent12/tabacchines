@@ -364,6 +364,7 @@ body.alarm .nav button{color:#fff}
         <div class="minirow"><span>Richieste non soddisfatte</span><b class="mono" id="m-missed">0</b></div>
         <div class="minirow"><span>Segnato a credito oggi</span><b class="mono" id="m-cred">0</b></div>
       </div>
+      <div class="card" id="dayGoal" hidden></div>
       <div class="card" id="newsCard" hidden><h2>📻 Radio quartiere</h2><p id="newsTxt" style="margin:0 0 6px"></p><p id="gossipTxt" class="muted" style="margin:0;font-size:13.5px"></p></div>
       <div class="card"><h2>Ultime dal banco</h2><ul class="loglist" id="minilog"></ul></div>
     </section>
@@ -1289,11 +1290,11 @@ function askDebt(){
   const h=p.never?0:clamp(p.hon+(perk('debtors')?.15:0),0,1),r=p.never?.22+Math.random()*.78:Math.random();
   if(r<h*.55){
     const pay=p.debt;p.debt=0;p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);sfx('cash');tx('cred',pay,`${p.name} salda il conto`);personHist(p,'saldo',pay,'Saldato tutto');
-    c.reply=`«Ha ragione, ecco qua.» Salda ${fmt(pay)}.`;addRep(.1);log(`${p.name} salda tutto: ${fmt(pay)}.`,'good');
+    c.reply=`«Ha ragione, ecco qua.» Salda ${fmt(pay)}.`;addRep(.1);goalCred(p);log(`${p.name} salda tutto: ${fmt(pay)}.`,'good');
   }else if(r<h*.55+.22){
     const pay=r2(Math.max(1,Math.round(p.debt*rnd(.25,.6))));p.debt=r2(p.debt-pay);p.back=r2(p.back+pay);S.cash=r2(S.cash+pay);sfx('cash');
     tx('cred',pay,`${p.name} paga un acconto`);personHist(p,'acconto',pay,`Restano ${fmt(p.debt)}`);
-    c.reply=`«Intanto le do questi.» Ti dà ${fmt(pay)}, ne restano ${fmt(p.debt)}.`;log(`${p.name} paga un acconto di ${fmt(pay)}.`,'info');
+    c.reply=`«Intanto le do questi.» Ti dà ${fmt(pay)}, ne restano ${fmt(p.debt)}.`;goalCred(p);log(`${p.name} paga un acconto di ${fmt(pay)}.`,'info');
   }else if(r<h*.55+.22+.3){
     const ex=pick(EXCUSES).replace('%DAY%',DAYS[wd(S.day)].toLowerCase());
     personHist(p,'scusa',0,ex);c.reply=ex;log(`${p.name}: ${ex}`,'warn');
@@ -1520,7 +1521,7 @@ function openDay(){
   else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
-  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;albDay();S.today.rep0=S.rep;S.today.pat0=patrimonio();S.ines=null;
+  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;albDay();S.today.rep0=S.rep;goalStart();S.today.pat0=patrimonio();S.ines=null;
   // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
   const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
   let tg=rnd(75,165)*repF*(S.up.facciata?1.06:1)*(S.up.bancone?1.04:1)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
@@ -1721,18 +1722,8 @@ const REGULARS=[
     const dolce=f.id==='pasqua'?'i cudduraci appena sfornati':'un vassoio di petrali';log(`Carmela Nucera ti porta ${dolce}: «Per lei e per Ines, che siete come figli.»`,'good');toast(`Carmela Nucera ti porta ${dolce}.`,'good');}}},
  {key:'peppe',type:'operaio',f:0,name:'Peppe Verduci',role:'Operaio · cliente fisso',win:[420,1140],days:[0,1,2,3,4,5],
   face:{skin:'#C78C62',hc:'#2B211B',shirt:'#3F6E4E',bg:'#D9EBD3',hair:'curly',hat:'cap',hatc:'#8A3B3B',glasses:null,beard:true,must:false,blush:false,ear:false,lip:null,old:false},
-  quotes:['«Segni, segni, che a fine mese saldo tutto.»','«Apoi passu, giuro su mia madre.»','«Lei mi conosce, sono una persona seria.»'],
-  wants:c=>{want(c,'naz',ri(1,2));if(chance(.4))want(c,'g5');},
-  credit:true,
-  onServe(p,r){
-    if(r.credit&&r.total>0){p.goneUntil=S.day+ri(20,45);log('Peppe Verduci saluta con la mano sul cuore. Lo rivedrai… prima o poi.','warn');}
-  },
-  onReturn(p){
-    if(p.debt<=0)return;
-    if(chance(.7)){const extra=r2(p.debt*.1),pay=r2(p.debt+extra);S.cash=r2(S.cash+pay);p.back=r2(p.back+p.debt);tx('cred',pay,`Peppe Verduci salda tutto con gli interessi`);personHist(p,'saldo',pay,'Ritorno dopo settimane, con 10% in più');p.debt=0;
-      log(`Rieccolo: Peppe Verduci ricompare dopo settimane e salda tutto, più il 10% «per il disturbo»: ${fmt(pay)}.`,'good');toast(`Peppe Verduci salda ${fmt(pay)}!`,'good');}
-    else log('Peppe Verduci ricompare abbronzato. Del debito non parla. Chiede altro credito.','warn');
-  }},
+  quotes:['«Le solite, grazie.»','«Due Nazzionali e un gratta, come sempre.»','«Oggi si lavora, domani si vede.»'],
+  wants:c=>{want(c,'naz',ri(1,2));if(chance(.4))want(c,'g5');}},
  {key:'professore',type:'geometra',f:0,name:'Professor Demetrio Cotroneo',role:'Professore in pensione · cliente fisso',win:[450,540],days:[0,1,2,3,4,5,6],
   face:{skin:'#F3D2B6',hc:'#E8E4DE',shirt:'#1F2A44',bg:'#E4DDF2',hair:'slick',hat:null,hatc:'#000',glasses:true,beard:true,must:false,blush:false,ear:false,lip:null,old:true},
   quotes:['«La gazzetta, prego. Senza non comincia la giornata.»','«Ha letto? No, lei non legge. Male.»','«Ai miei alunni lo dicevo sempre: informatevi.»'],
@@ -2239,6 +2230,14 @@ function shopSVG(){
   return `<svg viewBox="0 0 320 170" style="width:100%;height:auto;display:block;border-radius:10px" role="img" aria-label="La tua bottega vista da fuori">${s}</svg>`;
 }
 
+/* obiettivo del giorno: incassa due crediti vecchi */
+function goalStart(){const old=S.people.filter(p=>p.id>=0&&p.debt>0).map(p=>p.id);S.today.goal=old.length>=2?{old,paid:[],need:2,done:false}:null;}
+function goalCred(p){const g=S.today&&S.today.goal;if(!g||g.done||!g.old.includes(p.id)||g.paid.includes(p.id))return;g.paid.push(p.id);
+  if(g.paid.length>=g.need){g.done=true;addRep(1);log('Obiettivo del giorno: hai incassato due crediti vecchi. Reputazione +1.','good');toast('Obiettivo del giorno raggiunto: +1 reputazione.','good');}}
+function renderGoal(){const b=$('#dayGoal');if(!b)return;const g=S.phase==='open'&&S.today.goal;b.hidden=!g;if(!g)return;
+  const sig=g.paid.length+'|'+g.done;if(b._sig===sig)return;b._sig=sig;
+  b.innerHTML=`<h2>🎯 Obiettivo del giorno</h2><p style="margin:0;font-size:14px">${g.done?'<b style="color:var(--good)">Fatto!</b> ':''}Incassa due crediti vecchi: chiedi i soldi a chi ti deve qualcosa da prima di oggi. <b class="mono">${Math.min(g.paid.length,2)}/2</b></p><p class="muted" style="margin:4px 0 0;font-size:12.5px">Premio: +1 reputazione. Oggi ${g.old.length} clienti hanno un conto aperto.</p>`;}
+
 S=load();
 
 /* ===== finestre e avvisi ===== */
@@ -2708,7 +2707,7 @@ function renderDock(){
 }
 function renderBanco(){
   if(RT.autoTab){const t=tabOf(RT.autoTab);RT.autoTab=null;if(t!==PCAT)setPCat(t);}
-  renderCounter();refreshStockGrid();renderHelpers();renderRadio();renderQueue();renderDock();
+  renderCounter();refreshStockGrid();renderHelpers();renderRadio();renderGoal();renderQueue();renderDock();
   const T=S.today;
   $('#m-served').textContent=T.served;$('#m-lost').textContent=T.lost+T.turned+T.refused;$('#m-missed').textContent=T.missed+(T.wrong||0);$('#m-cred').textContent=fmt(T.credit);
 }
