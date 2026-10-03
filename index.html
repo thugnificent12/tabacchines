@@ -60,8 +60,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .daybox,.pcol{align-self:flex-start;margin-top:-5px;flex:none;display:flex;flex-direction:column;align-items:center;gap:3px}
 .daybox{margin-left:auto}
 .pcol p{margin:0;max-width:78px;text-align:center;font-size:11px;line-height:1.15;opacity:.9}
-.signtx{min-width:0;flex:1}
-.dayline{display:flex;flex-direction:column;gap:2px;margin-top:6px;font-size:11.5px;opacity:.95}
+.signtx{min-width:0;flex:1;text-align:center}.pcol,.daybox{width:76px}
+.dayline{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:6px;font-size:11.5px;opacity:.95}
 .dayline b{font:600 11.5px var(--f-mono)}
 .daycount{font:600 11px var(--f-mono);opacity:.9}
 #splash .sp-meta{display:flex;align-items:center;gap:10px;text-align:left;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
@@ -190,6 +190,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .pack.band i{background:#14365E;color:#fff}
 .pack i{font-style:normal;font-size:6.5px;line-height:1.1;background:#fff;color:#111;padding:1px 2px;border-radius:1px;text-transform:uppercase;font-weight:700;letter-spacing:.02em}
 .tile{height:46px;border-radius:5px;display:grid;place-items:center;font:400 13px var(--f-display);background:var(--surface2);color:var(--muted);letter-spacing:.03em}
+.stars{letter-spacing:2px}.stars i{font-style:normal;color:#C9C2B0}.stars i.on{color:#E2A21B}
+.rstars{text-align:center;font-size:30px;line-height:1;margin:6px 0 2px}.rcrit{list-style:none;margin:4px 0 8px;padding:0;font-size:12.5px}.rcrit li{padding:2px 0}.rcrit li b{display:inline-block;width:16px}
+.abar{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;margin:2px 0 10px}.abar i{display:block;height:100%;background:var(--gold,#E2A21B)}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px}.acli{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}.acli .face{width:44px;height:44px}.acli small{font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.acli.no .face{display:grid;place-items:center;background:var(--surface2);color:var(--muted);font:600 18px var(--f-mono);border-radius:50%}.acli.no small{color:var(--muted)}
+.alist{list-style:none;margin:0;padding:0;display:grid;gap:4px}.alist li{font-size:13px;padding:4px 8px;border-radius:8px;background:var(--surface2);color:var(--muted)}.alist li.on{background:transparent;border:1px solid var(--line);color:var(--fg)}
+.goal{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}.goal b{width:18px;text-align:center;color:var(--muted)}.goal.open b{color:#E2A21B}.goal.done b{color:var(--good)}.goal span{display:flex;flex-direction:column;font-size:14px;font-weight:600}.goal small{font-weight:400;font-size:12px;color:var(--muted)}
 .tile.art{padding:0;background:var(--surface2);overflow:hidden}.tile.art svg{width:100%;height:46px;display:block}.tile.art.sig,.tile.art.sig svg{height:66px}
 .tile.gra{background:#F6D35B;color:#5A3D00}
 .tile.val{background:#D7E3F4;color:#1B3B6B}
@@ -384,9 +390,10 @@ body.alarm .nav button{color:#fff}
       <div class="card"><h2>Finanziamento</h2><div id="loanbox"></div></div>
     </section>
     <section class="tab" id="tab-conti" hidden>
-      <div class="seg" id="contiSeg" role="group" aria-label="Sezione dei conti"><button data-v="riep" aria-pressed="true">Riepilogo</button><button data-v="tx" aria-pressed="false">Transazioni</button><button data-v="cred" aria-pressed="false">Crediti</button></div>
+      <div class="seg" id="contiSeg" role="group" aria-label="Sezione dei conti"><button data-v="riep" aria-pressed="true">Riepilogo</button><button data-v="tx" aria-pressed="false">Transazioni</button><button data-v="cred" aria-pressed="false">Crediti</button><button data-v="alb" aria-pressed="false">Album</button></div>
       <div id="c-riep" style="display:grid;gap:12px">
         <div class="seg" id="perSeg" role="group" aria-label="Periodo"><button data-v="d" aria-pressed="true">Oggi</button><button data-v="m" aria-pressed="false">Questo mese</button><button data-v="a" aria-pressed="false">Dall'inizio</button></div>
+        <div class="card"><h2>Fine mese e andamento</h2><div id="fcBox"></div></div>
         <div class="card"><h2>Incassi</h2><div id="incList"></div></div>
         <div class="card"><h2>Spese</h2><div id="expList"></div></div>
         <div class="card"><h2>Situazione</h2><div id="sitList"></div></div>
@@ -401,6 +408,7 @@ body.alarm .nav button{color:#fff}
         <div class="card"><ul class="txl" id="txList"></ul></div>
         <div class="card"><h2>Diario di bottega</h2><ul class="loglist" id="fulllog"></ul></div>
       </div>
+      <div id="c-alb" hidden style="display:grid;gap:12px"><div id="albRoot" style="display:grid;gap:12px"></div></div>
       <div id="c-cred" hidden style="display:grid;gap:12px">
         <div class="card"><h2>Libro dei crediti</h2><div id="credSum"></div></div>
         <div class="card"><div id="credList"></div></div>
@@ -779,6 +787,8 @@ const UPG=[
  {id:'frigo',grp:'neg',name:'Frigorifero bibite',max:1,cost:[800],desc:'Ronza come un motorino. Vende come un bar.',eff:()=>'sblocca Coca Cola, acqua e tè freddo, luce +30 €/mese'},
  {id:'gadget',grp:'neg',name:'Espositore gadget',max:1,cost:[300],desc:'Nessuno cerca un powerbank finché non lo vede.',eff:()=>'sblocca i powerbank'},
  {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[300],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
+ {id:'facciata',grp:'esp',name:'Facciata rinnovata',max:1,cost:[2500],minPat:5000,desc:'Intonaco nuovo, vetrine pulite e una tenda a righe. Da fuori sembra un altro negozio.',eff:()=>'+6% clienti, la reputazione sale il 10% più in fretta'},
+ {id:'bancone',grp:'esp',name:'Bancone nuovo in legno',max:1,cost:[5000],minPat:10000,desc:'Legno massello, piano in marmo e un cassetto che si chiude davvero.',eff:()=>'+4% clienti, pazienza +10%'},
  {id:'commesso',grp:'esp',name:'Assumi un commesso',max:1,cost:[800],req:'locale',desc:'Con il locale accanto serve un secondo banco. Scegli tu chi metterci: uno degli altri tabaccai del quartiere.',eff:()=>'serve da solo i clienti in coda (non fa credito); stipendio 1.100 €/mese'},
  {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[15000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese, assicurazione 60 €/mese'},
  {id:'scommesse',grp:'srv',name:'Licenza scommesse sportive',max:1,cost:[2500],desc:'Schedine, quote e discussioni sul rigore che non c\'era.',eff:()=>'provvigione 8% sulle giocate, canone 40 €/mese'},
@@ -822,7 +832,7 @@ function newState(owner,tr){
   for(const t in RESIDENT_TYPES)for(let i=0;i<RESIDENT_TYPES[t];i++)people.push(makePerson(t,id++));
   const bw={};BRANDS.forEach(b=>bw[b.id]=b.pop);
   const st={v:2,start:todayISO(),billMode:'m',calabro:1,lic2:1,cashMode:'m',counter:null,tray:{},owner,ownerName:OWD[owner].name,pk:tr.pk,perkTxt:tr.perk,vz:tr.vz,malusTxt:tr.malus,ownerBrand:pickW(bw),autocD:0,autocA:0,day:1,t:OPEN,phase:'closed',cash:2500,deposit:0,rep:0,speed:1,stock,price,
-    up:{licLot:0,licSup:0,licDel:0,treni:0,snack:0,caramelle:0,valori:0,fumo:0,commesso:0,licSvapo:0,espSvapo:0,cancelleria:0,eventi:0,insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0,locale:0,scommesse:0,virtuali:0,caffe:0,snackbar:0,giornali:0,alcol:0,ghiaccio:0,umidor:0,sigaripremium:0,cbd:0,tv:0,slot:0,condiz:0,distrib:0},
+    up:{facciata:0,bancone:0,licLot:0,licSup:0,licDel:0,treni:0,snack:0,caramelle:0,valori:0,fumo:0,commesso:0,licSvapo:0,espSvapo:0,cancelleria:0,eventi:0,insegna:0,scaffali:0,registratore:0,sedie:0,telecamere:0,frigo:0,gadget:0,srvRic:0,srvPag:0,locale:0,scommesse:0,virtuali:0,caffe:0,snackbar:0,giornali:0,alcol:0,ghiaccio:0,umidor:0,sigaripremium:0,cbd:0,tv:0,slot:0,condiz:0,distrib:0},
     people,queue:[],nid:1,today:newToday(),aggD:{},aggM:{},aggA:{},tx:[],history:[],log:[],
     freeze:0,mod:{traffic:1,until:0},jackpotUntil:0,rincari:0,helper:null,ines:null,vetrina:[],invested:0,loan:null,fido:null,debtDays:0,over:false,intro:false};
   addRegulars(st);return st;
@@ -844,7 +854,7 @@ function fromObj(s){
     if(!s.lic2){for(const k of ['licLot','licSup','licDel','treni','snack','caramelle','valori','fumo'])if(!s.up||s.up[k]==null)m.up[k]=1;m.lic2=1;}
     if(!m.roles2){m.people.forEach(pp=>{if(pp.id>=0)pp.role=roleOf(pp.type,!!pp.f);});if(!m.people.some(pp=>pp.type==='liceale')){let id=m.people.length;for(let i=0;i<RESIDENT_TYPES.liceale;i++)m.people.push(makePerson('liceale',id++));}m.roles2=1;}
     m.people.forEach(pp=>{if(pp.role==='Barista')pp.role=roleOf(pp.type,!!pp.f);});
-    addRegulars(m);if(m.priceFree){m.pfSeen=true;delete m.priceFree;}if(!m.vetrina)m.vetrina=[];if(m.helper===undefined)m.helper=null;
+    addRegulars(m);m.people.forEach(pp=>{if(pp.fix&&REG[pp.fix])pp.name=REG[pp.fix].name;});if(m.priceFree){m.pfSeen=true;delete m.priceFree;}if(!m.vetrina)m.vetrina=[];if(m.helper===undefined)m.helper=null;
     m.today=Object.assign(newToday(),s.today);
     if(m.phase==='open')m.speed=0;
     if(!m.ownerName)m.ownerName=OWD[m.owner].name;
@@ -879,7 +889,7 @@ const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
 const rankName=()=>{const v=patrimonio();let n=RANKS[0][1];for(const[t,x]of RANKS)if(v>=t)n=x;return n;};
 /* più sei in alto, più è difficile salire; più sei in basso, più è facile scendere ancora */
-const addRep=d=>{if(S.rep>=70&&!S.pfSeen)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S.rep>0?Math.max(.15,1-S.rep/110):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
+const addRep=d=>{if(S.rep>=70&&!S.pfSeen)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S&&S.up&&S.up.facciata?1.1:1)*(S.rep>0?Math.max(.15,1-S.rep/110):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
 const LOTS=['lot','sup','del'];
 const svAvail=id=>(!SV[id].gate||S.up[SV[id].gate]>0)&&!(LOTS.includes(id)&&S.lotDownUntil>S.t);
 const jackpot=()=>S.jackpotUntil>S.t;
@@ -1077,7 +1087,7 @@ function spawnCustomer(forcedType,forcedP){
   // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
   const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
   const extra=nArt>=5?10*GMS*1.1:nArt>=3?5*GMS*1.1:0;
-  const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*rnd(.85,1.15);
+  const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*(S.up.bancone?1.1:1)*rnd(.85,1.15);
   const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
     nArt,quote:pick(R?R.quotes:T.quotes),creditAsk:false,asked:false,reply:null};
   if(R){if(R.credit){c.creditAsk=true;c.ask=pick(['«Apoi passu… me lo segna, vero?»','«Segni, segni, che a fine mese saldo tutto.»']);}}
@@ -1188,6 +1198,7 @@ function settle(c,tray,credit,by){
   if(forgot.length)log(`${name}: dimenticato ${forgot.join(', ')}, eppure c'era.`,'bad');
   if(missing.length)log(`${name}: mancava ${missing.join(', ')}.`,'warn');
   const res={name,face:p.face,perfect,wrong,forgot,missing,noCred,total,credit:!!credit,reply,pos,by};
+  albMeet(p);albPhrase(reply);
   if(p&&p.fix&&REG[p.fix]&&REG[p.fix].onServe)REG[p.fix].onServe(p,res,c);
   return res;
 }
@@ -1450,6 +1461,9 @@ function rincaro(){
 }
 
 /* ===== scadenze ===== */
+/* imposte sull'utile del mese: 10% nei primi 3 mesi, poi 15% fino a 1.500 € e 25% oltre */
+function taxOn(base,d){if(base<=0)return 0;const t=d>90?(Math.min(base,1500)*.15+Math.max(0,base-1500)*.25):base*.10;return r2(t*(perk('tax')?.85:1));}
+const taxBase=m=>['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);
 function billsFor(d){
   const g=dom(d),b=[],disc=perk('bills')?.9:1,pdisc=perk('prof')?.5:1;
   const luce=r2((110+40*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib+60*S.up.locale)*disc),tel=r2(30*disc),gas=r2(45*disc);
@@ -1462,11 +1476,11 @@ function billsFor(d){
     if(wd(d)===6)b.push({cat:'boll',amt:r2((luce+tel+gas)*7/30),label:'Bollette della settimana (luce, telefono, gas e acqua)'});
   }else b.push({cat:'boll',amt:r2((luce+tel+gas)/30),label:'Bollette del giorno (luce, telefono, gas e acqua)'});
   if(g===12){b.push({cat:'canoni',amt:r2(((S.up.licLot||S.up.licSup||S.up.licDel?30:0)+10*S.up.srvRic+15*S.up.srvPag+30*S.up.scommesse+15*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
-  if(g===16)b.push({cat:'tasse',amt:d>90?300:250,label:'Contributi INPS (F24)'});
+  if(g===16)b.push({cat:'tasse',amt:d>90?300:150,label:'Contributi INPS (F24)'});
   if(g===25)b.push({cat:'prof',amt:r2(100*pdisc),label:'Commercialista'});
   if(g===28){b.push({cat:'tasse',amt:45+40*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2((S.up.locale?60:30)*pdisc),label:'Assicurazione della bottega'});}
   if(isLastOfMonth(d)&&S.up.commesso&&S.helper&&OWD[S.helper.owner])b.push({cat:'pers',amt:COMMESSO_PAY,label:`Stipendio del commesso (${OWD[S.helper.owner].name})`});
-  if(isLastOfMonth(d)){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0){const t=d>90?(Math.min(base,1500)*.15+Math.max(0,base-1500)*.25):base*.18;b.push({cat:'tasse',amt:r2(t*(perk('tax')?.85:1)),label:d>90?'Imposte del mese (15% fino a 1.500 € di utile, 25% oltre)':'Imposte del mese (IRPEF e IRAP stimate)'});}}
+  if(isLastOfMonth(d)){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:taxOn(base,d),label:d>90?'Imposte del mese (15% fino a 1.500 € di utile, 25% oltre)':'Imposte del mese (agevolazione nuova attività: 10%)'});}
   return b;
 }
 function upcoming(n){
@@ -1482,7 +1496,7 @@ function tick(dm){
   S.t+=dm;
   if(S.fido&&S.day>=S.fido.day+2&&S.t>=FIDO_T)fidoCollect();
   if(S.freeze>0)S.freeze=Math.max(0,S.freeze-dm);
-  while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();if(RT.modal)break;}
+  while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();albEv(ev.id);if(RT.modal)break;}
   spawnTick(dm);
   if(S.t<closeT())regularsTick();
   callNext();
@@ -1506,10 +1520,10 @@ function openDay(){
   else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
-  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;S.ines=null;
+  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;albDay();S.today.rep0=S.rep;S.today.pat0=patrimonio();S.ines=null;
   // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
   const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
-  let tg=rnd(75,165)*repF*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
+  let tg=rnd(75,165)*repF*(S.up.facciata?1.06:1)*(S.up.bancone?1.04:1)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
   // giornata no / giornata sì: con la reputazione bassa le giornate fiacche capitano molto più spesso
   const pNo=clamp(.12+(S.rep<0?-S.rep/100*.3:0)-(S.rep>50?.05:0),.05,.45);
   const pSi=.06+Math.max(0,S.rep)/100*.08;
@@ -1553,12 +1567,13 @@ function closeDay(){
   if(S.loan){S.loan.left--;if(S.loan.left<=0){log('Hai pagato l\'ultima rata del finanziamento. La banca ti manda un calendario.','good');S.loan=null;}}
   if(isLastOfMonth(S.day)&&S.deposit>0){const i=r2(S.deposit*(perk('interest')?.006:.003));S.deposit=r2(S.deposit+i);tx('int',i,'Interessi del libretto postale');}
   if(fromDep>0)log(`La cassa non bastava: ${fmt(fromDep)} addebitati sul libretto postale.`,'warn');
+  const stars=dayStars(T);
   S.rep=clamp(S.rep*.93,-100,100);
   const net=aggSum(S.aggD);
   const debt=-(S.cash+S.deposit);
   if(debt>10000)S.debtDays++;else S.debtDays=0;
-  const r={day:S.day,dayName:`${DAYS[wd(S.day)]} ${dateTxt(S.day)}`,agg:Object.assign({},S.aggD),net,served:T.served,lost:T.lost+T.turned+T.refused,missed:T.missed,credit:T.credit,target:T.target,rep:Math.round(S.rep),cash:S.cash,deposit:S.deposit,autoc:S.autocD,quote:pick(net>=0?QP:QN)};
-  S.history.push({day:r.day,name:`${DAYS_S[wd(r.day)]} ${dateShort(r.day)}`,served:r.served,lost:r.lost,net});
+  const r={day:S.day,dayName:`${DAYS[wd(S.day)]} ${dateTxt(S.day)}`,agg:Object.assign({},S.aggD),net,served:T.served,lost:T.lost+T.turned+T.refused,missed:T.missed,credit:T.credit,target:T.target,rep:Math.round(S.rep),cash:S.cash,deposit:S.deposit,autoc:S.autocD,quote:pick(net>=0?QP:QN),stars};
+  S.history.push({day:r.day,name:`${DAYS_S[wd(r.day)]} ${dateShort(r.day)}`,served:r.served,lost:r.lost,net,pd:stars.pd,st:stars.n});
   if(S.history.length>14)S.history.shift();
   log(`Chiusura di ${DAYS[wd(r.day)].toLowerCase()} ${dateTxt(r.day)}: saldo della giornata ${sgn(net)}.`,net>=0?'good':'bad');
   S.day++;S.phase='closed';S.t=OPEN;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.freeze=0;RT.events=[];
@@ -1605,6 +1620,7 @@ function buy(id,n){
 function refillList(){const out=[];for(const p of PRODUCTS){if(!visible(p.id))continue;const cap=capOf(p.id);const want=Math.min(MAXSTOCK,p.lot*4);if(S.stock[p.id]<p.lot*2)out.push({id:p.id,n:Math.max(0,want-S.stock[p.id])});}return out;}
 function buyUp(id){
   const u=UPD[id],lv=S.up[id];if(lv>=u.max)return;
+  if(u.minPat&&lv===0&&patrimonio()<u.minPat){toast(`Si sblocca con ${fmt(u.minPat)} di patrimonio.`,'warn');return;}
   const price=u.cost[lv];if(S.cash<price){toast('Non hai abbastanza in cassa.','bad');return;}
   S.cash=r2(S.cash-price);S.up[id]=lv+1;S.invested+=price;tx('upg',-price,`${u.name}${u.max>1?' (livello '+(lv+1)+')':''}`);
   log(`Acquistato: ${u.name}${u.max>1?' (livello '+(lv+1)+')':''} per ${fmt(price)}.`,'good');toast(`${u.name}: fatto.`,'good');
@@ -1697,25 +1713,25 @@ const REGULARS=[
   wants:c=>{c.lines.push({id:'lot',q:1,amt:3});if(chance(.5))want(c,'naz');},
   onServe(p,r){if(r.missing.length||r.credit)return;if(chance(.025)){const tip=50;S.cash=r2(S.cash+tip);tx('man',tip,'Mancia di Ninuzzo: sono usciti i suoi numeri');sfx('coin');addRep(3);
     log('Ninuzzo torna di corsa: «SONO USCITI! Quarant\'anni, ma sono usciti!» Ti lascia 50 € di mancia e lo racconta a tutto il quartiere.','good');toast('Ninuzzo ha vinto al Lotto: 50 € di mancia!','good');}}},
- {key:'carmela',type:'signora',f:1,name:'Donna Carmela Nucera',role:'Pensionata · cliente fissa',win:[600,720],days:[0,1,2,3,4,5,6],
+ {key:'carmela',type:'signora',f:1,name:'Carmela Nucera',role:'Pensionata · cliente fissa',win:[600,720],days:[0,1,2,3,4,5,6],
   face:{skin:'#EBC09C',hc:'#B9B4AE',shirt:'#A94F6B',bg:'#F1D3D9',hair:'bun',hat:null,hatc:'#000',glasses:true,beard:false,must:false,blush:true,ear:true,lip:'#B4415A',old:true},
   quotes:['«Due da due, come sempre. Uno per me e uno per la buonanima.»','«Lei è proprio un bravo ragazzo, Ines ha scelto bene.»','«Ha mangiato? È sciupato.»'],
   wants:c=>{want(c,'g2',2);if(chance(.4))want(c,CRM());},
   onServe(p,r){const f=festaOf(S.day);if(f&&['avvento','natale','pasqua','silvestro'].includes(f.id)&&p.gift!==S.day){p.gift=S.day;addRep(1.5);
-    const dolce=f.id==='pasqua'?'i cudduraci appena sfornati':'un vassoio di petrali';log(`Donna Carmela ti porta ${dolce}: «Per lei e per Ines, che siete come figli.»`,'good');toast(`Donna Carmela ti porta ${dolce}.`,'good');}}},
- {key:'peppe',type:'operaio',f:0,name:'Peppe Siclari «\'u Sparitu»',role:'Operaio · cliente fisso',win:[420,1140],days:[0,1,2,3,4,5],
+    const dolce=f.id==='pasqua'?'i cudduraci appena sfornati':'un vassoio di petrali';log(`Carmela Nucera ti porta ${dolce}: «Per lei e per Ines, che siete come figli.»`,'good');toast(`Carmela Nucera ti porta ${dolce}.`,'good');}}},
+ {key:'peppe',type:'operaio',f:0,name:'Peppe Verduci',role:'Operaio · cliente fisso',win:[420,1140],days:[0,1,2,3,4,5],
   face:{skin:'#C78C62',hc:'#2B211B',shirt:'#3F6E4E',bg:'#D9EBD3',hair:'curly',hat:'cap',hatc:'#8A3B3B',glasses:null,beard:true,must:false,blush:false,ear:false,lip:null,old:false},
   quotes:['«Segni, segni, che a fine mese saldo tutto.»','«Apoi passu, giuro su mia madre.»','«Lei mi conosce, sono una persona seria.»'],
   wants:c=>{want(c,'naz',ri(1,2));if(chance(.4))want(c,'g5');},
   credit:true,
   onServe(p,r){
-    if(r.credit&&r.total>0){p.goneUntil=S.day+ri(20,45);log('Peppe «\'u Sparitu» saluta con la mano sul cuore. Lo rivedrai… prima o poi.','warn');}
+    if(r.credit&&r.total>0){p.goneUntil=S.day+ri(20,45);log('Peppe Verduci saluta con la mano sul cuore. Lo rivedrai… prima o poi.','warn');}
   },
   onReturn(p){
     if(p.debt<=0)return;
-    if(chance(.7)){const extra=r2(p.debt*.1),pay=r2(p.debt+extra);S.cash=r2(S.cash+pay);p.back=r2(p.back+p.debt);tx('cred',pay,`Peppe «'u Sparitu» salda tutto con gli interessi`);personHist(p,'saldo',pay,'Ritorno dopo settimane, con 10% in più');p.debt=0;
-      log(`Rieccolo: Peppe «'u Sparitu» ricompare dopo settimane e salda tutto, più il 10% «per il disturbo»: ${fmt(pay)}.`,'good');toast(`Peppe 'u Sparitu salda ${fmt(pay)}!`,'good');}
-    else log('Peppe «\'u Sparitu» ricompare abbronzato. Del debito non parla. Chiede altro credito.','warn');
+    if(chance(.7)){const extra=r2(p.debt*.1),pay=r2(p.debt+extra);S.cash=r2(S.cash+pay);p.back=r2(p.back+p.debt);tx('cred',pay,`Peppe Verduci salda tutto con gli interessi`);personHist(p,'saldo',pay,'Ritorno dopo settimane, con 10% in più');p.debt=0;
+      log(`Rieccolo: Peppe Verduci ricompare dopo settimane e salda tutto, più il 10% «per il disturbo»: ${fmt(pay)}.`,'good');toast(`Peppe Verduci salda ${fmt(pay)}!`,'good');}
+    else log('Peppe Verduci ricompare abbronzato. Del debito non parla. Chiede altro credito.','warn');
   }},
  {key:'professore',type:'geometra',f:0,name:'Professor Demetrio Cotroneo',role:'Professore in pensione · cliente fisso',win:[450,540],days:[0,1,2,3,4,5,6],
   face:{skin:'#F3D2B6',hc:'#E8E4DE',shirt:'#1F2A44',bg:'#E4DDF2',hair:'slick',hat:null,hatc:'#000',glasses:true,beard:true,must:false,blush:false,ear:false,lip:null,old:true},
@@ -2097,6 +2113,132 @@ Object.assign(ART,{
  cml:()=>cpack('#3E78B2',`<rect x="29" y="1.5" width="34" height="20" rx="2" fill="#8EC3EA"/><circle cx="54" cy="9" r="3.4" fill="#FFE08A"/><path d="M29 19 q6 -6 12 -1 q6 -6 12 -1 q5 -4 10 0 V22 H29Z" fill="#E6B86A"/><path d="M29 21.5 q8 -4 16 0 t18 0 V22 H29Z" fill="#C9944A"/>`+stx(46,29,6.2,'CAMEL','#fff',FO,{b:700,ls:1,w:28})+stx(46,33.2,3.6,'BLUE','#DCEBFA',FF,{b:800,ls:1.6,w:28}))
 });
 
+/* ===== album di raccolta, stelle della giornata, previsioni di fine mese, bottega disegnata ===== */
+const alb=()=>{if(!S.album)S.album={cli:{},frasi:{},feste:{},eventi:{},stelle:0,tre:0,serie:0,best:0};return S.album;};
+const ALB_FRASI=[
+ ['Ma chi sta durmendu?','Ma chi sta durmendu?'],['Rusbigghiati!','Rusbigghiati!'],['Vambonu va','Vambonu va…'],['Apoi passu','Apoi passu…'],
+ ["Simu 'nto","Simu 'nto …, cazzu!"],['Forajabbu!','Forajabbu!'],['Fora maravigghia!','Fora maravigghia!'],['Manculicani!','Manculicani!'],
+ ['Ma varda tu!','Ma varda tu!'],["'Nti Carrozzu","'Nti Carrozzu voli i menu!"],["'Nti Passalacqua","'Nti Passalacqua non custa tantu."]];
+const ALB_FESTE=[['avvento','Feste di Natale'],['natale','Natale'],['silvestro','San Silvestro'],['capodanno','Capodanno'],['pasqua','Pasqua'],['pasquetta','Pasquetta'],
+ ['sangiovanni','San Giovanni'],['agosto','Agosto'],['ferragosto','Ferragosto'],['cosmadamiano_giorni','Giorni dei Santi Cosma e Damiano'],['cosmadamiano','Santi Cosma e Damiano'],['defunti','Commemorazione dei defunti'],
+ ['reggina','Giornata di calcio'],['sciopero','Sciopero dei treni'],['maremosso','Mare mosso sullo Stretto']];
+const ALB_EV=[['pullman','Il pullman di turisti'],['scuola','L\'uscita da scuola'],['chiacchierone','Il Chiacchierone'],['jackpot','Il jackpot milionario'],['vincita','La vincita in bottega'],
+ ['sole','Il primo sole'],['pioggia','L\'acquazzone'],['ines','Ines dà una mano'],['ispettore','L\'ispettore dei Monopoli'],['calzini','Il venditore di calzini'],['rapp','Il rappresentante di accendini'],
+ ['tecnico','Il finto tecnico del Lotto'],['napoletani','Il trucco del resto'],['maranza','I Maranza'],['avellina','Gianluca Avellina'],['manduci','Tony Manduci'],
+ ['cbdcheck','Il controllo sulla cannabis light'],['thccheck','La Guardia di Finanza'],['conguaglio','Il conguaglio della luce']];
+function albMeet(p){if(p&&p.id>=0)alb().cli[p.id]=1;}
+function albPhrase(t){if(!t)return;for(const[k]of ALB_FRASI)if(t.includes(k))alb().frasi[k]=1;}
+function albDay(){const a=alb();if(S.today.festa)a.feste[S.today.festa]=1;if(S.today.spec)a.feste[S.today.spec]=1;}
+function albEv(id){if(ALB_EV.some(e=>e[0]===id))alb().eventi[id]=1;}
+
+/* tre stelle: la bottega vale più di stamattina, nessun errore e pochi persi, reputazione in salita */
+function dayStars(T){
+  const pd=r2(patrimonio()-(T.pat0!=null?T.pat0:patrimonio()));
+  const c=[{ok:pd>0,t:pd>0?`La bottega vale ${fmt(pd)} più di stamattina`:'La bottega vale meno di stamattina'},
+    {ok:!(T.wrong>0)&&(T.lost+T.turned)<=2,t:T.wrong>0?`${T.wrong} ${T.wrong===1?'errore':'errori'} al banco`:(T.lost+T.turned)>2?`${T.lost+T.turned} clienti persi`:'Nessun errore, quasi nessuno perso'},
+    {ok:T.rep0!=null&&S.rep>T.rep0+.05,t:T.rep0!=null&&S.rep>T.rep0+.05?'Reputazione in salita':'Reputazione ferma o in calo'}];
+  const n=c.filter(x=>x.ok).length,a=alb();
+  a.stelle+=n;if(n===3){a.tre++;a.serie++;a.best=Math.max(a.best,a.serie);}else a.serie=0;
+  return{n,c,pd,serie:a.serie};
+}
+const starRow=n=>`<span class="stars">${[0,1,2].map(i=>`<i class="${i<n?'on':''}">★</i>`).join('')}</span>`;
+
+/* quanto pagherai da oggi a fine mese */
+function monthForecast(){
+  const dt=dateOf(S.day),dim=new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate(),dom0=dt.getDate();
+  let bills=0,sal=0,last=S.day;
+  for(let d=S.day;;d++){const x=dateOf(d);if(x.getMonth()!==dt.getMonth())break;last=d;
+    for(const b of billsFor(d)){if(b.cat==='tasse'&&/Imposte/.test(b.label))continue;if(b.cat==='pers')sal+=b.amt;else bills+=b.amt;}}
+  if(S.loan)bills+=S.loan.rata*Math.min(S.loan.left,last-S.day+1);
+  const base=taxBase(S.aggM),proj=base>0?base*dim/Math.max(1,dom0-(S.phase==='open'?0:1)||1):0;
+  const tax=taxOn(proj,last);
+  return{bills:r2(bills),sal:r2(sal),tax,base:r2(base),proj:r2(proj),tot:r2(bills+sal+tax),days:last-S.day+1};
+}
+function renderForecast(){
+  const b=$('#fcBox');if(!b)return;const f=monthForecast();
+  const h=S.history.slice(-14),vals=h.map(x=>x.pd!=null?x.pd:x.net),mx=Math.max(50,...vals.map(Math.abs));
+  const W=300,H=90,bw=W/Math.max(7,h.length);
+  const bars=h.map((x,i)=>{const v=vals[i],hh=Math.abs(v)/mx*(H/2-6);return `<rect x="${(i*bw+2).toFixed(1)}" y="${(v>=0?H/2-hh:H/2).toFixed(1)}" width="${(bw-4).toFixed(1)}" height="${Math.max(1,hh).toFixed(1)}" rx="2" fill="${v>=0?'var(--good)':'var(--bad)'}"><title>${x.name}: ${sgn(v)}</title></rect>`+(x.st!=null?`<text x="${(i*bw+bw/2).toFixed(1)}" y="${H-1}" font-size="7" text-anchor="middle" fill="var(--muted)">${'★'.repeat(x.st)||'·'}</text>`:'');}).join('');
+  b.innerHTML=`<p style="margin:0 0 8px;font-size:14px">Da oggi a fine mese (${f.days} ${f.days===1?'giorno':'giorni'}) pagherai circa <b class="mono">${fmt(f.tot)}</b>.</p>
+  <div class="minirow"><span>Bollette, canoni, contributi${S.loan?', rate':''}</span><b class="mono neg">${fmt(f.bills)}</b></div>
+  ${f.sal?`<div class="minirow"><span>Stipendio del commesso</span><b class="mono neg">${fmt(f.sal)}</b></div>`:''}
+  <div class="minirow"><span>Imposte stimate (utile del mese finora ${fmt(f.base)})</span><b class="mono neg">${fmt(f.tax)}</b></div>
+  <p class="muted" style="font-size:12px;margin:6px 0 10px">${S.day<=90?'Nei primi 3 mesi le imposte sono al 10% e i contributi INPS 150 €.':'Imposte: 15% fino a 1.500 € di utile al mese, 25% oltre. Contributi INPS 300 €.'} La stima delle imposte cresce con l'utile del mese.</p>
+  ${h.length?`<h3 style="margin:4px 0 4px;font-size:13px">Ultimi giorni: quanto è cresciuta la bottega</h3><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block"><line x1="0" x2="${W}" y1="${H/2}" y2="${H/2}" stroke="var(--line)"/>${bars}</svg><p class="muted" style="font-size:11.5px;margin:2px 0 0">Verde: soldi, merce e crediti sono aumentati. Sotto ogni barra le stelle della giornata.</p>`:''}`;
+}
+
+/* album */
+function renderAlbum(){
+  const root=$('#albRoot');if(!root)return;const a=alb();
+  const sig=JSON.stringify(a)+S.people.length;if(root._sig===sig)return;root._sig=sig;
+  const ppl=S.people.filter(p=>p.id>=0),known=ppl.filter(p=>a.cli[p.id]);
+  const sec=(t,n,tot,body)=>`<section class="card"><h2>${t} <span class="muted" style="font-weight:600">${n}/${tot}</span></h2><div class="abar"><i style="width:${tot?Math.round(n/tot*100):0}%"></i></div>${body}</section>`;
+  const list=(arr,have)=>`<ul class="alist">${arr.map(([k,t])=>`<li class="${have[k]?'on':''}">${have[k]?esc(t):'? ? ?'}</li>`).join('')}</ul>`;
+  root.innerHTML=`<section class="card"><h2>Le tue stelle</h2><div class="minirow"><span>Stelle prese in tutto</span><b class="mono">★ ${a.stelle}</b></div><div class="minirow"><span>Giornate perfette (3 stelle)</span><b class="mono">${a.tre}</b></div><div class="minirow"><span>Giornate perfette di fila: ora / record</span><b class="mono">${a.serie} / ${a.best}</b></div></section>`
+   +sec('Clienti conosciuti',known.length,ppl.length,`<div class="agrid">${known.map(p=>`<div class="acli" title="${esc(p.name)}${p.role?' · '+esc(p.role):''}">${faceHtml(p.face,'ok')}<small>${esc(p.name.split(' ')[0])}</small></div>`).join('')}${ppl.length>known.length?`<div class="acli no"><div class="face">?</div><small>altri ${ppl.length-known.length}</small></div>`:''}</div>${known.length?'':'<p class="muted" style="font-size:13px;margin:6px 0 0">Servi i clienti: chi passa al banco entra nell\'album.</p>'}`)
+   +sec('Frasi in dialetto sentite',Object.keys(a.frasi).length,ALB_FRASI.length,list(ALB_FRASI.map(([k,t])=>[k,'«'+t+'»']),a.frasi))
+   +sec('Feste e giornate speciali',ALB_FESTE.filter(([k])=>a.feste[k]).length,ALB_FESTE.length,list(ALB_FESTE,a.feste))
+   +sec('Imprevisti e visite',ALB_EV.filter(([k])=>a.eventi[k]).length,ALB_EV.length,list(ALB_EV,a.eventi));
+}
+
+/* traguardi verso il locale accanto */
+function goalsHtml(){
+  const pt=patrimonio(),G=[[5000,'Facciata rinnovata','facciata'],[10000,'Bancone nuovo in legno','bancone'],[UPD.locale.cost[0],'Il locale accanto','locale']];
+  const next=G.find(g=>!S.up[g[2]]);
+  return `<h2>Traguardi</h2>`+G.map(([v,t,id])=>{const done=S.up[id]>0,open=id==='locale'?S.cash+S.deposit>=v:pt>=v;
+    return `<div class="goal ${done?'done':open?'open':''}"><b>${done?'✓':open?'★':'○'}</b><span>${t}<small>${done?'Fatto':id==='locale'?`Costa ${fmt(v)}: servono i soldi in cassa o sul libretto`:open?'Sbloccato: lo trovi qui sotto in Espansioni':`Si sblocca con ${fmt(v)} di patrimonio`}</small></span></div>`;}).join('')
+    +(next?`<div class="abar" style="margin-top:8px"><i style="width:${Math.min(100,Math.round(Math.max(0,next[2]==='locale'?S.cash+S.deposit:pt)/next[0]*100))}%"></i></div><p class="muted" style="font-size:12px;margin:4px 0 0">Verso «${next[1]}»: ${fmt(Math.max(0,next[2]==='locale'?S.cash+S.deposit:pt))} su ${fmt(next[0])}${next[2]==='locale'?'':' di patrimonio'}.</p>`:'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Hai raggiunto tutti i traguardi. Ora tocca al grado di Barone delle Cartine.</p>');
+}
+
+/* la bottega disegnata: cambia con le migliorie */
+function shopSVG(){
+  const U=S.up,L=U.locale>0,W=L?300:190,x0=L?10:65,ins=U.insegna||0;
+  const wall=U.facciata?'#F3E3C3':'#CFC6B6',trim=U.facciata?'#7A1426':'#6E6A62';
+  let s=`<rect width="320" height="170" fill="#BFE3F5"/><rect y="150" width="320" height="20" fill="#9E9A92"/><rect y="148" width="320" height="3" fill="#7C786F"/>`;
+  s+=`<rect x="${x0}" y="20" width="${W}" height="130" fill="${wall}"/>`;
+  if(!U.facciata)s+=`<path d="M${x0+20} 40 l6 8 -3 6 5 7 M${x0+W-30} 110 l-5 6 3 7" stroke="#A39B8C" stroke-width="1" fill="none"/>`;
+  // insegna
+  const iw=L?150:120,ix=x0+(L?20:35),glow=ins>=2?`<rect x="${ix-3}" y="23" width="${iw+6}" height="26" rx="5" fill="none" stroke="${ins>=3?'#FFE45C':'#FFF6C8'}" stroke-width="${ins>=3?2.5:1.5}" opacity=".9"/>`:'';
+  s+=`<rect x="${ix}" y="26" width="${iw}" height="20" rx="3" fill="${ins?'#0B2A66':'#4A4A4A'}"/>`+glow+`<text x="${ix+iw/2}" y="40.5" font-size="11" text-anchor="middle" font-family="'Alfa Slab One',serif" fill="${ins?(ins>=3?'#FFE45C':'#fff'):'#9A9A9A'}">Il TabacchInes</text>`;
+  // T dei tabacchi
+  s+=`<rect x="${x0+W-26}" y="24" width="18" height="18" rx="2" fill="#123C8C"/><path d="M${x0+W-22} 28 h10 v2.6 h-3.7 v8.4 h-2.6 v-8.4 h-3.7z" fill="#fff"/>`;
+  if(U.condiz)s+=`<rect x="${x0+W-28}" y="50" width="22" height="13" rx="1.5" fill="#EDEDED" stroke="#999" stroke-width=".6"/><circle cx="${x0+W-17}" cy="56.5" r="4" fill="none" stroke="#999" stroke-width=".6"/>`;
+  if(U.telecamere)s+=`<rect x="${x0+4}" y="52" width="9" height="5" rx="1" fill="#333"/><path d="M${x0+4} 54 h-3" stroke="#333" stroke-width="1.5"/><circle cx="${x0+12}" cy="54.5" r="1" fill="#E53935"/>`;
+  if(U.facciata)s+=`<path d="M${x0+8} 64 h${W-16} l-6 12 h${-(W-28)}z" fill="#C62828"/>`+Array.from({length:Math.floor((W-16)/12)},(_,i)=>`<path d="M${x0+14+i*12} 64 h6 l-1 12 h-6z" fill="#fff" opacity=".85"/>`).join('');
+  // porta e vetrina
+  const dx=x0+(L?130:118);
+  s+=`<rect x="${dx}" y="78" width="34" height="72" fill="#5A3A1E"/><rect x="${dx+4}" y="82" width="26" height="40" fill="#BFE3F5" opacity=".7"/><circle cx="${dx+28}" cy="118" r="1.6" fill="#D9B45A"/>`;
+  const vx=x0+12,vw=L?110:98;
+  s+=`<rect x="${vx}" y="80" width="${vw}" height="56" fill="#2A3442" stroke="${trim}" stroke-width="3"/>`;
+  // dentro la vetrina: scaffali coi pacchetti
+  const rows=1+(U.scaffali||0),cols=['#B3261E','#E3B547','#3E78B2','#4B1E5A','#5E7A12','#C23C70','#2E7C83','#fff'];
+  for(let r=0;r<rows;r++){const y=86+r*11;s+=`<rect x="${vx+4}" y="${y+8}" width="${vw-8}" height="1.6" fill="#8C6A44"/>`;for(let i=0;i<Math.floor((vw-10)/6);i++)s+=`<rect x="${vx+5+i*6}" y="${y}" width="4.6" height="8" fill="${cols[(i+r*3)%cols.length]}"/>`;}
+  // bancone
+  s+=U.bancone?`<rect x="${vx+4}" y="124" width="${vw-8}" height="10" fill="#8A5A24"/><rect x="${vx+2}" y="122" width="${vw-4}" height="3" fill="#E8E2D6"/>`:`<rect x="${vx+4}" y="125" width="${vw-8}" height="9" fill="#7D7466"/>`;
+  if(U.registratore)s+=`<rect x="${vx+vw-28}" y="115" width="16" height="8" rx="1" fill="#222"/><rect x="${vx+vw-26}" y="112" width="10" height="4" fill="#3CE0FF"/>`;
+  if(U.caffe)s+=`<rect x="${vx+8}" y="112" width="12" height="11" rx="1" fill="#B0B6BE"/><rect x="${vx+11}" y="119" width="5" height="3" fill="#5A3A1E"/>`;
+  if(U.tv)s+=`<rect x="${vx+vw-32}" y="83" width="26" height="15" rx="1" fill="#111"/><rect x="${vx+vw-30}" y="85" width="22" height="11" fill="#2E8B3A"/><circle cx="${vx+vw-19}" cy="90.5" r="1.3" fill="#fff"/>`;
+  if(U.frigo)s+=`<rect x="${dx-18}" y="98" width="14" height="38" fill="#E8F2F8" stroke="#9FB4C4" stroke-width=".8"/>`+[0,1,2].map(i=>`<rect x="${dx-16}" y="${102+i*10}" width="10" height="7" fill="${['#D21F26','#8EC3EA','#F2B01E'][i]}"/>`).join('');
+  if(U.slot)s+=`<rect x="${dx+45}" y="96" width="14" height="40" rx="2" fill="#7A1F8C"/><rect x="${dx+47}" y="100" width="10" height="8" fill="#FFE45C"/>`+(U.slot>1?`<circle cx="${dx+52}" cy="94" r="2" fill="#FFE45C"/>`:'');
+  // seconda parte con il locale accanto
+  if(L){const lx=dx+40;s+=`<rect x="${lx+30}" y="80" width="${x0+W-lx-42}" height="56" fill="#2A3442" stroke="${trim}" stroke-width="3"/>`;
+    s+=`<rect x="${lx+36}" y="88" width="${x0+W-lx-54}" height="30" fill="#3A4656"/><text x="${(lx+36+x0+W-12)/2}" y="107" font-size="9" text-anchor="middle" fill="#F6C918" font-family="'Bungee',sans-serif">LOTTO · GIOCHI</text>`;
+    if(U.commesso)s+=`<circle cx="${lx+60}" cy="124" r="5" fill="#C99A6E"/><rect x="${lx+55}" y="129" width="10" height="7" fill="#1E4FA8"/>`;}
+  // targhe dei giochi accanto alla porta
+  const plates=[['licLot','#F6C918','#123C8C'],['licSup','#D7261E','#fff'],['licDel','#0E7C86','#fff'],['scommesse','#2E8B3A','#fff'],['srvRic','#F57C1F','#fff']].filter(p=>U[p[0]]);
+  plates.forEach(([id,c],i)=>{s+=`<rect x="${dx+36}" y="${80+i*9}" width="8" height="7" rx="1" fill="${c}"/>`;});
+  // fuori
+  const gx=L?x0+W-40:x0+W+4,vmx=L?x0+W-14:x0+W+30;
+  if(U.giornali)s+=`<rect x="${gx}" y="122" width="22" height="28" fill="#555"/>`+[0,1,2].map(i=>`<rect x="${gx+2}" y="${125+i*8}" width="18" height="6" fill="#F7F4EC"/>`).join('');
+  if(U.distrib)s+=`<rect x="${vmx}" y="96" width="${L?12:20}" height="54" rx="2" fill="#1E4FA8"/><rect x="${vmx+2}" y="100" width="${L?8:16}" height="22" fill="#BFE3F5"/>`+(L?'':`<text x="${vmx+10}" y="132" font-size="6" text-anchor="middle" fill="#fff" font-family="'Bungee',sans-serif">24h</text>`);
+  const tables=U.sedie||0;
+  for(let t=0;t<tables;t++){const X=L?x0+W-105+t*33:8+t*30;
+    s+=`<rect x="${X}" y="136" width="14" height="2" fill="#555"/><rect x="${X+6}" y="138" width="2" height="12" fill="#555"/><rect x="${X-6}" y="140" width="5" height="10" fill="#8C6A44"/><rect x="${X+15}" y="140" width="5" height="10" fill="#8C6A44"/>`;
+    if(t===1)s+=`<path d="M${X-6} 128 q13 -14 26 0z" fill="#E53935"/><rect x="${X+6.5}" y="128" width="1" height="8" fill="#555"/>`;}
+  if(ins>=3)s+=`<circle cx="${ix+6}" cy="22" r="1.5" fill="#FFE45C"/><circle cx="${ix+iw-6}" cy="22" r="1.5" fill="#FFE45C"/>`;
+  return `<svg viewBox="0 0 320 170" style="width:100%;height:auto;display:block;border-radius:10px" role="img" aria-label="La tua bottega vista da fuori">${s}</svg>`;
+}
+
 S=load();
 
 /* ===== finestre e avvisi ===== */
@@ -2383,6 +2525,8 @@ function refillAll(){
 let BR={};
 function buildBot(){
   const root=$('#bot-root');root.innerHTML='';BR={};
+  const shop=el('section','card');shop.innerHTML='<h2>La tua bottega</h2><div class="shopv"></div>';root.appendChild(shop);BR._shop=shop.querySelector('.shopv');BR._shopSig=null;
+  const gl=el('section','card');root.appendChild(gl);BR._goals=gl;
   for(const[g,title]of [['base','Licenze e reparti di base'],['neg','Il negozio'],['esp','Espansioni'],['rep','Nuovi reparti'],['svago','Svago e comfort'],['srv','Servizi a provvigione']]){
     const card=el('section','card');card.appendChild(el('h2',null,title));
     if(g==='base')card.appendChild(el('p','muted','All\'inizio vendi solo sigarette e Gratta e Vinci. Qui sblocchi il resto: chi chiede una cosa che non hai se ne va un po\' scontento.'));
@@ -2403,11 +2547,14 @@ function buildBot(){
   refreshBot();
 }
 function refreshBot(){
+  if(BR._shop){const sg=JSON.stringify(S.up);if(BR._shopSig!==sg){BR._shopSig=sg;BR._shop.innerHTML=shopSVG();}}
+  if(BR._goals)BR._goals.innerHTML=goalsHtml();
   for(const u of UPG){
     const r=BR[u.id];if(!r)continue;const lv=S.up[u.id];
     r.eff.textContent=lv>0?'Attivo: '+u.eff(lv):'Effetto: '+u.eff(1);
     if(u.max>1)r.pips.innerHTML=Array.from({length:u.max},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('');
     if(lv>=u.max){r.btn.textContent='Fatto';r.btn.disabled=true;r.btn.className='btn alt sm';}
+    else if(u.minPat&&lv===0&&patrimonio()<u.minPat){r.btn.textContent='Bloccato';r.btn.disabled=true;r.btn.className='btn alt sm';r.eff.textContent=`Si sblocca con ${fmt(u.minPat)} di patrimonio (ora ${fmt(patrimonio())}). Effetto: ${u.eff(1)}`;}
     else if(u.req&&!S.up[u.req]){r.btn.textContent='Bloccato';r.btn.disabled=true;r.btn.className='btn alt sm';r.eff.textContent='Serve prima: '+UPD[u.req].name;}
     else{r.btn.textContent=fmt(u.cost[lv]);r.btn.disabled=S.cash<u.cost[lv];r.btn.className='btn gold sm';}
   }
@@ -2476,6 +2623,7 @@ const BMODE={m:'Mensile',w:'Settimanale',d:'Giornaliero'};
 function billSeg(id){return `<div class="seg" id="${id}" role="group" aria-label="Pagamento bollette">${Object.entries(BMODE).map(([k,v])=>`<button data-bm="${k}" aria-pressed="${(S.billMode||'m')===k}">${v}</button>`).join('')}</div>`;}
 function billSegClick(e){const b=e.target.closest('button[data-bm]');if(!b)return;S.billMode=b.dataset.bm;$$('button[data-bm]',b.parentNode).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));log(`Bollette: d'ora in poi pagamento ${BMODE[S.billMode].toLowerCase()}.`,'info');RT.billSig='';save();render(true);}
 function renderRiep(){
+  renderForecast();
   const a=aggOf();let ti=0,te=0;
   const inc=INC.filter(k=>a[k]).map(k=>{ti+=a[k];return `<div class="minirow"><span>${CATL[k]}</span><b class="mono pos">${fmt(a[k])}</b></div>`;}).join('');
   const exp=EXP.filter(k=>a[k]).map(k=>{te+=a[k];return `<div class="minirow"><span>${CATL[k]}</span><b class="mono neg">${fmt(-a[k])}</b></div>`;}).join('');
@@ -2518,7 +2666,7 @@ function debtorSheet(pid){
   openModal({html:`<div class="shead">${faceHtml(p.face,p.debt>0?'meh':'ok')}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">${esc(p.role)} · fuma ${esc(PD[brandOf(p)].name)}</div></div></div><div class="minirow"><span>Deve ancora</span><b class="mono neg">${fmt(p.debt)}</b></div><div class="minirow"><span>Credito ricevuto in tutto</span><b class="mono">${fmt(p.lent)}</b></div><div class="minirow"><span>Restituito</span><b class="mono pos">${fmt(p.back)}</b></div><div class="rdash"></div>${rows||'<p class="muted">Nessun movimento.</p>'}`,actions:[{label:'Chiudi',cls:'alt'}]});
 }
 function renderConti(){
-  $('#c-riep').hidden=CSEG!=='riep';$('#c-tx').hidden=CSEG!=='tx';$('#c-cred').hidden=CSEG!=='cred';
+  $('#c-riep').hidden=CSEG!=='riep';$('#c-tx').hidden=CSEG!=='tx';$('#c-cred').hidden=CSEG!=='cred';$('#c-alb').hidden=CSEG!=='alb';if(CSEG==='alb')renderAlbum();
   if(CSEG==='riep'){renderRiep();renderSlots();}if(CSEG==='tx'){renderTx();renderLogs(true);}if(CSEG==='cred')renderCred();
 }
 function segBind(sel,fn){$(sel).addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;$$(sel+' button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));fn(b.dataset.v);render(true);});}
@@ -2590,7 +2738,10 @@ function showReport(r,lose){
   const line=(a,b,c)=>`<div class="rl ${c||''}"><span>${a}</span><span>${b}</span></div>`;
   const inc=INC.filter(k=>r.agg[k]).map(k=>line(CATL[k],fmt(r.agg[k]))).join('');
   const exp=EXP.filter(k=>r.agg[k]).map(k=>line(CATL[k],sgn(r.agg[k]))).join('');
-  const html=`<div class="rc-head"><b>IL TABACCHINES</b><small>Chiusura cassa · ${r.dayName}</small></div><div class="rdash"></div>`
+  const st=r.stars;
+  const html=`<div class="rc-head"><b>IL TABACCHINES</b><small>Chiusura cassa · ${r.dayName}</small></div>`
+   +(st?`<div class="rstars">${starRow(st.n)}</div><ul class="rcrit">${st.c.map(x=>`<li><b style="color:${x.ok?'var(--good)':'var(--bad)'}">${x.ok?'✓':'✗'}</b>${esc(x.t)}</li>`).join('')}</ul>${st.n===3&&st.serie>1?`<p style="text-align:center;margin:0 0 6px;font-weight:700">${st.serie} giornate perfette di fila!</p>`:''}`:'')
+   +`<div class="rdash"></div>`
    +(inc||line('Incassi',fmt(0)))+'<div class="rdash"></div>'+(exp||line('Spese',fmt(0)))+'<div class="rdash"></div>'
    +line('SALDO DEL GIORNO',sgn(r.net),'tot '+(r.net>=0?'pos':'neg'))+'<div class="rdash"></div>'
    +line('In cassa',fmt(r.cash))+line('Sul libretto',fmt(r.deposit))
