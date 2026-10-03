@@ -374,7 +374,7 @@ body.alarm .nav button{color:#fff}
         <div class="minirow"><span>Segnato a credito oggi</span><b class="mono" id="m-cred">0</b></div>
       </div>
       <div class="card" id="dayGoal" hidden></div>
-      <div class="card" id="newsCard" hidden><h2>📻 Radio quartiere</h2><p id="newsTxt" style="margin:0 0 6px"></p><p id="gossipTxt" class="muted" style="margin:0;font-size:13.5px"></p></div>
+      <div class="card" id="newsCard" hidden><h2>📻 Radio Sole</h2><p id="newsTxt" style="margin:0 0 6px"></p><p id="gossipTxt" class="muted" style="margin:0;font-size:13.5px"></p></div>
       <div class="card"><h2>Ultime dal banco</h2><ul class="loglist" id="minilog"></ul></div>
     </section>
     <section class="tab" id="tab-mag" hidden>
@@ -825,7 +825,7 @@ const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','
 const EXP=['merce','vers','prem','boll','canoni','tasse','prof','pers','pos','rate','upg','iniz','vizi','furti','multe'];
 const NEU=['giro','credito','autoc'];
 const RANKS=[[0,'Tabaccaio Provetto'],[5000,'Cumpari'],[10000,'Principi i \'Zzareddu'],[20000,'Signore di Villa San Giovanni'],[30000,'Re dello Stretto'],[70000,'Presidente del Sud'],[100000,'Don Pietro']];
-const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e la sindaca passa in bottega.','Mance +5% e il commercialista costa il 20% in meno.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e la Radio quartiere parla di te.'];
+const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e la sindaca passa in bottega.','Mance +5% e il commercialista costa il 20% in meno.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e la Radio Sole parla di te.'];
 const rk=()=>S&&S.rankMax||0;
 const patBase=()=>S.patBase!=null?S.patBase:((typeof CASHD!=='undefined'&&CASHD[S.cashMode]?CASHD[S.cashMode].n:2500)+1500);
 const rankVal=()=>patrimonio()-patBase();
@@ -1562,7 +1562,7 @@ function openDay(){
   if(S.today.fe&&S.today.fe.msg){log(`${S.today.fe.t}. ${S.today.fe.msg}`,'info');toast(S.today.fe.t+'!','warn');}
   if(spc){log(spc.msg,'warn');toast(spc.t+'.','warn');}
   if(S.today.mfx.msg)log(`${S.today.meteo.ic} ${S.today.mfx.msg}`,'info');
-  log(`📻 Radio quartiere: ${S.today.news.news}`,'info');if(S.today.news.gossip)log(`🤫 ${S.today.news.gossip}`,'info');
+  log(`📻 Radio Sole: ${S.today.news.news}`,'info');if(S.today.news.gossip)log(`🤫 ${S.today.news.gossip}`,'info');
   sfx('shutter');
   if(LOTDAYS.includes(wd(S.day))&&S.up.licLot)log('Stasera c\'è l\'estrazione del Lotto: verso sera arriverà la ressa delle giocate.','info');
   if(isRincaroDay(S.day+1)){log('Avviso dei Monopoli: da domani le sigarette aumentano di 0,20 €. Se fai scorta oggi, domani le vendi al prezzo nuovo.','warn');toast('Domani rincaro delle sigarette: fai scorta!','warn');}
@@ -1838,7 +1838,7 @@ function inesArrives(){
 }
 const COMMESSO_PAY=1100;
 
-/* ===== meteo, radio quartiere, suoni ===== */
+/* ===== meteo, Radio Sole, suoni ===== */
 
 /* --- meteo: stesso giorno, stesso tempo (generatore con seme) --- */
 function seeded(n){let x=(n*2654435761)>>>0;return()=>{x^=x<<13;x>>>=0;x^=x>>17;x^=x<<5;x>>>=0;return x/4294967296;};}
@@ -1864,7 +1864,7 @@ function meteoFx(w){
   return{traffic:1,tour:1,msg:''};
 }
 
-/* --- radio quartiere: una notizia e un pettegolezzo al giorno --- */
+/* --- Radio Sole: una notizia e un pettegolezzo al giorno --- */
 const NEWS=[
  'Lavori sul lungomare: il cantiere chiuderà «entro l\'estate». Non si sa di quale anno.',
  'Al Comune approvato il piano parcheggi. I parcheggi, invece, non si trovano ancora.',
