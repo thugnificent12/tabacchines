@@ -815,7 +815,12 @@ const CATL={tab:'Tabacchi',gra:'Gratta e Vinci',val:'Valori e trasporti',ban:'Ba
 const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','cred','vin','int','fin'];
 const EXP=['merce','vers','prem','boll','canoni','tasse','prof','pers','pos','rate','upg','vizi','furti','multe'];
 const NEU=['giro','credito','autoc'];
-const RANKS=[[0,'Garzone di Bottega'],[8000,'Tabaccaio in Prova'],[15000,'Titolare con Insegna'],[30000,'Notabile del Quartiere'],[60000,'Barone delle Cartine']];
+const RANKS=[[0,'Garzone d\'Acciarello'],[5000,'Tabaccaio Provetto'],[10000,'Cumpari'],[20000,'Principi i \'Zzareddu'],[30000,'Signore di Villa San Giovanni'],[50000,'Re dello Stretto'],[70000,'Don Pietro']];
+const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e il commercialista costa il 20% in meno.','Mance +5% e visita della sindaca in bottega.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e la Radio quartiere parla di te.'];
+const rk=()=>S&&S.rankMax||0;
+function checkRank(){const v=patrimonio();let i=0;RANKS.forEach(([t],k)=>{if(v>=t)i=k;});if(i>(S.rankMax||0)){S.rankMax=i;
+  log(`Nuovo grado: sei «${RANKS[i][1]}»! ${RANK_FX[i]}`,'good');toast(`Nuovo grado: ${RANKS[i][1]}!`,'good');sfx('coin');
+  if(i>=4&&!S.sindaca){S.sindaca=1;addRep(5);log('La sindaca Caminiti passa in bottega e si complimenta per come tieni il negozio. Reputazione +5.','good');}}}
 const QP=['Il commercialista approva, il che è sospetto.','Abbassi la saracinesca con la soddisfazione di chi ha venduto quattordici cartine.','Giornata onesta: nessuno ti ha chiesto che numeri escono al Lotto.','Il fumatore è una creatura abitudinaria, ed è il tuo migliore amico.'];
 const QN=['La cassa è in rosso. Anche la saracinesca, ma quella è ruggine.','Stasera la cena è un panino. Con le cartine come tovagliolo.','Il margine sui tabacchi è sottile come una cartina. Ormai lo sai.','Qualcuno ha detto «aprire un bar»? Non ascoltarlo.'];
 const EXCUSES=['«Ho lasciato il portafoglio nell\'altra giacca.»','«Mi deve arrivare la tredicesima. Di quale anno non lo so.»','«Ma non avevamo detto che era un regalo?»','«Il bancomat oggi è in sciopero.»','«Passa mio cugino a saldare. Quale cugino? Quello.»','«Aspetto che esca il mio numero al Lotto.»','«Ho solo buoni pasto, li prende?»','«Sto aspettando un bonifico dalla Svizzera.»','«Ma io pensavo di averla già pagata.»','«Oggi no, che è %DAY%.»'];
@@ -878,7 +883,7 @@ const perk=k=>!!(S&&S.pk===k);
 const vizio=()=>S?S.vz:null;
 const rataOf=L=>r2(L.rata*(perk('interest')?.9:1));
 const closeT=()=>closeOf(S.day);
-const costOf=id=>{const d=PD[id];const base=d.free?d.cost:S.price[id]*(1-d.aggio-(d.cat==='gra'&&perk('gratta')?.02:0));return base*(perk('merce')?.96:1);};
+const costOf=id=>{const d=PD[id];const base=d.free?d.cost:S.price[id]*(1-d.aggio-(d.cat==='gra'&&perk('gratta')?.02:0));return base*(perk('merce')?.96:1)*(rk()>=5?.97:1);};
 const MAXSTOCK=200;
 const capOf=id=>MAXSTOCK;
 const lowOf=id=>S.stock[id]<=PD[id].lot;
@@ -888,7 +893,7 @@ const stockValue=()=>PRODUCTS.reduce((a,p)=>a+S.stock[p.id]*costOf(p.id),0);
 const credTotal=()=>S.people.reduce((a,p)=>a+p.debt,0);
 const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
-const rankName=()=>{const v=patrimonio();let n=RANKS[0][1];for(const[t,x]of RANKS)if(v>=t)n=x;return n;};
+const rankName=()=>RANKS[rk()][1];
 /* più sei in alto, più è difficile salire; più sei in basso, più è facile scendere ancora */
 const addRep=d=>{if(S.rep>=70&&!S.pfSeen)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S&&S.up&&S.up.facciata?1.1:1)*(S.rep>0?Math.max(.15,1-S.rep/110):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
 const LOTS=['lot','sup','del'];
@@ -938,6 +943,7 @@ function pickType(){
   };
   const fe=S.today&&S.today.fe;if(fe){if(fe.tour)w.turista*=fe.tour;if(fe.pens){w.signora*=fe.pens;w.nonno*=fe.pens;w.chiacchierone*=fe.pens;}}
   if(S.today&&S.today.mfx)w.turista*=S.today.mfx.tour;
+  if(rk()>=2){w.turista*=1.1;w.pendolare*=1.1;}
   return pickW(w);
 }
 function pickPerson(type){
@@ -1088,10 +1094,10 @@ function spawnCustomer(forcedType,forcedP){
   // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
   const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
   const extra=nArt>=5?10*GMS*1.1:nArt>=3?5*GMS*1.1:0;
-  const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*(S.up.bancone?1.1:1)*rnd(.85,1.15);
-  const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:sayRequest(ctx.lines),pat,patMax:pat,
-    nArt,quote:pick(R?R.quotes:T.quotes),creditAsk:false,asked:false,reply:null};
-  if(R){if(R.credit){c.creditAsk=true;c.ask=pick(['«Apoi passu… me lo segna, vero?»','«Segni, segni, che a fine mese saldo tutto.»']);}}
+  const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*(S.up.bancone?1.1:1)*(rk()>=6?1.1:1)*rnd(.85,1.15);
+  const c={id:S.nid++,pid:p.id>=0?p.id:null,tp:p.id>=0?null:p,lines:ctx.lines,say:R&&R.say?R.say(ctx.lines):sayRequest(ctx.lines),pat,patMax:pat,
+    nArt,quote:greet(p,pick(R?R.quotes:T.quotes)),creditAsk:false,asked:false,reply:null};
+  if(R){if(R.credit){c.creditAsk=true;c.ask=pick(R.ask||['«Apoi passu… me lo segna, vero?»','«Segni, segni, che a fine mese saldo tutto.»']);}}
   else if(p.id>=0&&p.prone>0&&chance(p.prone*.3)){c.creditAsk=true;c.ask=pick(ASKCRED);}
   S.queue.push(c);return c;
 }
@@ -1187,7 +1193,7 @@ function settle(c,tray,credit,by){
     if(S.tx.length>300)S.tx.length=300;RT.txVer++;
     if(!pos)RT.floatAmt=(RT.floatAmt||0)+total;
     sfx(pos?'pos':'cash');
-    if(perfect&&chance(perk('tips')?.22:.1)){const tip=r2(rnd(.2,1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
+    if(perfect&&chance(perk('tips')?.22:.1)){const tip=r2(rnd(.2,1)*(rk()>=4?1.05:1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}`);}
   }
   if(!credit&&p&&p.debt>0&&!p.never&&chance(p.hon*.12)){
     const pay=r2(Math.min(p.debt,Math.max(5,p.debt*rnd(.3,1))));
@@ -1310,7 +1316,7 @@ function grabGoods(kinds,maxN){
     if(n>0){S.stock[p.id]-=n;got.push({id:p.id,n});val+=n*costOf(p.id);}}
   return{got,val:r2(val),txt:got.map(g=>`${g.n}× ${PD[g.id].name}`).join(', ')};
 }
-const foiled=who=>{if(perk('theft')&&chance(.5)){log(`${who} vede ${S.ownerName} dietro al banco, si ricorda di un vecchio favore e cambia bottega.`,'good');toast(`${who} cambia idea: c'è ${S.ownerName}.`,'good');return true;}return false;};
+const foiled=who=>{if(rk()>=5&&chance(.25)){log(`${who} entra, riconosce chi sta dietro al banco e cambia idea.`,'good');return true;}if(perk('theft')&&chance(.5)){log(`${who} vede ${S.ownerName} dietro al banco, si ricorda di un vecchio favore e cambia bottega.`,'good');toast(`${who} cambia idea: c'è ${S.ownerName}.`,'good');return true;}return false;};
 const EVENTS=[
  {id:'maranza',w:1,ok:()=>S.day>=10,run(){
   if(foiled('i Maranza'))return;
@@ -1478,7 +1484,7 @@ function billsFor(d){
   }else b.push({cat:'boll',amt:r2((luce+tel+gas)/30),label:'Bollette del giorno (luce, telefono, gas e acqua)'});
   if(g===12){b.push({cat:'canoni',amt:r2(((S.up.licLot||S.up.licSup||S.up.licDel?30:0)+10*S.up.srvRic+15*S.up.srvPag+30*S.up.scommesse+15*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
   if(g===16)b.push({cat:'tasse',amt:d>90?300:150,label:'Contributi INPS (F24)'});
-  if(g===25)b.push({cat:'prof',amt:r2(100*pdisc),label:'Commercialista'});
+  if(g===25)b.push({cat:'prof',amt:r2(100*pdisc*(rk()>=3?.8:1)),label:'Commercialista'});
   if(g===28){b.push({cat:'tasse',amt:45+40*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2((S.up.locale?60:30)*pdisc),label:'Assicurazione della bottega'});}
   if(isLastOfMonth(d)&&S.up.commesso&&S.helper&&OWD[S.helper.owner])b.push({cat:'pers',amt:COMMESSO_PAY,label:`Stipendio del commesso (${OWD[S.helper.owner].name})`});
   if(isLastOfMonth(d)){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:taxOn(base,d),label:d>90?'Imposte del mese (15% fino a 1.500 € di utile, 25% oltre)':'Imposte del mese (agevolazione nuova attività: 10%)'});}
@@ -1568,7 +1574,7 @@ function closeDay(){
   if(S.loan){S.loan.left--;if(S.loan.left<=0){log('Hai pagato l\'ultima rata del finanziamento. La banca ti manda un calendario.','good');S.loan=null;}}
   if(isLastOfMonth(S.day)&&S.deposit>0){const i=r2(S.deposit*(perk('interest')?.006:.003));S.deposit=r2(S.deposit+i);tx('int',i,'Interessi del libretto postale');}
   if(fromDep>0)log(`La cassa non bastava: ${fmt(fromDep)} addebitati sul libretto postale.`,'warn');
-  const stars=dayStars(T);
+  const stars=dayStars(T);checkRank();
   S.rep=clamp(S.rep*.93,-100,100);
   const net=aggSum(S.aggD);
   const debt=-(S.cash+S.deposit);
@@ -1588,11 +1594,12 @@ function closeDay(){
 const FIDO_MAX=500,FIDO_T=1170;
 const fidoRate=()=>!S.fido?0:(S.day-S.fido.day<=1?.05:.10);
 const fidoOwed=()=>S.fido?r2(S.fido.amt*(1+fidoRate())):0;
-const canFido=c=>c>0&&(!S.fido||S.fido.day===S.day)&&r2((S.fido?S.fido.amt:0)+c)<=FIDO_MAX;
+const fidoMax=()=>rk()>=3?800:rk()>=1?600:FIDO_MAX;
+const canFido=c=>c>0&&(!S.fido||S.fido.day===S.day)&&r2((S.fido?S.fido.amt:0)+c)<=fidoMax();
 function buyFido(list){
   let cost=0;for(const x of list){x.n=Math.min(x.n,space(x.id));cost+=x.n*costOf(x.id);}cost=r2(cost);
   if(cost<=0)return false;
-  if(!canFido(cost)){toast(S.fido&&S.fido.day!==S.day?'Il grossista vuole prima i soldi della volta scorsa.':`Il grossista fa credito fino a ${fmt(FIDO_MAX)}.`,'bad');return false;}
+  if(!canFido(cost)){toast(S.fido&&S.fido.day!==S.day?'Il grossista vuole prima i soldi della volta scorsa.':`Il grossista fa credito fino a ${fmt(fidoMax())}.`,'bad');return false;}
   for(const x of list)if(x.n>0)S.stock[x.id]+=x.n;
   S.fido=S.fido?{amt:r2(S.fido.amt+cost),day:S.fido.day}:{amt:cost,day:S.day};
   log(`Il grossista ti lascia merce a credito per ${fmt(cost)}. Se lo paghi entro domani vuole il 5% in più; dopodomani alle 19:30 passa lui e vuole il 10%.`,'warn');
@@ -1722,8 +1729,11 @@ const REGULARS=[
     const dolce=f.id==='pasqua'?'i cudduraci appena sfornati':'un vassoio di petrali';log(`Carmela Nucera ti porta ${dolce}: «Per lei e per Ines, che siete come figli.»`,'good');toast(`Carmela Nucera ti porta ${dolce}.`,'good');}}},
  {key:'peppe',type:'operaio',f:0,name:'Peppe Verduci',role:'Operaio · cliente fisso',win:[420,1140],days:[0,1,2,3,4,5],
   face:{skin:'#C78C62',hc:'#2B211B',shirt:'#3F6E4E',bg:'#D9EBD3',hair:'curly',hat:'cap',hatc:'#8A3B3B',glasses:null,beard:true,must:false,blush:false,ear:false,lip:null,old:false},
-  quotes:['«Le solite, grazie.»','«Due Nazzionali e un gratta, come sempre.»','«Oggi si lavora, domani si vede.»'],
-  wants:c=>{want(c,'naz',ri(1,2));if(chance(.4))want(c,'g5');}},
+  quotes:['«Oggi si lavora, domani si vede.»','«Lei mi conosce, sono una persona seria.»','«A fine mese sistemo tutto, giuro.»'],
+  wants:c=>{want(c,'naz',ri(1,2));},
+  say:L=>{const q=(L.find(l=>l.id==='naz')||{q:1}).q;return q>=2?'«Mi… mi dai ddu pachetti i Nazzionali, piffavuri?»':'«Mu… mu runi \'nu paccu i Nazzionali?»';},
+  ask:['«Me… me lo segni, vero? Apoi passu.»','«Mi… mi fai credito? A fine mese sistemo tutto.»'],
+  credit:true},
  {key:'professore',type:'geometra',f:0,name:'Professor Demetrio Cotroneo',role:'Professore in pensione · cliente fisso',win:[450,540],days:[0,1,2,3,4,5,6],
   face:{skin:'#F3D2B6',hc:'#E8E4DE',shirt:'#1F2A44',bg:'#E4DDF2',hair:'slick',hat:null,hatc:'#000',glasses:true,beard:true,must:false,blush:false,ear:false,lip:null,old:true},
   quotes:['«La gazzetta, prego. Senza non comincia la giornata.»','«Ha letto? No, lei non legge. Male.»','«Ai miei alunni lo dicevo sempre: informatevi.»'],
@@ -1874,7 +1884,8 @@ function makeNews(){
   const news=NEWS[Math.floor(r()*NEWS.length)];
   const pool=S.people.filter(p=>p.id>=0);
   const who=pool[Math.floor(r()*pool.length)];
-  const gossip=who?GOSSIP[Math.floor(r()*GOSSIP.length)](who.name,!!who.f):'';
+  let gossip=who?GOSSIP[Math.floor(r()*GOSSIP.length)](who.name,!!who.f):'';
+  if(rk()>=6&&r()<.4)gossip=pick(['Al bar dicono che Don Pietro del TabacchInes sia l\'uomo più rispettato di Villa. Lui fa finta di non saperlo.','In piazza si racconta che a Don Pietro i Monopoli mandino gli auguri a Natale.','Le signore del mercato giurano: «Da Don Pietro il resto è sempre giusto.»']);
   return{news,gossip};
 }
 
@@ -2176,7 +2187,9 @@ function renderAlbum(){
 function goalsHtml(){
   const pt=patrimonio(),G=[[5000,'Facciata rinnovata','facciata'],[10000,'Bancone nuovo in legno','bancone'],[UPD.locale.cost[0],'Il locale accanto','locale']];
   const next=G.find(g=>!S.up[g[2]]);
-  return `<h2>Traguardi</h2>`+G.map(([v,t,id])=>{const done=S.up[id]>0,open=id==='locale'?S.cash+S.deposit>=v:pt>=v;
+  const ri0=rk(),nr=RANKS[ri0+1];
+  const rankBox=`<div class="goal done"><b>🎖</b><span>Grado: ${esc(RANKS[ri0][1])}<small>${esc(RANK_FX[ri0])}${nr?` Prossimo: «${esc(nr[1])}» con ${fmt(nr[0])} di patrimonio (ora ${fmt(pt)}).`:''}</small></span></div>`;
+  return `<h2>Traguardi</h2>`+rankBox+G.map(([v,t,id])=>{const done=S.up[id]>0,open=id==='locale'?S.cash+S.deposit>=v:pt>=v;
     return `<div class="goal ${done?'done':open?'open':''}"><b>${done?'✓':open?'★':'○'}</b><span>${t}<small>${done?'Fatto':id==='locale'?`Costa ${fmt(v)}: servono i soldi in cassa o sul libretto`:open?'Sbloccato: lo trovi qui sotto in Espansioni':`Si sblocca con ${fmt(v)} di patrimonio`}</small></span></div>`;}).join('')
     +(next?`<div class="abar" style="margin-top:8px"><i style="width:${Math.min(100,Math.round(Math.max(0,next[2]==='locale'?S.cash+S.deposit:pt)/next[0]*100))}%"></i></div><p class="muted" style="font-size:12px;margin:4px 0 0">Verso «${next[1]}»: ${fmt(Math.max(0,next[2]==='locale'?S.cash+S.deposit:pt))} su ${fmt(next[0])}${next[2]==='locale'?'':' di patrimonio'}.</p>`:'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Hai raggiunto tutti i traguardi. Ora tocca al grado di Barone delle Cartine.</p>');
 }
@@ -2237,6 +2250,12 @@ function goalCred(p){const g=S.today&&S.today.goal;if(!g||g.done||!g.old.include
 function renderGoal(){const b=$('#dayGoal');if(!b)return;const g=S.phase==='open'&&S.today.goal;b.hidden=!g;if(!g)return;
   const sig=g.paid.length+'|'+g.done;if(b._sig===sig)return;b._sig=sig;
   b.innerHTML=`<h2>🎯 Obiettivo del giorno</h2><p style="margin:0;font-size:14px">${g.done?'<b style="color:var(--good)">Fatto!</b> ':''}Incassa due crediti vecchi: chiedi i soldi a chi ti deve qualcosa da prima di oggi. <b class="mono">${Math.min(g.paid.length,2)}/2</b></p><p class="muted" style="margin:4px 0 0;font-size:12.5px">Premio: +1 reputazione. Oggi ${g.old.length} clienti hanno un conto aperto.</p>`;}
+
+/* saluti: per nome dai clienti fissi (Tabaccaio Provetto), «Don Pietro» da tutti all'ultimo grado */
+function greet(p,q){const nm=S.ownerName.replace(/^(il|la) /i,'');
+  if(rk()>=6&&p.id>=0&&chance(.35))return `«Buongiorno, Don Pietro!» ${q}`;
+  if(rk()>=1&&p.fix&&chance(.6))return `«Buongiorno, ${nm}!» ${q}`;
+  return q;}
 
 S=load();
 
