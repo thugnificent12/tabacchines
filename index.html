@@ -190,7 +190,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .pack.band i{background:#14365E;color:#fff}
 .pack i{font-style:normal;font-size:6.5px;line-height:1.1;background:#fff;color:#111;padding:1px 2px;border-radius:1px;text-transform:uppercase;font-weight:700;letter-spacing:.02em}
 .tile{height:46px;border-radius:5px;display:grid;place-items:center;font:400 13px var(--f-display);background:var(--surface2);color:var(--muted);letter-spacing:.03em}
-.tile.art{padding:0;background:var(--surface2);overflow:hidden}.tile.art svg{width:100%;height:46px;display:block}
+.tile.art{padding:0;background:var(--surface2);overflow:hidden}.tile.art svg{width:100%;height:46px;display:block}.tile.art.sig,.tile.art.sig svg{height:66px}
 .tile.gra{background:#F6D35B;color:#5A3D00}
 .tile.val{background:#D7E3F4;color:#1B3B6B}
 .tile.svp{background:#2B2D42;color:#8EF0E0;font-size:11.5px;text-align:center;padding:0 3px}.tile.can{background:#FFF4C2;color:#3A3A8A;font-size:12px}
@@ -1891,6 +1891,7 @@ const xe=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const FK=f=>f===FD?.8:f===FB?.84:f===FO?.52:f===FS?.6:f===FR?.66:.64;
 function tx(x,y,sz,s,fill,font,o){o=o||{};const w=o.w,L=String(s).length,est=L*sz*(o.k||FK(font||FF))+(o.ls||0)*L;
   return `<text x="${x}" y="${y}" font-size="${sz}" font-family="${font||FF}" fill="${fill||'#fff'}" text-anchor="${o.a||'middle'}"${o.b?` font-weight="${o.b}"`:''}${o.ls?` letter-spacing="${o.ls}"`:''}${o.st?` stroke="${o.st}" stroke-width="${o.sw||.6}" paint-order="stroke"`:''}${o.it?' font-style="italic"':''}${w&&est>w?` textLength="${w}" lengthAdjust="spacingAndGlyphs"`:''}${o.r?` transform="rotate(${o.r} ${x} ${y})"`:''}>${xe(s)}</text>`;}
+const svP=(inner)=>`<svg viewBox="26 0 40 46" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${inner}</svg>`;
 const sv=(inner)=>`<svg viewBox="0 0 92 46" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${inner}</svg>`;
 const lg=(c1,c2,vert)=>{const id='g'+(++_gid);return [id,`<defs><linearGradient id="${id}" x1="0" y1="0" x2="${vert?0:1}" y2="${vert?1:0}"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>`];};
 const warn=(x,y,w)=>`<rect x="${x}" y="${y}" width="${w}" height="5.5" fill="#fff"/><rect x="${x+.5}" y="${y+.5}" width="${w-1}" height="4.5" fill="none" stroke="#111" stroke-width=".5"/>`+tx(x+w/2,y+4.1,3.6,'IL FUMO UCCIDE','#111',FF,{b:800,w:w-3});
@@ -2044,7 +2045,7 @@ const SVART={
 };
 /* ===== pacchetti di sigarette: confezione verticale, design ispirato a nome, colore e descrizione ===== */
 function cpack(bg,inner,o){o=o||{};const lid=o.lid||'rgba(0,0,0,.18)',wk=o.wk||'#111',wb=o.wb||'#fff';
-  return sv(`<ellipse cx="46" cy="44.4" rx="18" ry="1.4" fill="rgba(0,0,0,.18)"/><rect x="29" y="1.5" width="34" height="42" rx="2.2" fill="${bg}"/>`+inner+`<path d="M29.4 11.5 H62.6" stroke="${lid}" stroke-width=".6"/><rect x="31" y="35.4" width="30" height="6.4" fill="${wb}"/><rect x="31.5" y="35.9" width="29" height="5.4" fill="none" stroke="${wk}" stroke-width=".45"/>`+tx(46,39.9,3.7,'IL FUMO UCCIDE',wk,FF,{b:800,w:26})+`<rect x="29" y="1.5" width="34" height="42" rx="2.2" fill="none" stroke="rgba(0,0,0,.25)" stroke-width=".5"/><rect x="30" y="2.4" width="3" height="40" rx="1" fill="#fff" opacity=".12"/>`);}
+  return svP(`<ellipse cx="46" cy="44.4" rx="18" ry="1.4" fill="rgba(0,0,0,.18)"/><rect x="29" y="1.5" width="34" height="42" rx="2.2" fill="${bg}"/>`+inner+`<path d="M29.4 11.5 H62.6" stroke="${lid}" stroke-width=".6"/><rect x="31" y="35.4" width="30" height="6.4" fill="${wb}"/><rect x="31.5" y="35.9" width="29" height="5.4" fill="none" stroke="${wk}" stroke-width=".45"/>`+tx(46,39.9,3.7,'IL FUMO UCCIDE',wk,FF,{b:800,w:26})+`<rect x="29" y="1.5" width="34" height="42" rx="2.2" fill="none" stroke="rgba(0,0,0,.25)" stroke-width=".5"/><rect x="30" y="2.4" width="3" height="40" rx="1" fill="#fff" opacity=".12"/>`);}
 Object.assign(ART,{
  gco:()=>{const [id,d]=lg('#E3B547','#9C6F12',true);return cpack(`url(#${id})`,d+`<circle cx="46" cy="10" r="5.5" fill="#FFF1B8"/><path d="M30 14 q4 -2 8 0 t8 0 t8 0 t8 0 V19 H30Z" fill="#2E86AB"/><path d="M30 17 q4 -1.6 8 0 t8 0 t8 0 t8 0" stroke="#BFE6F5" stroke-width=".6" fill="none"/>`+tx(46,26,7.2,'Gold',"#3A2600",FS)+tx(46,32.4,5.4,'COAST','#3A2600',FR,{ls:1.2,w:28}));},
  rci:()=>cpack('#F4EFE6',`<rect x="29" y="1.5" width="34" height="9" rx="2" fill="#B3261E"/><circle cx="46" cy="22" r="10.5" fill="#B3261E"/><circle cx="46" cy="22" r="8.6" fill="none" stroke="#F4EFE6" stroke-width=".9"/><circle cx="46" cy="22" r="6.8" fill="none" stroke="#F4EFE6" stroke-width=".5"/>`+tx(46,21.3,4.4,'RED','#fff',FB)+tx(46,26.2,3.2,'CIRCLE','#fff',FB,{w:11})+tx(46,8.2,3,'DAL 1952','#F4EFE6',FF,{b:700,ls:.8,w:28})),
