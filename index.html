@@ -816,11 +816,12 @@ const INC=['tab','gra','val','ban','gio','bar','cbd','srv','slot','rimb','man','
 const EXP=['merce','vers','prem','boll','canoni','tasse','prof','pers','pos','rate','upg','vizi','furti','multe'];
 const NEU=['giro','credito','autoc'];
 const RANKS=[[0,'Tabaccaio Provetto'],[5000,'Cumpari'],[10000,'Principi i \'Zzareddu'],[20000,'Signore di Villa San Giovanni'],[30000,'Re dello Stretto'],[70000,'Presidente del Sud'],[100000,'Don Pietro']];
-const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 €, il commercialista costa il 20% in meno e la sindaca passa in bottega.','Mance +5%.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e la Radio quartiere parla di te.'];
+const RANK_FX=['Si comincia: cartine in mano e speranza nel cuore.','I clienti fissi ti salutano per nome e il grossista ti fa credito fino a 600 €.','Più turisti e pendolari (+10%).','Il grossista ti fa credito fino a 800 € e la sindaca passa in bottega.','Mance +5% e il commercialista costa il 20% in meno.','Rapine e furti falliscono più spesso e il rappresentante ti fa il 3% di sconto sulla merce.','I clienti ti salutano «Buongiorno, Don Pietro!», sono più pazienti del 10% e la Radio quartiere parla di te.'];
 const rk=()=>S&&S.rankMax||0;
-function checkRank(){const v=patrimonio();let i=0;RANKS.forEach(([t],k)=>{if(v>=t)i=k;});if(i>(S.rankMax||0)){S.rankMax=i;
-  log(`Nuovo grado: sei «${RANKS[i][1]}»! ${RANK_FX[i]}`,'good');toast(`Nuovo grado: ${RANKS[i][1]}!`,'good');sfx('coin');
-  if(i>=3&&!S.sindaca){S.sindaca=1;addRep(5);log('La sindaca Caminiti passa in bottega e si complimenta per come tieni il negozio. Reputazione +5.','good');}}}
+function checkRank(){const v=patrimonio();let i=0;RANKS.forEach(([t],k)=>{if(v>=t)i=k;});const was=S.rankMax||0;if(i===was)return;S.rankMax=i;
+  if(i>was){log(`Nuovo grado: sei «${RANKS[i][1]}»! ${RANK_FX[i]}`,'good');toast(`Nuovo grado: ${RANKS[i][1]}!`,'good');sfx('coin');
+  if(i>=3&&!S.sindaca){S.sindaca=1;addRep(5);log('La sindaca Caminiti passa in bottega e si complimenta per come tieni il negozio. Reputazione +5.','good');}}
+  else{log(`Il patrimonio è sceso sotto ${fmt(RANKS[was][0])}: perdi il grado di «${RANKS[was][1]}» e torni «${RANKS[i][1]}». Lo riprendi quando risali.`,'bad');toast(`Grado perso: torni ${RANKS[i][1]}.`,'bad');}}
 const QP=['Il commercialista approva, il che è sospetto.','Abbassi la saracinesca con la soddisfazione di chi ha venduto quattordici cartine.','Giornata onesta: nessuno ti ha chiesto che numeri escono al Lotto.','Il fumatore è una creatura abitudinaria, ed è il tuo migliore amico.'];
 const QN=['La cassa è in rosso. Anche la saracinesca, ma quella è ruggine.','Stasera la cena è un panino. Con le cartine come tovagliolo.','Il margine sui tabacchi è sottile come una cartina. Ormai lo sai.','Qualcuno ha detto «aprire un bar»? Non ascoltarlo.'];
 const EXCUSES=['«Ho lasciato il portafoglio nell\'altra giacca.»','«Mi deve arrivare la tredicesima. Di quale anno non lo so.»','«Ma non avevamo detto che era un regalo?»','«Il bancomat oggi è in sciopero.»','«Passa mio cugino a saldare. Quale cugino? Quello.»','«Aspetto che esca il mio numero al Lotto.»','«Ho solo buoni pasto, li prende?»','«Sto aspettando un bonifico dalla Svizzera.»','«Ma io pensavo di averla già pagata.»','«Oggi no, che è %DAY%.»'];
@@ -1484,7 +1485,7 @@ function billsFor(d){
   }else b.push({cat:'boll',amt:r2((luce+tel+gas)/30),label:'Bollette del giorno (luce, telefono, gas e acqua)'});
   if(g===12){b.push({cat:'canoni',amt:r2(((S.up.licLot||S.up.licSup||S.up.licDel?30:0)+10*S.up.srvRic+15*S.up.srvPag+30*S.up.scommesse+15*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
   if(g===16)b.push({cat:'tasse',amt:d>90?300:150,label:'Contributi INPS (F24)'});
-  if(g===25)b.push({cat:'prof',amt:r2(100*pdisc*(rk()>=3?.8:1)),label:'Commercialista'});
+  if(g===25)b.push({cat:'prof',amt:r2(100*pdisc*(rk()>=4?.8:1)),label:'Commercialista'});
   if(g===28){b.push({cat:'tasse',amt:45+40*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2((S.up.locale?60:30)*pdisc),label:'Assicurazione della bottega'});}
   if(isLastOfMonth(d)&&S.up.commesso&&S.helper&&OWD[S.helper.owner])b.push({cat:'pers',amt:COMMESSO_PAY,label:`Stipendio del commesso (${OWD[S.helper.owner].name})`});
   if(isLastOfMonth(d)){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:taxOn(base,d),label:d>90?'Imposte del mese (15% fino a 1.500 € di utile, 25% oltre)':'Imposte del mese (agevolazione nuova attività: 10%)'});}
@@ -1584,7 +1585,7 @@ function closeDay(){
   if(S.history.length>14)S.history.shift();
   log(`Chiusura di ${DAYS[wd(r.day)].toLowerCase()} ${dateTxt(r.day)}: saldo della giornata ${sgn(net)}.`,net>=0?'good':'bad');
   S.day++;S.phase='closed';S.t=OPEN;S.mod={traffic:1,until:0};S.jackpotUntil=0;S.freeze=0;RT.events=[];
-  const lose=S.debtDays>=30&&S.rep<=-100;
+  const lose=S.debtDays>=30&&S.rep<=-50;
   if(lose)S.over=true;
   save();showReport(r,lose);
 }
@@ -2657,7 +2658,7 @@ function renderRiep(){
     ['Giorni in rosso oltre 10.000 €',`${S.debtDays} / 30`,S.debtDays?'neg':''],
     ['Reputazione',`${Math.round(S.rep)} / 100`,S.rep<0?'neg':'']
   ].map(r=>`<div class="minirow"><span>${r[0]}</span><b class="mono ${r[2]}">${r[1]}</b></div>`).join('')
-   +`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Perdi la partita se resti in rosso di oltre 10.000 € (cassa più libretto) per 30 giorni di fila con la reputazione a −100.${debt>0?` Oggi sei in rosso di ${fmt(debt)}.`:''}</p>`;
+   +`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Perdi la partita se resti in rosso di oltre 10.000 € (cassa più libretto) per 30 giorni di fila e la reputazione è a −50 o meno.${debt>0?` Oggi sei in rosso di ${fmt(debt)}.`:''}</p>`;
   const up=upcoming(6);
   const bs=$('#billBox');if(RT.billSig!==S.billMode){RT.billSig=S.billMode;bs.innerHTML=`<p style="margin:0 0 6px;font-size:13.5px">Come vuoi pagare luce, telefono, gas e acqua? Si pagano da sole alla chiusura.</p>${billSeg('billSeg')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">L'importo totale è lo stesso: cambia solo quando paghi. Settimanale = ogni domenica sera, giornaliero = ogni sera.</p>`;}
   $('#dueList').innerHTML=up.map(b=>`<div class="minirow"><span>${/del giorno/.test(b.label)?'Ogni sera':`${DAYS_S[wd(b.d)]} ${dateShort(b.d)}`} · ${b.label}</span><b class="mono neg">${fmt(b.amt)}</b></div>`).join('')+(S.loan?`<div class="minirow"><span>Ogni sera · rata del finanziamento</span><b class="mono neg">${fmt(S.loan.rata)}</b></div>`:'')+'<p class="muted" style="font-size:12.5px;margin:6px 0 0">Tutte le scadenze si pagano in automatico alla chiusura del giorno indicato. Ogni sera si pagano anche le commissioni POS (0,6% delle vendite). Niente affitto: i muri sono di famiglia.</p>';
