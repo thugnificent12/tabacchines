@@ -206,7 +206,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 #ctr .lastres{margin-top:6px;padding-top:4px;font-size:12px;align-items:center}#ctr .lastres .face{width:20px;height:20px}#ctr .lastres>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ctr .lastres .muted{display:inline;margin-left:6px}
 .sgrid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
 .combo{margin-left:auto;align-self:flex-start;flex:none;font:600 11.5px var(--f-mono);padding:2px 7px;border-radius:999px;background:var(--surface2);color:var(--fg);white-space:nowrap}.combo.hot{background:#E2A21B;color:#2A1A00}
-.rivaln{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rivaln{font-size:12px;color:var(--muted);margin:6px 2px 0;text-align:center}.rivaln:empty{display:none}.rivaln .rv1{font-style:normal;white-space:nowrap}.rivaln .rv1+.rv1:before{content:' · '}
 .tile.art{padding:0;background:var(--surface2);overflow:hidden}.tile.art svg{width:100%;height:46px;display:block}.tile.art.sig,.tile.art.sig svg{height:66px}
 .tile.gra{background:#F6D35B;color:#5A3D00}
 .tile.val{background:#D7E3F4;color:#1B3B6B}
@@ -353,9 +353,10 @@ body.alarm .nav button{color:#fff}
     </div>
     <div class="stats">
       <div class="chip" id="cashchip"><span>Cassa</span><b class="mono" id="cash">0</b></div>
-      <div class="chip"><span>Reputazione</span><b class="mono" id="repn">0</b><div class="rbar"><i id="repbar"></i></div><small id="rivaln" class="rivaln"></small></div>
+      <div class="chip"><span>Reputazione</span><b class="mono" id="repn">0</b><div class="rbar"><i id="repbar"></i></div></div>
       <div class="chip"><span>Saldo oggi</span><b class="mono" id="todayp">—</b></div>
     </div>
+    <div class="rivaln" id="rivaln"></div>
     <div class="warnline" id="debtwarn" hidden></div>
   </div>
   <main>
@@ -2334,7 +2335,7 @@ const MEDALS=[
  ['rep90','Stimato da tutti','Arriva a reputazione 90.',()=>S.rep>=90],
  ['rep100','Don Pietro','Arriva a reputazione 100.',()=>S.rep>=99.95],
  ['anno','Tabaccheria dell\'anno','Vinci il premio di fine anno.',()=>(S.trofei||[]).length>0],
- ['carrozzu','Meglio di Carrozzu','Resta sopra \'Nti Carrozzu per 30 giorni di fila.',()=>(S.rivalStreak||0)>=30],
+ ['carrozzu','Meglio di tutti','Resta sopra Carrozzo e Passalacqua per 30 giorni di fila.',()=>(S.rivalStreak||0)>=30],
  ['combo','Mano calda','Fai una combo di 50 clienti perfetti.',()=>(S.comboBest||0)>=50],
  ['donpietro','Il più alto in grado','Raggiungi l\'ultimo grado del tabaccaio.',()=>rk()>=RANKS.length-1]];
 function medCheck(r){S.medals=S.medals||{};const got=[];for(const[id,t,,test]of MEDALS)if(!S.medals[id]&&test(r)){S.medals[id]=S.day;got.push(t);log(`Medaglia: «${t}»!`,'good');toast(`🏅 Medaglia: ${t}`,'good');}return got;}
@@ -2374,12 +2375,12 @@ function comboTip(name){const lv=comboLv(),ch=(perk('tips')?.22:.1)+[0,.12,.25][
   const tip=r2(([rnd(.2,1),rnd(.5,2),rnd(1,3)][lv])*(rk()>=4?1.05:1));S.cash=r2(S.cash+tip);tx('man',tip,`Mancia da ${name}${lv?' (combo)':''}`);}
 const comboBadge=()=>{const c=S.combo||0;if(c<3)return '';const lv=comboLv();return `<span class="combo${lv?' hot':''}" title="Clienti di fila senza errori${lv?': mance più ricche':''}">🔥${c}${lv?` ×${lv===2?'2':'1,5'}`:''}</span>`;};
 
-/* ===== cliente misterioso: rarissimo (circa 3 giornate su 100) ===== */
+/* ===== cliente misterioso: rarissimo (circa una volta ogni 600 giornate) ===== */
 const MYST={
  calciatore:{name:'Un calciatore della Reggina',role:'Attaccante, in incognito col cappuccio',type:'studente',lines:[{id:'g20',q:2},{id:'mrl',q:1}],tip:50,rep:3,msg:'Si toglie il cappuccio: è l\'attaccante della Reggina! Firma un autografo sul Gratta e Vinci e ti lascia 50 € di mancia.'},
  americano:{name:'Un turista americano',role:'In crociera, sbarcato a Messina',type:'turista',lines:[{id:'coh',q:5},{id:'mtc',q:5}],alt:[{id:'gco',q:5},{id:'g10',q:3}],tip:80,rep:2,msg:'«Amazing!» Il turista americano paga tutto, lascia 80 € di mancia e promette di parlarne su internet.'},
  ispettore:{name:'Un signore distinto',role:'Non dice che lavoro fa',type:'cumenda',lines:null,tip:0,rep:5,secret:true,msg:'Era un ispettore dei Monopoli in incognito: servizio perfetto, scrive un rapporto elogiativo. Reputazione +5.',bad:'Era un ispettore dei Monopoli in incognito: il servizio non l\'ha convinto. Reputazione −3.'}};
-function mystPlan(){if(S.day>=5&&chance(.03))S.today.myst={at:rnd(560,1080),k:pick(Object.keys(MYST)),done:false};}
+function mystPlan(){if(S.day>=5&&chance(1/600))S.today.myst={at:rnd(560,1080),k:pick(Object.keys(MYST)),done:false};}
 function mystTick(){const m=S.today&&S.today.myst;if(!m||m.done||S.t<m.at||S.t>=closeT())return;m.done=true;
   const M=MYST[m.k],p=makePerson(M.type,-1);p.name=M.name;p.role=M.role;p.age=M.type==='turista'?58:M.type==='studente'?24:61;
   const c=spawnCustomer(M.type,p);if(!c)return;
@@ -2392,7 +2393,7 @@ function mystResult(c,perfect,nerr){if(!c.mystery)return;const M=MYST[c.mystery]
   else log(`${M.name} se ne va un po' deluso. Peccato, era l'occasione della vita.`,'warn');}
 
 /* ===== il campionato di Reggina e Villese ===== */
-const OPP=['Sporting Catona','Atletico Gallico','Real Pellaro','Fortitudo Archi','Polisportiva Bagnara','Union Palmi','Città di Scilla','Aspromonte Calcio','Vibo United','Juventina Melito','Rosarno Calcio','Siderno Mare','Locri Jonica','Cittanova Sport','Gioiese 1918','Delianuova Calcio'];
+const OPP={reggina:['Siracusa','Messina','Cosenza','Crotone','Rende','Catanzaro','Catania','Palermo','Castrovillari','Acireale','Giarre','Juveterranova','Enna','Modica'],villese:['Catona','Gallico','Scillese','Campese','San Roberto','Bagnarese','Palmese','Gioiese','Locri','Siderno']};
 const TEAMS={reggina:{n:'Reggina',f:.55},villese:{n:'Villese',f:.48}};
 const seasonKey=d=>{const x=dateOf(d),y=x.getFullYear(),m=x.getMonth();return m>=7?`${y}/${String(y+1).slice(2)}`:`${y-1}/${String(y).slice(2)}`;};
 const inSeason=d=>{const m=dateOf(d).getMonth();return m>=8||m<=4;};
@@ -2401,7 +2402,7 @@ function campTicket(l){if(!l||l.ev==null)return;const t=(EVENTI[l.ev]||{}).t||''
 function goals(lam){let k=0,p=Math.exp(-lam),s=p,u=Math.random();while(u>s&&k<7){k++;p*=lam/k;s+=p;}return k;}
 function campDay(ex){if(!isSunday(S.day-1)||!inSeason(S.day-1))return;const c=camp();const res=[];
   for(const id of ['reggina','villese']){const T=TEAMS[id],st=c.t[id],tifo=Math.min(.12,c.tk[id]*.006);
-    const a=goals(1.1+(T.f-.5)*2+tifo*3),b=goals(1.05-(T.f-.5)*1.5);const opp=pick(OPP);
+    const a=goals(1.1+(T.f-.5)*2+tifo*3),b=goals(1.05-(T.f-.5)*1.5);const opp=pick(OPP[id]);
     st.g++;st.gf+=a;st.gs+=b;if(a>b){st.v++;st.pt+=3;}else if(a===b){st.n++;st.pt+=1;}else st.p++;
     c.last[id]={opp,a,b};res.push({id,a,b,opp});c.tk[id]=0;}
   const r=res[0];const txt=res.map(x=>`${TEAMS[x.id].n}–${x.opp} ${x.a}-${x.b}`).join(', ');
@@ -2416,13 +2417,17 @@ function campClose(){const c=S.camp;if(!c||!c.t.reggina.g)return;const st=c.t.re
 function campLine(){if(!inSeason(S.day)||!S.camp)return '';const c=S.camp,r=c.t.reggina,v=c.t.villese,L=c.last.reggina;
   return `⚽ ${c.season}: Reggina ${r.pt} punti in ${r.g} partite${L?` (ultima ${L.a}-${L.b} col ${L.opp})`:''} · Villese ${v.pt} punti. I biglietti venduti in settimana danno la carica.`;}
 
-/* ===== il rivale: 'Nti Carrozzu ===== */
-function rivalDay(){if(S.rival==null)S.rival=45;const diff=S.rep-S.rival;
-  S.rival=clamp(S.rival+(56-S.rival)*.03+rnd(-1.6,1.6)+(diff>8?.35:0),10,92);
-  const up=S.rep>S.rival;S.rivalStreak=up?(S.rivalStreak||0)+1:0;
-  if(S.rivalUp!=null&&S.rivalUp!==up){log(up?`Hai superato 'Nti Carrozzu: in paese si dice che il servizio migliore ora è il tuo.`:`'Nti Carrozzu ti ha superato. Radio Sole: «C'è chi dice che da Carrozzu si sta meglio.»`,up?'good':'bad');toast(up?'Hai superato \'Nti Carrozzu!':'\'Nti Carrozzu ti ha superato.',up?'good':'bad');}
-  S.rivalUp=up;}
-const rivalMult=()=>S.rival==null?1:clamp(1+(S.rep-S.rival)/400,.9,1.1);
+/* ===== i rivali: Carrozzo ('Nti Carrozzu) e Passalacqua ===== */
+const RIVALS=[['carrozzo','Carrozzo',45,56],['passalacqua','Passalacqua',50,58]];
+function rivalDay(){S.rivals=S.rivals||{};if(S.rival!=null&&S.rivals.carrozzo==null)S.rivals.carrozzo=S.rival;
+  S.rivUp=S.rivUp||{};let above=true;
+  for(const[id,nm,st,tgt]of RIVALS){let r=S.rivals[id];if(r==null)r=st;const diff=S.rep-r;
+    r=clamp(r+(tgt-r)*.03+rnd(-1.6,1.6)+(diff>8?.35:0),10,92);S.rivals[id]=r;const up=S.rep>r;if(!up)above=false;
+    if(S.rivUp[id]!=null&&S.rivUp[id]!==up){log(up?`Hai superato ${nm}: in paese si dice che il servizio migliore ora è il tuo.`:`${nm} ti ha superato. Radio Sole: «C'è chi dice che da ${nm} si sta meglio.»`,up?'good':'bad');toast(up?`Hai superato ${nm}!`:`${nm} ti ha superato.`,up?'good':'bad');}
+    S.rivUp[id]=up;}
+  S.rivalStreak=above?(S.rivalStreak||0)+1:0;}
+const rivalMult=()=>{if(!S.rivals)return 1;let d=0;for(const[id]of RIVALS)if(S.rivals[id]!=null)d+=S.rep-S.rivals[id];return clamp(1+d/800,.9,1.1);};
+const rivalTxt=()=>S.rivals?'Rivali: '+RIVALS.map(([id,nm])=>`<em class="rv1">${nm} ${Math.round(S.rivals[id]??0)}</em>`).join(''):'';
 
 S=load();
 
@@ -2559,7 +2564,7 @@ function autoPos(){
   return true;
 }
 function trayTotal(){let t=0;const c=S.counter;for(const id in S.tray){if(SV[id]){const ln=c&&c.lines.find(l=>l.id===id);const a=ln&&ln.amt!=null?ln.amt:0;t+=SV[id].payout?-a:a;}else t+=sellP(id)*S.tray[id];}return{t:r2(t),sv:0};}
-const AGES={signora:[65,84],nonno:[68,88],chiacchierone:[66,85],pendolare:[24,55],geometra:[30,62],operaio:[22,60],cumenda:[45,70],studente:[19,26],liceale:[18,19],turista:[22,70]};
+const AGES={signora:[65,84],nonno:[68,88],chiacchierone:[66,85],pendolare:[24,55],geometra:[30,62],operaio:[22,60],cumenda:[45,70],studente:[19,26],liceale:[15,18],turista:[22,70]};
 function ageOf(p){if(p.age==null){const r=AGES[p.type]||[25,60];let h=0;for(const ch of p.name)h=(h*31+ch.charCodeAt(0))>>>0;p.age=r[0]+h%(r[1]-r[0]+1);}return p.age;}
 const roleShort=p=>String(p.role||TYPES[p.type]&&TYPES[p.type].label||'Cliente').split('·')[0].trim();
 function renderCounter(){
@@ -2872,7 +2877,7 @@ function renderHud(){
   $('#openbtn').textContent=`Apri ${DAYS[wd(S.day)].toLowerCase()} ${dateShort(S.day)}`;
   $$('#speedwrap button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.speed===S.speed)));
   $('#cash').textContent=fmt(S.cash);$('#cash').className='mono'+(S.cash<0?' neg':'');
-  $('#repn').textContent=(S.rep>0?'+':'')+Math.round(S.rep);{const rv=$('#rivaln');if(rv)rv.textContent=S.rival!=null?`Carrozzu ${Math.round(S.rival)}`:'';rv.title="La reputazione di 'Nti Carrozzu, il rivale";}
+  $('#repn').textContent=(S.rep>0?'+':'')+Math.round(S.rep);{const rv=$('#rivaln');if(rv)rv.innerHTML=rivalTxt();rv.title='La reputazione delle tabaccherie rivali';}
   const rb=$('#repbar');const w=Math.abs(S.rep)/2;rb.className=S.rep<0?'n':'';rb.style.left=(S.rep<0?50-w:50)+'%';rb.style.width=w+'%';
   const net=aggSum(S.aggD);$('#todayp').textContent=open?sgn(net):'—';$('#todayp').className='mono '+(open?(net>=0?'pos':'neg'):'');
   $('#dayno').textContent=dateTxt(S.day);{const w=meteoOf(S.day);$('#dayname').textContent=`${DAYS[wd(S.day)]} · ${w.ic} ${w.temp}°`;const dc=$('#daycount');if(dc)dc.textContent=`Giorno ${S.day}`;}
