@@ -242,6 +242,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
 .seg button{flex:1;min-height:38px;border:0;background:transparent;color:var(--fg);font:600 13px var(--f-body);cursor:pointer;padding:0 6px}
 .seg button[aria-pressed="true"]{background:var(--sign);color:var(--signfg)}
+.dseg{display:flex;flex-direction:column;gap:8px}
+.dseg button{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);padding:10px 12px;cursor:pointer;font:13px/1.35 var(--f-body)}
+.dseg button b{display:block;font-size:15px;margin-bottom:3px}
+.dseg button b small{font-weight:500;opacity:.75}
+.dseg button span{display:block;opacity:.85}
+.dseg button[aria-pressed="true"]{background:var(--sign);color:var(--signfg);border-color:var(--sign)}
 .big-num{font:600 24px var(--f-mono);margin:2px 0 6px}
 .amtrow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .amtrow input{flex:1 1 140px;min-width:0;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);font:600 16px var(--f-mono);padding:0 12px}
@@ -924,7 +930,8 @@ const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
 const rankName=()=>RANKS[rk()][1];
 /* più sei in alto, più è difficile salire; più sei in basso, più è facile scendere ancora */
-const addRep=d=>{if(S.rep>=70&&!S.pfSeen)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S&&S.up&&S.up.facciata?1.1:1)*(S.rep>0?Math.max(.25,1-S.rep/140):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
+const DX={f:{pat:.65,neg:.5},m:{pat:1,neg:1},d:{pat:1.08,neg:1.12}};const dx=()=>DX[S&&S.diff]||DX.m;
+const addRep=d=>{if(d<0)d*=dx().neg;if(S.rep>=70&&!S.pfSeen)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S&&S.up&&S.up.facciata?1.1:1)*(S.rep>0?Math.max(.25,1-S.rep/140):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
 const LOTS=['lot','sup','del'];
 const svAvail=id=>(!SV[id].gate||S.up[SV[id].gate]>0)&&!(LOTS.includes(id)&&S.lotDownUntil>S.t);
 const jackpot=()=>S.jackpotUntil>S.t;
@@ -1261,6 +1268,7 @@ const nArtOf=c=>c.nArt||c.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
 const slowQ=c=>Math.max(.4,1/(1+.2*(nArtOf(c)-1)));
 const slowC=c=>Math.max(.6,1/(1+.09*(nArtOf(c)-1)));
 function patienceTick(dm){
+  dm*=dx().pat;
   if(S.freeze>0)dm*=.5;
   for(let i=S.queue.length-1;i>=0;i--){
     const c=S.queue[i];if(c.pat==null)continue;c.pat-=dm*slowQ(c); // chi chiede tanta roba aspetta più volentieri
@@ -3040,17 +3048,15 @@ function chooseOwner(){
       sh.querySelector('.owners').addEventListener('click',e=>{const b=e.target.closest('.owner');if(!b)return;sel=b.dataset.o;$$('.owner',sh).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));go.disabled=false;go.textContent='Vai';});
     }});
 }
-const DIFF={d:{n:10,t:'Difficile'},m:{n:25,t:'Media'},f:{n:50,t:'Facile'}};
-const CASHD={d:{n:0,t:'Difficile'},m:{n:2500,t:'Media'},f:{n:5000,t:'Facile'}};
-function setCash(k){S.cashMode=k;S.cash=CASHD[k].n;}
-function cashSeg(){return `<div class="seg" id="introCash" role="group" aria-label="Cassa iniziale">${Object.entries(CASHD).map(([k,v])=>`<button data-cs="${k}" aria-pressed="${S.cashMode===k}">${v.t} · ${v.n?v.n.toLocaleString('it-IT')+' €':'0 €'}</button>`).join('')}</div>`;}
-function setDiff(k){S.diff=k;const n=DIFF[k].n;for(const p of PRODUCTS)if(!p.gate&&!p.rep)S.stock[p.id]=n;RT.gridSig='';}
-function diffSeg(){return `<div class="seg" id="introDiff" role="group" aria-label="Difficoltà">${Object.entries(DIFF).map(([k,v])=>`<button data-df="${k}" aria-pressed="${S.diff===k}">${v.t} · ${v.n}</button>`).join('')}</div>`;}
+const DIFF={f:{n:50,cash:5000,t:'Facile',sub:'Tranquillo',d:'5.000 € in cassa e 50 pezzi di ogni prodotto. I clienti aspettano di più e gli errori costano metà reputazione.'},m:{n:25,cash:2500,t:'Normale',sub:'Classico',d:'2.500 € in cassa e 25 pezzi di ogni prodotto. Il gioco così com\'è.'},d:{n:10,cash:1000,t:'Difficile',sub:'Tempesta nello Stretto',d:'1.000 € in cassa e 10 pezzi di ogni prodotto. I clienti hanno meno pazienza e ogni errore pesa di più sulla reputazione.'}};
+const CASHD={d:{n:1000},m:{n:2500},f:{n:5000}};
+function setDiff(k){S.diff=k;S.cashMode=k;S.cash=DIFF[k].cash;const n=DIFF[k].n;for(const p of PRODUCTS)if(!p.gate&&!p.rep)S.stock[p.id]=n;RT.gridSig='';}
+function diffSeg(){return `<div class="dseg" id="introDiff" role="group" aria-label="Difficoltà">${Object.entries(DIFF).map(([k,v])=>`<button data-df="${k}" aria-pressed="${S.diff===k}"><b>${v.t} <small>· ${v.sub}</small></b><span>${v.d}</span></button>`).join('')}</div>`;}
 function startGame(owner,tr){
-  S=newState(owner,tr);setDiff('m');setCash('m');
+  S=newState(owner,tr);setDiff('m');
   log(`${S.ownerName} ha sposato Ines e ha ereditato il suo tabacchino. I muri sono di famiglia: niente affitto, tutto il resto sì.`,'info');
   initOwnerUI();buildStockGrid();setTab('banco');save();
-  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. La barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Sul banco usa − e + per cambiare le quantità. Il + nell'angolo di ogni prodotto dello scaffale serve invece a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>All'inizio vendi solo sigarette e Gratta e Vinci. Lotto, SuperEnalotto, 10eLotto, biglietti del treno, valori bollati, snack, caramelle, accendini e cartine si sbloccano in Bottega con poca spesa.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario e si pagano da soli alla chiusura. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul><p style="margin:4px 0 6px;font-weight:600">Come vuoi pagare le bollette?</p>${billSeg('introBill')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Bollette, tasse e imposte si pagano da sole alla chiusura: prima dalla cassa, poi dal libretto postale se la cassa non basta. La frequenza si può cambiare quando vuoi da Conti.</p><p style="margin:14px 0 6px;font-weight:600">Difficoltà</p>${diffSeg()}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Quanti pezzi di ogni prodotto trovi sugli scaffali all'inizio.</p><p style="margin:14px 0 6px;font-weight:600">Cassa iniziale</p>${cashSeg()}<p class="muted" style="font-size:12.5px;margin:6px 0 0">I soldi con cui parti. Con zero, i primi giorni si va avanti a sigarette e Gratta e Vinci.</p>`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'},{label:'Torna alla scelta del personaggio',cls:'alt',fn(){resetGame();}}],after(sh){sh.querySelector('#introBill').addEventListener('click',billSegClick);sh.querySelector('#introDiff').addEventListener('click',e=>{const b=e.target.closest('button[data-df]');if(!b)return;setDiff(b.dataset.df);$$('#introDiff button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));save();render(true);});sh.querySelector('#introCash').addEventListener('click',e=>{const b=e.target.closest('button[data-cs]');if(!b)return;setCash(b.dataset.cs);$$('#introCash button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));save();render(true);});}});
+  openModal({html:`<h3>Benvenuto al TabacchInes</h3><ul><li>Si apre alle 7 e si chiude alle 20; la domenica fino alle 13. Prima di chiudere servi chi è ancora dentro: si può sforare, ma fuori orario aumentano i rischi di multe della Finanza e di rapine.</li><li>I clienti vengono al banco uno alla volta e ti dicono cosa vogliono. La barra sotto la faccia si accorcia, e se aspettano troppo se ne vanno e la reputazione scende.</li><li>Leggi bene la richiesta, tocca i prodotti sullo scaffale per metterli sul banco e premi «Consegna». Se sbagli o dimentichi qualcosa la reputazione scende; se manca dallo scaffale scende di poco.</li><li>Sul banco usa − e + per cambiare le quantità. Il + nell'angolo di ogni prodotto dello scaffale serve invece a comprarlo dal grossista.</li><li>Se la bottega è piena, chi arriva tira dritto: servi in fretta nelle ore di punta.</li><li>All'inizio vendi solo sigarette e Gratta e Vinci. Lotto, SuperEnalotto, 10eLotto, biglietti del treno, valori bollati, snack, caramelle, accendini e cartine si sbloccano in Bottega con poca spesa.</li><li>Puoi segnare a credito e chiedere il saldo ai debitori quando tornano.</li><li>Bollette, tasse, commercialista e canoni arrivano a calendario e si pagano da soli alla chiusura. Alla Posta puoi mettere da parte soldi o chiedere un finanziamento.</li><li>Pregio di ${esc(S.ownerName)}: ${esc(S.perkTxt.charAt(0).toLowerCase()+S.perkTxt.slice(1))}. Difetto: ${esc(S.malusTxt.charAt(0).toLowerCase()+S.malusTxt.slice(1))}.</li></ul><p style="margin:4px 0 6px;font-weight:600">Come vuoi pagare le bollette?</p>${billSeg('introBill')}<p class="muted" style="font-size:12.5px;margin:6px 0 0">Bollette, tasse e imposte si pagano da sole alla chiusura: prima dalla cassa, poi dal libretto postale se la cassa non basta. La frequenza si può cambiare quando vuoi da Conti.</p><p style="margin:14px 0 6px;font-weight:600">Difficoltà</p>${diffSeg()}`,actions:[{label:'Alza la saracinesca',cls:'gold',fn(){S.intro=true;openDay();render(true);}},{label:'Prima guardo in giro',cls:'alt'},{label:'Torna alla scelta del personaggio',cls:'alt',fn(){resetGame();}}],after(sh){sh.querySelector('#introBill').addEventListener('click',billSegClick);sh.querySelector('#introDiff').addEventListener('click',e=>{const b=e.target.closest('button[data-df]');if(!b)return;setDiff(b.dataset.df);$$('#introDiff button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));save();render(true);});}});
 }
 function initOwnerUI(){const o=OWD[S.owner];$('#ownerFace').innerHTML=`<img src="${PORTS[o.img]}" alt="">`;$('#ownerFace').classList.add('px');RT.ctrSig='';}
 
