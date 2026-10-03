@@ -559,7 +559,20 @@ const PRODUCTS=[
  {id:'bus',cat:'can',name:'Buste da lettera (10 pz)',free:1,cost:.60,price:2,tag:'BUSTE',gate:'cancelleria'},
  {id:'bau',cat:'can',name:'Biglietto di auguri di compleanno',free:1,cost:.80,price:2.50,tag:'AUGURI',gate:'cancelleria'},
  {id:'col',cat:'can',name:'Colla stick',free:1,cost:.50,price:1.60,tag:'COLLA',gate:'cancelleria'},
- {id:'nas',cat:'can',name:'Nastro adesivo',free:1,cost:.40,price:1.50,tag:'NASTRO',gate:'cancelleria'}
+ {id:'nas',cat:'can',name:'Nastro adesivo',free:1,cost:.40,price:1.50,tag:'NASTRO',gate:'cancelleria'},
+ {id:'sal',cat:'ban',name:'Sale fino 1 kg',free:1,cost:.35,price:.60,tag:'SALE FINO',rep:80,start:0},
+ {id:'sgr',cat:'ban',name:'Sale grosso 1 kg',free:1,cost:.35,price:.60,tag:'SALE GROSSO',rep:80,start:0},
+ {id:'omb',cat:'ban',name:'Ombrello pieghevole',free:1,cost:3,price:8,tag:'OMBRELLO',rep:80,start:0},
+ {id:'faz',cat:'ban',name:'Fazzoletti di carta',free:1,cost:.30,price:.80,tag:'FAZZOLETTI',rep:80,start:0},
+ {id:'pil',cat:'ban',name:'Pile stilo (4 pz)',free:1,cost:1.80,price:4,tag:'PILE',rep:80,start:0},
+ {id:'cnp',cat:'ban',name:'Carte da gioco napoletane',free:1,cost:1.20,price:3,tag:'CARTE',rep:80,start:0},
+ {id:'ocs',cat:'ban',name:'Occhiali da sole',free:1,cost:5,price:15,tag:'OCCHIALI SOLE',rep:85,start:0},
+ {id:'ocl',cat:'ban',name:'Occhiali da lettura',free:1,cost:4,price:12,tag:'LETTURA',rep:85,start:0},
+ {id:'atb',cat:'val',name:'Biglietto autobus urbano 1,30 €',price:1.30,aggio:.07,tag:'AUTOBUS',rep:85,start:0},
+ {id:'fig',cat:'ban',name:'Figurine dei calciatori',free:1,cost:.70,price:1,tag:'FIGURINE',rep:85,start:0},
+ {id:'tor',cat:'ban',name:'Torroncini di Bagnara',free:1,cost:2.50,price:6,tag:'TORRONCINI',rep:90,start:0},
+ {id:'sou',cat:'ban',name:'Souvenir dei Bronzi di Riace',free:1,cost:3,price:10,tag:'SOUVENIR',rep:90,start:0},
+ {id:'acx',cat:'ban',name:'Accendino da collezione',free:1,cost:9,price:25,tag:'COLLEZIONE',rep:90,start:0}
 ];
 const CATDEF={
  sig:{label:'Sigarette',aggio:.10,cap:40,start:15,lot:10,lotName:'stecca'},
@@ -902,7 +915,8 @@ const costOf=id=>{const d=PD[id];const base=d.free?d.cost:S.price[id]*(1-d.aggio
 const MAXSTOCK=200;
 const capOf=id=>MAXSTOCK;
 const lowOf=id=>S.stock[id]<=PD[id].lot;
-const visible=id=>!PD[id].gate||S.up[PD[id].gate]>0;
+const visible=id=>{const p=PD[id];if(p.rep)return S.rep>=p.rep||S.stock[id]>0;return !p.gate||S.up[p.gate]>0;};
+const repBuyable=id=>!PD[id].rep||S.rep>=PD[id].rep;
 const space=id=>Math.max(0,capOf(id)-S.stock[id]);
 const stockValue=()=>PRODUCTS.reduce((a,p)=>a+S.stock[p.id]*costOf(p.id),0);
 const credTotal=()=>S.people.reduce((a,p)=>a+p.debt,0);
@@ -1010,6 +1024,19 @@ const SAY={
   acc:q=>q===1?'un accendino':`${nw(q)} accendini`,
   cam:q=>q===1?'le caramelle alla menta':`${nw(q)} pacchetti di caramelle alla menta`,
   sna:q=>q===1?'uno snack':`${nw(q)} snack`,
+  sal:q=>q===1?'un pacco di sale fino':`${nw(q)} pacchi di sale fino`,
+  sgr:q=>q===1?'un pacco di sale grosso, per la pasta':`${nw(q)} pacchi di sale grosso`,
+  omb:q=>q===1?'un ombrello, che fuori viene giù':`${nw(q)} ombrelli`,
+  faz:q=>q===1?'un pacchetto di fazzoletti':`${nw(q)} pacchetti di fazzoletti`,
+  pil:q=>q===1?'le pile stilo':`${nw(q)} confezioni di pile stilo`,
+  cnp:q=>q===1?'un mazzo di carte napoletane':`${nw(q)} mazzi di carte napoletane`,
+  ocs:q=>q===1?'un paio di occhiali da sole':`${nw(q)} paia di occhiali da sole`,
+  ocl:q=>q===1?'degli occhiali da lettura, che non ci vedo più':`${nw(q)} paia di occhiali da lettura`,
+  atb:q=>q===1?'un biglietto dell\'autobus':`${nw(q)} biglietti dell'autobus`,
+  fig:q=>q===1?'un pacchetto di figurine':`${nw(q)} pacchetti di figurine`,
+  tor:q=>q===1?'una scatola di torroncini':`${nw(q)} scatole di torroncini`,
+  sou:q=>q===1?'un souvenir dei Bronzi di Riace':`${nw(q)} souvenir dei Bronzi`,
+  acx:q=>q===1?'quell\'accendino da collezione in vetrina':`${nw(q)} accendini da collezione`,
   cpo:q=>q===1?'una cartolina':`${nw(q)} cartoline`,
   bib:q=>q===1?'una Coca Cola':`${nw(q)} Coca Cola`,
   acq:q=>q===1?'una bottiglietta d\'acqua':`${nw(q)} bottigliette d\'acqua`,
@@ -1176,7 +1203,7 @@ function settle(c,tray,credit,by){
       if(short>0){if(!svAvail(id)){missing.push(SV[id].name);if(SV[id].gate&&!S.up[SV[id].gate])nLocked++;}else forgot.push(SV[id].name);}
       continue;
     }
-    if(ok>0){S.stock[id]-=ok;lowWarn(id);const v=sellP(id)*ok;if(pfOn()){const ra=sellP(id)/offP(id);if(ra>1.04)caro.push([id,ra]);}const k=SALECAT[PD[id].cat];byCat[k]=(byCat[k]||0)+v;total+=v;got+=ok;T.okItems+=ok;}
+    if(ok>0){S.stock[id]-=ok;lowWarn(id);if(PD[id].rep)(alb().spec||(alb().spec={}))[id]=1;const v=sellP(id)*ok;if(pfOn()){const ra=sellP(id)/offP(id);if(ra>1.04)caro.push([id,ra]);}const k=SALECAT[PD[id].cat];byCat[k]=(byCat[k]||0)+v;total+=v;got+=ok;T.okItems+=ok;}
     if(short>0){if(S.stock[id]<=0||blockedP(id)){missing.push(PD[id].name);if(!visible(id)||blockedP(id))nLocked++;}else forgot.push(PD[id].name);}
   }
   total=r2(total);
@@ -1520,6 +1547,7 @@ function upcoming(n){
 function tick(dm){
   S.t+=dm;
   if(S.fido&&S.day>=S.fido.day+2&&S.t>=FIDO_T)fidoCollect();
+  repTierCheck();
   if(S.freeze>0)S.freeze=Math.max(0,S.freeze-dm);
   while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();albEv(ev.id);if(RT.modal)break;}
   spawnTick(dm);
@@ -1639,13 +1667,14 @@ function fidoCollect(){
   toast(`Il grossista si prende ${fmt(o)}.`,'bad');sfx('alarm');S.fido=null;
 }
 function buy(id,n){
+  if(!repBuyable(id)){toast('Il grossista per ora non te lo manda più: riprendi quota con la reputazione.','warn');return false;}
   n=Math.min(n,space(id));if(n<=0){toast('Non c\'è più spazio sugli scaffali.','warn');return false;}
   const cost=r2(n*costOf(id));
   if(cost>S.cash){toast(S.deposit>=cost?'In cassa non basta: preleva dal libretto postale.':'Non hai abbastanza soldi in cassa.','bad');return false;}
   S.cash=r2(S.cash-cost);S.stock[id]+=n;tx('merce',-cost,`${n}× ${PD[id].name}`);
   return true;
 }
-function refillList(){const out=[];for(const p of PRODUCTS){if(!visible(p.id))continue;const cap=capOf(p.id);const want=Math.min(MAXSTOCK,p.lot*4);if(S.stock[p.id]<p.lot*2)out.push({id:p.id,n:Math.max(0,want-S.stock[p.id])});}return out;}
+function refillList(){const out=[];for(const p of PRODUCTS){if(!visible(p.id)||!repBuyable(p.id))continue;const cap=capOf(p.id);const want=Math.min(MAXSTOCK,p.lot*4);if(S.stock[p.id]<p.lot*2)out.push({id:p.id,n:Math.max(0,want-S.stock[p.id])});}return out;}
 function buyUp(id){
   const u=UPD[id],lv=S.up[id];if(lv>=u.max)return;
   if(u.minPat&&lv===0&&patrimonio()<u.minPat){toast(`Si sblocca con ${fmt(u.minPat)} di patrimonio.`,'warn');return;}
@@ -1724,6 +1753,8 @@ function extraWants(ctx,p){
   if(T.meteo&&T.meteo.temp>=30&&chance(.15))wantU(ctx,DRINK());
   if(T.spec==='reggina'&&!teen&&chance(.1))wantU(ctx,'sco');
   if(LOTDAYS.includes(wd(S.day))&&S.t>=1050&&!teen&&chance(.25))want(ctx,'lot');
+  // prodotti speciali da reputazione alta
+  specWants(ctx,p,teen);
   // prodotti di stagione (solo se li hai sbloccati)
   const se=seasonOf(S.day);
   if(se==='estate'&&chance(.16)){const id=pick(teen?['bib','acq','tef','pat']:['bib','acq','tef','bir','brs','brm','pat','ppc']);if(visible(id))wantU(ctx,id);}
@@ -2209,6 +2240,7 @@ function renderAlbum(){
   root.innerHTML=`<section class="card"><h2>Le tue stelle</h2><div class="minirow"><span>Stelle prese in tutto</span><b class="mono">★ ${a.stelle}</b></div><div class="minirow"><span>Giornate perfette (3 stelle)</span><b class="mono">${a.tre}</b></div><div class="minirow"><span>Giornate perfette di fila: ora / record</span><b class="mono">${a.serie} / ${a.best}</b></div></section>`
    +sec('Medaglie',Object.keys(S.medals||{}).length,MEDALS.length,`<ul class="alist">${MEDALS.map(([id,t,d])=>`<li class="${(S.medals||{})[id]?'on':''}">${(S.medals||{})[id]?'🏅 ':'○ '}<b>${esc(t)}</b> <span class="muted" style="font-size:12px">· ${esc(d)}</span></li>`).join('')}</ul>${(S.trofei||[]).length?`<p style="margin:8px 0 0">🏆 Tabaccheria dell'anno: ${S.trofei.join(', ')}</p>`:''}`)
    +((S.campHist||[]).some(h=>h.team==='villese')?`<section class="card"><h2>Le stagioni della Villese</h2>${S.campHist.filter(h=>h.team==='villese').map(h=>`<div class="minirow"><span>${h.season} · ${h.pt} punti in ${h.g} partite</span><b>${h.out==='promossa'?'🏆 promossa':h.out==='retrocessa'?'retrocessa':'salva'}</b></div>`).join('')}</section>`:'')
+   +(Object.keys(alb().spec||{}).length?sec('Prodotti speciali',Object.keys(alb().spec).length,PRODUCTS.filter(p=>p.rep).length,list(PRODUCTS.filter(p=>p.rep).map(p=>[p.id,p.name]),alb().spec)):'')
    +sec('Clienti conosciuti',known.length,ppl.length,`<div class="agrid">${known.map(p=>`<div class="acli" title="${esc(p.name)}${p.role?' · '+esc(p.role):''}">${faceHtml(p.face,'ok')}<small>${esc(p.name.split(' ')[0])}</small></div>`).join('')}${ppl.length>known.length?`<div class="acli no"><div class="face">?</div><small>altri ${ppl.length-known.length}</small></div>`:''}</div>${known.length?'':'<p class="muted" style="font-size:13px;margin:6px 0 0">Servi i clienti: chi passa al banco entra nell\'album.</p>'}`)
    +sec('Frasi in dialetto sentite',Object.keys(a.frasi).length,ALB_FRASI.length,list(ALB_FRASI.map(([k,t])=>[k,'«'+t+'»']),a.frasi))
    +sec('Feste e giornate speciali',ALB_FESTE.filter(([k])=>a.feste[k]).length,ALB_FESTE.length,list(ALB_FESTE,a.feste))
@@ -2337,6 +2369,7 @@ const MEDALS=[
  ['anno','Tabaccheria dell\'anno','Vinci il premio di fine anno.',()=>(S.trofei||[]).length>0],
  ['carrozzu','Meglio di tutti','Resta sopra Carrozzo e Passalacqua per 30 giorni di fila.',()=>(S.rivalStreak||0)>=30],
  ['combo','Mano calda','Fai una combo di 50 clienti perfetti.',()=>(S.comboBest||0)>=50],
+ ['completa','Bottega completa','Vendi almeno una volta tutti i prodotti speciali.',()=>PRODUCTS.filter(p=>p.rep).every(p=>(alb().spec||{})[p.id])],
  ['donpietro','Il più alto in grado','Raggiungi l\'ultimo grado del tabaccaio.',()=>rk()>=RANKS.length-1]];
 function medCheck(r){S.medals=S.medals||{};const got=[];for(const[id,t,,test]of MEDALS)if(!S.medals[id]&&test(r)){S.medals[id]=S.day;got.push(t);log(`Medaglia: «${t}»!`,'good');toast(`🏅 Medaglia: ${t}`,'good');}return got;}
 /* fine giornata (S.day è già il giorno dopo) */
@@ -2429,6 +2462,46 @@ function rivalDay(){S.rivals=S.rivals||{};if(S.rival!=null&&S.rivals.carrozzo==n
 const rivalMult=()=>{if(!S.rivals)return 1;let d=0;for(const[id]of RIVALS)if(S.rivals[id]!=null)d+=S.rep-S.rivals[id];return clamp(1+d/800,.9,1.1);};
 const rivalTxt=()=>S.rivals?'Rivali: '+RIVALS.map(([id,nm])=>`<em class="rv1">${nm} ${Math.round(S.rivals[id]??0)}</em>`).join(''):'';
 
+/* ===== prodotti speciali: compaiono solo con la reputazione alta (sorpresa) ===== */
+const SPEC_TIERS=[[80,'sale, ombrelli, fazzoletti, pile e carte napoletane'],[85,'occhiali da sole e da lettura, biglietti dell\'autobus e figurine'],[90,'torroncini di Bagnara, souvenir dei Bronzi e un accendino da collezione']];
+function repTierCheck(){if(!S||S.rep<80)return;S.repTier=S.repTier||{};
+  for(const[t,txt]of SPEC_TIERS)if(S.rep>=t&&!S.repTier[t]){S.repTier[t]=S.day;
+    log(`La bottega è così stimata che i clienti ti chiedono cose che un tabacchino normale non tiene: ora puoi vendere ${txt}. Li trovi in Magazzino e sullo scaffale. Vale finché la reputazione resta alta.`,'good');
+    toast(`✨ Novità in bottega: ${txt}!`,'good');}}
+function specWants(ctx,p,teen){
+  const ok=id=>visible(id)&&(S.rep>=PD[id].rep||chance(.5));
+  const add=(id,ch,q)=>{if(ok(id)&&chance(ch))want(ctx,id,q||1);};
+  const t=p.type,m=dateOf(S.day).getMonth(),mt=S.today.meteo&&S.today.meteo.k,old=t==='signora'||t==='nonno'||t==='chiacchierone';
+  if(!teen){add('sal',old?.05:.015);add('sgr',old?.04:.01);}
+  if(mt==='pioggia'||mt==='temporale')add('omb',.22);else add('omb',.004);
+  add('faz',(m>=10||m<=2)?.06:.02);
+  add('pil',m===11?.07:.025);
+  add('cnp',(t==='nonno'||t==='chiacchierone')?((m<=2)?.1:.04):.008);
+  if(m>=5&&m<=8)add('ocs',mt==='sole'?.07:.04);else add('ocs',.005);
+  if(old)add('ocl',.035);
+  if(t==='pendolare'||t==='studente'||t==='liceale')add('atb',.15,ri(1,2));
+  if((t==='liceale'||t==='studente')&&inSeason(S.day))add('fig',S.campFesta===S.day?.25:.1,ri(1,3));
+  const fe=S.today.festa;add('tor',['natale','avvento','pasqua','cosmadamiano','cosmadamiano_giorni'].includes(fe)?.12:.015);
+  if(t==='turista')add('sou',.3);
+  if(t==='cumenda'||t==='turista')add('acx',.04);
+}
+/* disegni dei prodotti speciali */
+Object.assign(ART,{
+ sal:()=>sv(`<rect x="30" y="5" width="32" height="37" rx="2" fill="#F4F6FA" stroke="#1E4FA8" stroke-width="1"/><rect x="30" y="5" width="32" height="10" fill="#1E4FA8"/>`+stx(46,12.6,5.4,'SALE','#fff',FB)+stx(46,25,6,'FINO','#1E4FA8',FO,{b:700})+[0,1,2,3,4].map(i=>`<circle cx="${36+i*5}" cy="${33+(i%2)*2}" r="1" fill="#9FB4C4"/>`).join('')+stx(46,40,3.4,'1 kg','#1E4FA8',FF,{b:800})),
+ sgr:()=>sv(`<rect x="30" y="5" width="32" height="37" rx="2" fill="#F4F6FA" stroke="#C62828" stroke-width="1"/><rect x="30" y="5" width="32" height="10" fill="#C62828"/>`+stx(46,12.6,5.4,'SALE','#fff',FB)+stx(46,25,6,'GROSSO','#C62828',FO,{b:700,w:28})+[0,1,2,3].map(i=>`<rect x="${35+i*6}" y="${30+(i%2)*3}" width="3" height="3" fill="#C8D3DE" transform="rotate(20 ${36+i*6} ${31+(i%2)*3})"/>`).join('')+stx(46,40,3.4,'1 kg','#C62828',FF,{b:800})),
+ omb:()=>sv(`<path d="M24 22 Q46 0 68 22 Q63 19 57 22 Q51 19 46 22 Q41 19 35 22 Q29 19 24 22z" fill="#1E4FA8"/><path d="M35 22 Q41 19 46 22 Q41 6 35 22z M57 22 Q51 19 46 22 Q51 6 57 22z" fill="#2E74CC"/><path d="M46 22 V38 q0 4 -4 4 q-3 0 -3 -3" stroke="#333" stroke-width="1.6" fill="none"/>`+[0,1,2,3].map(i=>`<path d="M${22+i*16} 30 l-2 5" stroke="#7FC4E8" stroke-width="1"/>`).join('')),
+ faz:()=>sv(`<rect x="22" y="14" width="48" height="24" rx="4" fill="#E3F2FD" stroke="#90A4AE" stroke-width=".8"/><path d="M38 14 q8 -10 16 0" fill="#fff" stroke="#90A4AE" stroke-width=".8"/>`+stx(46,30,6,'Morbidì','#1E4FA8',FS)+stx(46,35.5,3,'FAZZOLETTI · 10 PZ','#546E7A',FF,{b:800})),
+ pil:()=>sv([0,1,2,3].map(i=>`<rect x="${26+i*10}" y="10" width="8" height="28" rx="2" fill="#222"/><rect x="${26+i*10}" y="10" width="8" height="10" rx="2" fill="#F2C230"/><rect x="${28.5+i*10}" y="7.5" width="3" height="3" fill="#B0B6BE"/>`).join('')+stx(46,31,4,'AA 1,5V','#F2C230',FF,{b:800,w:34})),
+ cnp:()=>sv(`<rect x="30" y="8" width="24" height="34" rx="2" fill="#fff" stroke="#888" stroke-width=".6" transform="rotate(-10 42 25)"/><rect x="38" y="6" width="24" height="34" rx="2" fill="#FFF8E1" stroke="#888" stroke-width=".6"/><circle cx="50" cy="18" r="5" fill="#F2C230" stroke="#B8860B" stroke-width=".8"/><path d="M44 30 h12 M50 25 v10" stroke="#C62828" stroke-width="1.8"/>`+stx(50,38,3.6,'NAPOLETANE','#C62828',FF,{b:800,w:20})),
+ ocs:()=>sv(`<path d="M18 18 h56" stroke="#222" stroke-width="2"/><ellipse cx="33" cy="25" rx="11" ry="8" fill="#1B1B1B"/><ellipse cx="59" cy="25" rx="11" ry="8" fill="#1B1B1B"/><path d="M44 22 q2 -2 4 0" stroke="#222" stroke-width="1.6" fill="none"/><path d="M27 22 l5 -2" stroke="#fff" stroke-width="1" opacity=".6"/><path d="M53 22 l5 -2" stroke="#fff" stroke-width="1" opacity=".6"/><circle cx="76" cy="10" r="4" fill="#FFD23F"/>`),
+ ocl:()=>sv(`<path d="M18 22 h56" stroke="#8C5A2B" stroke-width="1.6"/><rect x="22" y="18" width="20" height="13" rx="5" fill="rgba(200,230,255,.6)" stroke="#8C5A2B" stroke-width="1.6"/><rect x="50" y="18" width="20" height="13" rx="5" fill="rgba(200,230,255,.6)" stroke="#8C5A2B" stroke-width="1.6"/>`+stx(46,40,4,'+1,5 · +2,0 · +2,5','#5A3A1E',FF,{b:800,w:40})),
+ atb:()=>sv(ticket('#FFF3E0','#F57C1F',`<rect x="15" y="17" width="16" height="11" rx="2" fill="#F57C1F"/><rect x="17" y="19" width="5" height="4" fill="#fff"/><rect x="24" y="19" width="5" height="4" fill="#fff"/><circle cx="19" cy="29" r="1.6" fill="#333"/><circle cx="28" cy="29" r="1.6" fill="#333"/>`+stx(49,20,4,'AUTOBUS URBANO','#F57C1F',FF,{b:800,w:30})+stx(49,29,6.4,'CORSA SEMPLICE','#333',FO,{b:700,w:30})+stx(78,26,6,'1,30€','#333',FO,{b:700,w:16}))),
+ fig:()=>sv(`<rect x="28" y="6" width="36" height="34" rx="2" fill="#1E7A3E"/><path d="M28 6 l6 4 l6 -4 l6 4 l6 -4 l6 4 l6 -4" stroke="#fff" stroke-width=".8" fill="none"/><circle cx="46" cy="22" r="7" fill="#fff" stroke="#222" stroke-width=".6"/><path d="M46 17.5 l3 2.2 l-1.2 3.6 h-3.6 l-1.2 -3.6z" fill="#222"/>`+stx(46,36,4.4,'CALCIATORI','#FFE45C',FB,{w:30})),
+ tor:()=>sv(`<rect x="16" y="12" width="60" height="22" rx="2" fill="#F7E7C6" stroke="#8A5A24" stroke-width="1"/><rect x="16" y="12" width="60" height="7" fill="#8A5A24"/>`+stx(46,17.4,4.4,'TORRONCINI','#F7E7C6',FB,{w:40})+[0,1,2,3,4].map(i=>`<rect x="${21+i*11}" y="23" width="8" height="7" rx="1" fill="#C9A26B" stroke="#8A5A24" stroke-width=".4"/>`).join('')+stx(46,40,3.8,'DI BAGNARA','#8A5A24',FF,{b:800})),
+ sou:()=>sv(`<rect x="36" y="38" width="20" height="5" rx="1" fill="#8A7A66"/><circle cx="46" cy="10" r="3.4" fill="#9C6A38"/><path d="M42 14 h8 l-1 12 h-6z" fill="#9C6A38"/><path d="M42.6 15 l-3 8 M49.4 15 l3 7" stroke="#9C6A38" stroke-width="2" stroke-linecap="round"/><path d="M43.4 26 l-.6 12 M48.6 26 l.8 12" stroke="#9C6A38" stroke-width="2.4" stroke-linecap="round"/><rect x="64" y="14" width="16" height="12" rx="2" fill="#E53970"/>`+stx(72,22,4,'RIACE','#fff',FB,{w:13})),
+ acx:()=>sv(`<rect x="34" y="14" width="24" height="28" rx="3" fill="#C9A24A" stroke="#7A5A1E" stroke-width="1"/><rect x="34" y="6" width="24" height="9" rx="3" fill="#D9B45A" stroke="#7A5A1E" stroke-width="1"/><path d="M34 15 h24" stroke="#7A5A1E" stroke-width="1"/><path d="M40 22 l6 10 l6 -10" stroke="#7A5A1E" stroke-width="1" fill="none"/>`+star(46,26,3,'#FFF6C8')+stx(46,39,3.4,'N. 027/500','#4A3410',FF,{b:800}))
+});
+
 S=load();
 
 /* ===== finestre e avvisi ===== */
@@ -2501,7 +2574,7 @@ function buildStockGrid(){
   }else{
     for(const p of PRODUCTS){
       if(!inTab(p,PCAT))continue;
-      if(!visible(p.id)){if(PCAT==='alt')continue;
+      if(!visible(p.id)){if(PCAT==='alt'||p.rep)continue;
         const w=el('div','sitem');const b=el('button','si lock');b.type='button';b.dataset.lk=p.id;
         b.innerHTML=`${artOf(p.id)}<span class="nm">${esc(p.name)}</span><span class="ct">Da sbloccare in Bottega</span>`;
         w.appendChild(b);g.appendChild(w);continue;}
@@ -2514,7 +2587,7 @@ function buildStockGrid(){
   }
   RT.gridSig=gridSig();
 }
-const gridSig=()=>PCAT+'|'+JSON.stringify(S.up);
+const gridSig=()=>PCAT+'|'+JSON.stringify(S.up)+'|'+PRODUCTS.filter(p=>p.rep).map(p=>visible(p.id)?(repBuyable(p.id)?2:1):0).join('');
 function refreshStockGrid(){
   if(RT.gridSig!==gridSig())buildStockGrid();
   const tray=S.tray||{};
@@ -2651,7 +2724,7 @@ function buySheet(id){
   const html=`<div class="shead">${artOf(id)}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">In magazzino ${S.stock[id]}/${cap} · costo ${fmt(u)} · vendi a ${fmt(sellP(id))}</div></div></div>`
     +(p.motto?`<p style="font-style:italic">«${esc(p.motto)}»</p>`:'')
     +(sp<=0?'<p>Hai già il massimo: 200 pezzi.</p>':`<p class="muted" style="font-size:13px">In cassa ${fmt(S.cash)}${S.deposit>0?` · sul libretto ${fmt(S.deposit)}`:''}. La merce arriva subito.</p>`);
-  const acts=opts.map(n=>{const c=r2(n*u);const lbl=n===sp&&opts.length>1?`Fino al massimo di 200: ${n} pezzi (${fmt(c)})`:`Compra ${n} pezzi${n===lot?' ('+CATDEF[p.cat].lotName+')':''} · ${fmt(c)}`;return{label:lbl,cls:'gold',disabled:c>S.cash,fn(){if(buy(id,n)){toast(`+${n} ${p.name}`,'good');render(true);}}};});
+  const acts=opts.map(n=>{const c=r2(n*u);const lbl=n===sp&&opts.length>1?`Fino al massimo di 200: ${n} pezzi (${fmt(c)})`:`Compra ${n} pezzi${n===lot?' ('+CATDEF[p.cat].lotName+')':''} · ${fmt(c)}`;return{label:lbl,cls:'gold',disabled:c>S.cash||!repBuyable(id),fn(){if(buy(id,n)){toast(`+${n} ${p.name}`,'good');render(true);}}};});
   let nf=0;for(const n of opts){const c=r2(n*u);if(c>S.cash&&canFido(c)&&nf<2){nf++;acts.push({label:`A credito dal grossista: ${n} pezzi · ${fmt(c)}`,cls:'',fn(){if(buyFido([{id,n}])){toast(`+${n} ${p.name} a credito`,'warn');render(true);}}});}}
   acts.push({label:'Chiudi',cls:'alt'});
   openModal({html:html+(nf?`<p class="muted" style="font-size:12.5px">A credito: lo ripaghi entro domani col 5% in più; dopodomani alle 19:30 passa il grossista e vuole il 10%.${S.fido?` Hai già ${fmt(S.fido.amt)} a credito.`:''}</p>`:''),actions:acts});
@@ -2660,7 +2733,7 @@ function buySheet(id){
 /* magazzino */
 let MR={};
 function buildMag(){
-  const root=$('#mag-list');root.innerHTML='';MR={};MR._pf=pfOn();
+  const root=$('#mag-list');root.innerHTML='';MR={};MR._pf=pfOn();MR._rv=PRODUCTS.filter(p=>p.rep).map(p=>visible(p.id)?(repBuyable(p.id)?2:1):0).join('');
   for(const c in CATDEF){
     const items=PRODUCTS.filter(p=>p.cat===c&&visible(p.id));if(!items.length)continue;
     const card=el('section','card');card.appendChild(el('h2',null,CATDEF[c].label));
@@ -2685,7 +2758,7 @@ function renderFido(){
 }
 function refreshMag(){
   renderFido();
-  if(MR._pf!==pfOn()){buildMag();return;}
+  if(MR._pf!==pfOn()||MR._rv!==PRODUCTS.filter(p=>p.rep).map(p=>visible(p.id)?(repBuyable(p.id)?2:1):0).join('')){buildMag();return;}
   for(const id in MR){if(id[0]==="_")continue;
     const r=MR[id],cap=capOf(id),st=S.stock[id],cost=costOf(id),pr=sellP(id);
     r.meta.textContent=`Costo ${fmt(cost)} · vendi ${fmt(pr)} · guadagni ${fmt(pr-cost)}`;
@@ -2971,7 +3044,7 @@ const DIFF={d:{n:10,t:'Difficile'},m:{n:25,t:'Media'},f:{n:50,t:'Facile'}};
 const CASHD={d:{n:0,t:'Difficile'},m:{n:2500,t:'Media'},f:{n:5000,t:'Facile'}};
 function setCash(k){S.cashMode=k;S.cash=CASHD[k].n;}
 function cashSeg(){return `<div class="seg" id="introCash" role="group" aria-label="Cassa iniziale">${Object.entries(CASHD).map(([k,v])=>`<button data-cs="${k}" aria-pressed="${S.cashMode===k}">${v.t} · ${v.n?v.n.toLocaleString('it-IT')+' €':'0 €'}</button>`).join('')}</div>`;}
-function setDiff(k){S.diff=k;const n=DIFF[k].n;for(const p of PRODUCTS)if(!p.gate)S.stock[p.id]=n;RT.gridSig='';}
+function setDiff(k){S.diff=k;const n=DIFF[k].n;for(const p of PRODUCTS)if(!p.gate&&!p.rep)S.stock[p.id]=n;RT.gridSig='';}
 function diffSeg(){return `<div class="seg" id="introDiff" role="group" aria-label="Difficoltà">${Object.entries(DIFF).map(([k,v])=>`<button data-df="${k}" aria-pressed="${S.diff===k}">${v.t} · ${v.n}</button>`).join('')}</div>`;}
 function startGame(owner,tr){
   S=newState(owner,tr);setDiff('m');setCash('m');
