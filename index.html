@@ -799,8 +799,8 @@ const UPG=[
  {id:'srvRic',grp:'srv',name:'Ricariche telefoniche',max:1,cost:[300],desc:'Ricariche per ogni operatore. La provvigione è quella che è.',eff:()=>'provvigione 5%, canone 15 €/mese'},
  {id:'facciata',grp:'esp',name:'Facciata rinnovata',max:1,cost:[2500],minPat:5000,desc:'Intonaco nuovo, vetrine pulite e una tenda a righe. Da fuori sembra un altro negozio.',eff:()=>'+6% clienti, la reputazione sale il 10% più in fretta'},
  {id:'bancone',grp:'esp',name:'Bancone nuovo in legno',max:1,cost:[5000],minPat:10000,desc:'Legno massello, piano in marmo e un cassetto che si chiude davvero.',eff:()=>'+4% clienti, pazienza +10%'},
- {id:'commesso',grp:'esp',name:'Assumi un commesso',max:1,cost:[800],req:'locale',desc:'Con il locale accanto serve un secondo banco. Scegli tu chi metterci: uno degli altri tabaccai del quartiere.',eff:()=>'serve da solo i clienti in coda (non fa credito); stipendio 1.100 €/mese'},
- {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[15000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +60 €/mese, TARI +40 €/mese, assicurazione 60 €/mese'},
+ {id:'commesso',grp:'esp',name:'Assumi un commesso',max:1,cost:[800],req:'locale',desc:'Con il locale accanto serve un secondo banco. Scegli tu chi metterci: uno degli altri tabaccai del quartiere.',eff:()=>'serve da solo i clienti in coda (non fa credito); stipendio 1.600 €/mese'},
+ {id:'locale',grp:'esp',name:'Compra il locale accanto',max:1,cost:[15000],desc:'Si abbatte il muro e la bottega raddoppia. Più spazio, più gente, più lavoro.',eff:()=>'molti più clienti al giorno, in coda fino a 50 persone, luce +100 €/mese, TARI +60 €/mese, assicurazione 90 €/mese'},
  {id:'scommesse',grp:'srv',name:'Licenza scommesse sportive',max:1,cost:[2500],desc:'Schedine, quote e discussioni sul rigore che non c\'era.',eff:()=>'provvigione 8% sulle giocate, canone 40 €/mese'},
  {id:'virtuali',grp:'srv',name:'Schermo per scommesse virtuali',max:1,cost:[1800],desc:'Cavalli finti, partite finte, soldi veri.',eff:()=>'provvigione 10%, +3% clienti, canone 20 €/mese'},
  {id:'caffe',grp:'rep',name:'Macchina del caffè',max:1,cost:[600],desc:'Il caffè del tabacchino: non sarà il bar, ma è sempre caldo.',eff:()=>'sblocca il caffè (cialde a scaffale), luce +15 €/mese'},
@@ -1488,7 +1488,7 @@ function taxOn(base,d){if(base<=0)return 0;const t=d>90?(Math.min(base,1500)*.15
 const taxBase=m=>['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);
 function billsFor(d){
   const g=dom(d),b=[],disc=perk('bills')?.9:1,pdisc=perk('prof')?.5:1;
-  const luce=r2((110+40*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib+60*S.up.locale)*disc),tel=r2(30*disc),gas=r2(45*disc);
+  const luce=r2((110+40*S.up.insegna+30*S.up.frigo+15*S.up.caffe+10*S.up.tv+15*S.up.slot+20*S.up.condiz+15*S.up.distrib+100*S.up.locale)*disc),tel=r2(30*disc),gas=r2(45*disc);
   const mode=S.billMode||'m';
   if(mode==='m'){
     if(g===5)b.push({cat:'boll',amt:luce,label:'Bolletta della luce'});
@@ -1500,7 +1500,7 @@ function billsFor(d){
   if(g===12){b.push({cat:'canoni',amt:r2(((S.up.licLot||S.up.licSup||S.up.licDel?30:0)+10*S.up.srvRic+15*S.up.srvPag+30*S.up.scommesse+15*S.up.virtuali)*disc),label:'Canoni terminali lotterie e servizi'});}
   if(g===16)b.push({cat:'tasse',amt:d>90?300:150,label:'Contributi INPS (F24)'});
   if(g===25)b.push({cat:'prof',amt:r2(100*pdisc*(rk()>=4?.8:1)),label:'Commercialista'});
-  if(g===28){b.push({cat:'tasse',amt:45+40*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2((S.up.locale?60:30)*pdisc),label:'Assicurazione della bottega'});}
+  if(g===28){b.push({cat:'tasse',amt:45+60*S.up.locale,label:'TARI rifiuti'});b.push({cat:'prof',amt:r2((S.up.locale?90:30)*pdisc),label:'Assicurazione della bottega'});}
   if(isLastOfMonth(d)&&S.up.commesso&&S.helper&&OWD[S.helper.owner])b.push({cat:'pers',amt:COMMESSO_PAY,label:`Stipendio del commesso (${OWD[S.helper.owner].name})`});
   if(isLastOfMonth(d)){const m=S.aggM;const base=['tab','gra','val','ban','gio','bar','cbd','srv','slot','man','cred'].reduce((a,k)=>a+(m[k]||0),0)+(m.merce||0)+(m.vers||0);if(base>0)b.push({cat:'tasse',amt:taxOn(base,d),label:d>90?'Imposte del mese (15% fino a 1.500 € di utile, 25% oltre)':'Imposte del mese (agevolazione nuova attività: 10%)'});}
   return b;
@@ -1836,7 +1836,7 @@ function inesArrives(){
   else q=pick(['«Ti do una mano un paio d\'ore, poi ho il parrucchiere.»','«Spostati, che faccio io.»','«Mia madre mi ha detto di controllarti.»']);
   log(`Arriva Ines a dare una mano: ${q}`,'good');toast('Ines è al banco con te per un po\'.','good');
 }
-const COMMESSO_PAY=1100;
+const COMMESSO_PAY=1600;
 
 /* ===== meteo, Radio Sole, suoni ===== */
 
