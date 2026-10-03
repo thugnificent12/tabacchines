@@ -930,7 +930,7 @@ const loanLeft=()=>S.loan?S.loan.left*S.loan.rata:0;
 const patrimonio=()=>S.cash+S.deposit+stockValue()+S.invested+credTotal()*.5-loanLeft();
 const rankName=()=>RANKS[rk()][1];
 /* più sei in alto, più è difficile salire; più sei in basso, più è facile scendere ancora */
-const DX={f:{pat:.65,neg:.5},m:{pat:1,neg:1},d:{pat:1.08,neg:1.12}};const dx=()=>DX[S&&S.diff]||DX.m;
+const DX={f:{pat:.65,neg:.5},m:{pat:1,neg:1},d:{pat:1.08,neg:1.12}};const dx=()=>{const b=DX[S&&S.diff]||DX.m;return S&&S.troubleOn?{pat:b.pat*.8,neg:b.neg}:b;};
 const addRep=d=>{if(d<0)d*=dx().neg;if(S.rep>=70&&!S.pfSeen)unlockPrices();let k=d>0?(perk('rep')?1.4:1)*(S&&S.up&&S.up.facciata?1.1:1)*(S.rep>0?Math.max(.25,1-S.rep/140):1):(S.rep<0?Math.max(.4,1+S.rep/250):1);S.rep=clamp(S.rep+d*k,-100,100);};
 const LOTS=['lot','sup','del'];
 const svAvail=id=>(!SV[id].gate||S.up[SV[id].gate]>0)&&!(LOTS.includes(id)&&S.lotDownUntil>S.t);
@@ -1555,7 +1555,7 @@ function upcoming(n){
 function tick(dm){
   S.t+=dm;
   if(S.fido&&S.day>=S.fido.day+2&&S.t>=FIDO_T)fidoCollect();
-  repTierCheck();
+  repTierCheck();inesTick();
   if(S.freeze>0)S.freeze=Math.max(0,S.freeze-dm);
   while(RT.events.length&&RT.events[0].at<=S.t){const ev=RT.events.shift();EVD[ev.id].run();albEv(ev.id);if(RT.modal)break;}
   spawnTick(dm);
@@ -1581,7 +1581,7 @@ function openDay(){
   else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
-  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;S.today.tip=startTip();mystPlan();rivalDay();camp();goalStart();S.today.pat0=patrimonio();S.ines=null;
+  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;S.today.tip=startTip();mystPlan();rivalDay();camp();goalStart();inesMorning();S.today.pat0=patrimonio();S.ines=null;
   // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
   const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
   let tg=rnd(75,165)*repF*rivalMult()*(S.campFesta===S.day?1.1:1)*(S.up.facciata?1.06:1)*(S.up.bancone?1.04:1)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
@@ -2510,6 +2510,53 @@ Object.assign(ART,{
  acx:()=>sv(`<path d="M38.00 40.00 L38.75 36.00 L53.25 36.00 L54.00 40.00Z" fill="#D32F2F" opacity=".25"/><path d="M38.00 40.00 L38.75 36.00 M54.00 40.00 L53.25 36.00 M38.00 40.00 L53.25 36.00 M54.00 40.00 L38.75 36.00 M38.75 36.00 L53.25 36.00" stroke="#6B7680" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M38.00 40.00 L38.75 36.00 M54.00 40.00 L53.25 36.00 M38.00 40.00 L53.25 36.00 M54.00 40.00 L38.75 36.00 M38.75 36.00 L53.25 36.00" stroke="#D32F2F" stroke-width="1.1" fill="none" stroke-linejoin="round"/><path d="M38.75 36.00 L39.50 32.00 L52.50 32.00 L53.25 36.00Z" fill="#FFFFFF" opacity=".25"/><path d="M38.75 36.00 L39.50 32.00 M53.25 36.00 L52.50 32.00 M38.75 36.00 L52.50 32.00 M53.25 36.00 L39.50 32.00 M39.50 32.00 L52.50 32.00" stroke="#6B7680" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M38.75 36.00 L39.50 32.00 M53.25 36.00 L52.50 32.00 M38.75 36.00 L52.50 32.00 M53.25 36.00 L39.50 32.00 M39.50 32.00 L52.50 32.00" stroke="#FFFFFF" stroke-width="1.1" fill="none" stroke-linejoin="round"/><path d="M39.50 32.00 L40.25 28.00 L51.75 28.00 L52.50 32.00Z" fill="#D32F2F" opacity=".25"/><path d="M39.50 32.00 L40.25 28.00 M52.50 32.00 L51.75 28.00 M39.50 32.00 L51.75 28.00 M52.50 32.00 L40.25 28.00 M40.25 28.00 L51.75 28.00" stroke="#6B7680" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M39.50 32.00 L40.25 28.00 M52.50 32.00 L51.75 28.00 M39.50 32.00 L51.75 28.00 M52.50 32.00 L40.25 28.00 M40.25 28.00 L51.75 28.00" stroke="#D32F2F" stroke-width="1.1" fill="none" stroke-linejoin="round"/><path d="M40.25 28.00 L41.00 24.00 L51.00 24.00 L51.75 28.00Z" fill="#FFFFFF" opacity=".25"/><path d="M40.25 28.00 L41.00 24.00 M51.75 28.00 L51.00 24.00 M40.25 28.00 L51.00 24.00 M51.75 28.00 L41.00 24.00 M41.00 24.00 L51.00 24.00" stroke="#6B7680" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M40.25 28.00 L41.00 24.00 M51.75 28.00 L51.00 24.00 M40.25 28.00 L51.00 24.00 M51.75 28.00 L41.00 24.00 M41.00 24.00 L51.00 24.00" stroke="#FFFFFF" stroke-width="1.1" fill="none" stroke-linejoin="round"/><path d="M41.00 24.00 L41.75 20.00 L50.25 20.00 L51.00 24.00Z" fill="#D32F2F" opacity=".25"/><path d="M41.00 24.00 L41.75 20.00 M51.00 24.00 L50.25 20.00 M41.00 24.00 L50.25 20.00 M51.00 24.00 L41.75 20.00 M41.75 20.00 L50.25 20.00" stroke="#6B7680" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M41.00 24.00 L41.75 20.00 M51.00 24.00 L50.25 20.00 M41.00 24.00 L50.25 20.00 M51.00 24.00 L41.75 20.00 M41.75 20.00 L50.25 20.00" stroke="#D32F2F" stroke-width="1.1" fill="none" stroke-linejoin="round"/><path d="M41.75 20.00 L42.50 16.00 L49.50 16.00 L50.25 20.00Z" fill="#FFFFFF" opacity=".25"/><path d="M41.75 20.00 L42.50 16.00 M50.25 20.00 L49.50 16.00 M41.75 20.00 L49.50 16.00 M50.25 20.00 L42.50 16.00 M42.50 16.00 L49.50 16.00" stroke="#6B7680" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M41.75 20.00 L42.50 16.00 M50.25 20.00 L49.50 16.00 M41.75 20.00 L49.50 16.00 M50.25 20.00 L42.50 16.00 M42.50 16.00 L49.50 16.00" stroke="#FFFFFF" stroke-width="1.1" fill="none" stroke-linejoin="round"/><path d="M42.50 16.00 L43.25 12.00 L48.75 12.00 L49.50 16.00Z" fill="#D32F2F" opacity=".25"/><path d="M42.50 16.00 L43.25 12.00 M49.50 16.00 L48.75 12.00 M42.50 16.00 L48.75 12.00 M49.50 16.00 L43.25 12.00 M43.25 12.00 L48.75 12.00" stroke="#6B7680" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M42.50 16.00 L43.25 12.00 M49.50 16.00 L48.75 12.00 M42.50 16.00 L48.75 12.00 M49.50 16.00 L43.25 12.00 M43.25 12.00 L48.75 12.00" stroke="#D32F2F" stroke-width="1.1" fill="none" stroke-linejoin="round"/><path d="M37 12 H55" stroke="#D32F2F" stroke-width="1.6"/><path d="M44 12 L38 5 M48 12 L54 5 M45 12 L42 6 M47 12 L50 6" stroke="#D32F2F" stroke-width="1" fill="none"/><path d="M36 5 H42 M50 5 H56" stroke="#D32F2F" stroke-width="1.3"/><rect x="43" y="7" width="6" height="4" rx="1" fill="#B0B6BE" stroke="#666" stroke-width=".4"/><path d="M46 7 q-2.4 -2.8 0 -6 q2.4 3.2 0 6z" fill="#FFB300"/><path d="M46 6.4 q-1 -1.6 0 -3.2 q1 1.6 0 3.2z" fill="#FFF3C4"/><rect x="34" y="40" width="24" height="3" rx="1" fill="#555"/>`+stx(72,40,3.2,'N. 027/500','#4A3410',FF,{b:800,w:18})),
 });
 
+/* ===== Ines dà una mano, l'eredità, i clienti che ti vogliono bene ===== */
+const INES_MAX=1500;
+const inRed=()=>S.cash+S.deposit<0;
+const troubled=()=>inRed()||S.rep<0;
+const INES_PROM=[
+ 'Stasera ti tocca farlo con lei. E niente scuse sul mal di schiena.',
+ 'Sabato esce con le amiche, e tu non chiedi a che ora torna.',
+ 'Vuole un threesome con due uomini. Dice che il secondo lo sceglie lei, e non si discute.',
+ 'Domenica pranzo da sua madre, e la trippa te la mangi tutta.',
+ 'Le compri la borsa che ha visto a Reggio, quella che costa quanto un mese di bollette.',
+ 'Per un mese il telecomando è suo. Anche durante la partita della Reggina.',
+ 'Ad agosto si va in crociera, e decide lei dove.',
+ 'Ti tagli i baffi. Anche se non li hai: è una questione di principio.',
+ 'Al matrimonio di sua cugina balli la tarantella davanti a tutti.',
+ 'Ti iscrivi con lei a zumba, il martedì e il giovedì.',
+ 'Per una settimana porti a spasso il cane della vicina, quello che morde.',
+ 'Le dici che ha ragione. Su tutto. Per sempre.'
+];
+const PARENTI=['la prozia Concetta di Bagnara','lo zio Peppino, emigrato in Germania nel \'68','il cugino di secondo grado di Melito Porto Salvo','la zia Mimma, quella che non sorrideva mai','un prozio di Palmi che nessuno aveva mai visto','la nonna della cognata, che a quanto pare era anche parente sua','lo zio Ciccio, che diceva sempre di non avere una lira'];
+function eredAmt(){const r=Math.random();
+  if(r<.45)return Math.round(rnd(50,500)/10)*10;
+  if(r<.75)return Math.round(rnd(500,3000)/50)*50;
+  if(r<.92)return Math.round(rnd(3000,15000)/100)*100;
+  if(r<.985)return Math.round(rnd(15000,50000)/500)*500;
+  return Math.round(rnd(50000,100000)/1000)*1000;}
+function inesMorning(){
+  // una partita su cinque, in un giorno a caso, muore un parente di Ines
+  if(S.ered===undefined)S.ered=chance(.2)?{day:S.day+ri(20,600),done:false}:null;
+  if(S.ered&&!S.ered.done&&S.day>=S.ered.day){S.today.inesOffer={k:'ered',amt:eredAmt(),who:pick(PARENTI)};return;}
+  // se sei in rosso, ogni tanto Ines ti aiuta
+  if(inRed()&&S.day-(S.inesHelpDay||-99)>=30&&chance(.35)){
+    const need=-(S.cash+S.deposit);const amt=Math.min(INES_MAX,Math.max(100,Math.ceil((need+100)/50)*50));
+    S.today.inesOffer={k:'aiuto',amt,cap:need+100>INES_MAX,prom:pick(INES_PROM)};}
+  // clienti che ti vogliono bene quando le cose vanno male
+  const t=troubled();if(t&&!S.troubleOn){S.troubleOn=1;log('In paese si è sparsa la voce che la bottega se la passa male. I clienti fissi ti vogliono bene: aspettano un po\' di più prima di stufarsi.','info');}
+  else if(!t&&S.troubleOn){S.troubleOn=0;log('Le cose vanno meglio, e in paese se ne sono accorti: i clienti tornano ad avere la pazienza di sempre.','info');}
+}
+function inesTake(){const o=S.today&&S.today.inesOffer;if(!o||o.taken)return;o.taken=1;
+  S.cash=r2(S.cash+o.amt);
+  if(o.k==='ered'){S.ered.done=true;tx('vin',o.amt,`Eredità di Ines (${o.who})`);log(`È morto ${o.who}. Ines ha ereditato ${fmt(o.amt)} e li mette nella bottega.`,'good');toast(`+${fmt(o.amt)} dall'eredità di Ines`,'good');}
+  else{S.inesHelpDay=S.day;S.inesHelps=(S.inesHelps||0)+1;tx('fin',o.amt,'Aiuto di Ines');log(`Ines ti dà ${fmt(o.amt)}. Tu hai promesso: ${o.prom.charAt(0).toLowerCase()+o.prom.slice(1)}`,'info');toast(`Ines ti dà ${fmt(o.amt)}`,'good');}
+  save&&save();}
+function inesTick(){const o=S.today&&S.today.inesOffer;if(!o||o.shown||RT.modal||S.counter)return;o.shown=1;
+  if(o.k==='ered'){S.ered.done=true;
+    openModal({html:`<h3>Una notizia per Ines</h3><p>Squilla il telefono, Ines risponde, si siede. È morto ${o.who}.</p><p>Dopo il rosario e le condoglianze arriva il notaio: ${o.amt<=500?`l'eredità è di <b>${fmt(o.amt)}</b>${o.amt<=100?' e una cassapanca tarlata':''}. «Meglio di niente», dice Ines.`:o.amt>=30000?`<b>${fmt(o.amt)}</b>. Ines si fa il segno della croce due volte, poi una terza.`:`<b>${fmt(o.amt)}</b>. Ines piange, ma non si capisce bene di cosa.`}</p><p>«Sono per la bottega», dice. «Ma il funerale lo paghi tu.»</p>`,actions:[{label:`Grazie, Ines (+${fmt(o.amt)})`,cls:'gold',fn:inesTake}]});return;}
+  openModal({html:`<h3>Ines ti vede preoccupato</h3><p>Ha visto i conti. Apre la borsetta e tira fuori <b>${fmt(o.amt)}</b>${o.cap?`: «Di più non ne ho, e questi erano per la crociera.»`:'.'}</p><p>«Te li do. Però mi prometti una cosa.»</p><p style="font-style:italic">${o.prom}</p>`,actions:[{label:`Prometto (+${fmt(o.amt)})`,cls:'gold',fn:inesTake},{label:'No, grazie, ce la faccio da solo',fn(){log('Rifiuti i soldi di Ines. Lei alza le spalle: «Come vuoi tu. L\'offerta scade.»','info');}}]});}
+
 S=load();
 
 /* ===== finestre e avvisi ===== */
@@ -3199,7 +3246,7 @@ function showSplash(){
 }
 if(typeof document!=="undefined"&&document.addEventListener&&!(typeof window!=="undefined"&&window.__TABTEST)){document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-snd]');if(b){e.preventDefault();setSound(!SND.on);}},true);setTimeout(()=>setSound(SND.on,true),0);}
 if(typeof window!=="undefined"&&window.__TABDBG){window.__R=rapina;window.__GS=()=>S;window.__INES=inesArrives;window.__CH=chooseHelper;window.__SP=()=>spawnCustomer(null,S.people.find(p=>p.fix==="carmela"));}
-if(typeof window!=="undefined"&&window.__TABTEST){window.__T={PD,UPD,withdraw,buyFido,payFido,buyIniz,INIZ,inizState,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
+if(typeof window!=="undefined"&&window.__TABTEST){window.__T={inesTake,PD,UPD,withdraw,buyFido,payFido,buyIniz,INIZ,inizState,rapina,startGame,deliver,trayAdd,callNext,get S(){return S;},set S(v){S=v;},RT,tick,openDay,closeDay,closeModal,askDebt,refuseCredit,buy,buyUp,refillList,costOf,newState,takeLoan,deposit,capOf,space};}
 else init();
 })();
 </script>
