@@ -2277,8 +2277,7 @@ function buySheet(id){
     if(!opts.includes(sp))opts.push(sp);
   }
   const html=`<div class="shead">${artOf(id)}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="muted" style="font-size:13px">In magazzino ${S.stock[id]}/${cap} · costo ${fmt(u)} · vendi a ${fmt(sellP(id))}</div></div></div>`
-    +(p.stile?`<p class="muted" style="font-size:13px;margin-bottom:4px">${{cla:'Stile classico e vintage',mod:'Stile moderno e minimalista',noir:'Stile noir'}[p.fam]} · ${esc(p.stile)}</p>`:'')
-    +(p.motto?`<p style="font-style:italic">Sul pacchetto: «${esc(p.motto)}»</p>`:'')
+    +(p.motto?`<p style="font-style:italic">«${esc(p.motto)}»</p>`:'')
     +(sp<=0?'<p>Hai già il massimo: 200 pezzi.</p>':`<p class="muted" style="font-size:13px">In cassa ${fmt(S.cash)}${S.deposit>0?` · sul libretto ${fmt(S.deposit)}`:''}. La merce arriva subito.</p>`);
   const acts=opts.map(n=>{const c=r2(n*u);const lbl=n===sp&&opts.length>1?`Fino al massimo di 200: ${n} pezzi (${fmt(c)})`:`Compra ${n} pezzi${n===lot?' ('+CATDEF[p.cat].lotName+')':''} · ${fmt(c)}`;return{label:lbl,cls:'gold',disabled:c>S.cash,fn(){if(buy(id,n)){toast(`+${n} ${p.name}`,'good');render(true);}}};});
   acts.push({label:'Chiudi',cls:'alt'});
