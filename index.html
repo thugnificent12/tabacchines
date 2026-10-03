@@ -1096,6 +1096,8 @@ function spawnCustomer(forcedType,forcedP){
   if(!ctx.lines.length)want(ctx,p.type==='liceale'?SNK():brandOf(p));
   if(!R)shapeOrder(ctx,p,T);
   // richieste lunghe: chi chiede tanta roba concede qualche secondo in più
+  // primi tre giorni: si chiede solo quello che hai già
+  if(S.day<=3){ctx.lines=ctx.lines.filter(l=>SV[l.id]?svAvail(l.id):visible(l.id));if(!ctx.lines.length)want(ctx,p.type==='liceale'?'g2':brandOf(p));}
   const nArt=ctx.lines.reduce((a,l)=>a+(SV[l.id]?1:l.q),0);
   const extra=nArt>=5?10*GMS*1.1:nArt>=3?5*GMS*1.1:0;
   const pat=extra+T.pat*.85*(1+.25*S.up.sedie)*(perk('queue')?1.2:1)*(S.up.tv?1.1:1)*(S.up.condiz?1.15:1)*(S.up.bancone?1.1:1)*(rk()>=6?1.1:1)*rnd(.85,1.15);
@@ -1531,7 +1533,7 @@ function openDay(){
   else if(S.fido&&S.day===S.fido.day+1){toast(`Oggi paghi il grossista col 5%: ${fmt(fidoOwed())}.`,'warn');}
   S.today.meteo=meteoOf(S.day);S.today.mfx=meteoFx(S.today.meteo);S.today.news=makeNews();
   S.today.fe=festaOf(S.day);S.today.festa=S.today.fe?S.today.fe.id:null;
-  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;goalStart();S.today.pat0=patrimonio();S.ines=null;
+  const spc=S.today.fe&&S.today.fe.short?null:pickSpecial(S.day);S.today.spec=spc?spc.id:null;if(S.day===1&&S.patBase==null)S.patBase=patrimonio();albDay();S.today.rep0=S.rep;S.today.tip=startTip();goalStart();S.today.pat0=patrimonio();S.ines=null;
   // la reputazione conta molto: da −100 a +100 i clienti vanno da circa metà a quasi il doppio
   const repF=S.rep>=0?1+S.rep/100*.9:1+S.rep/200;
   let tg=rnd(75,165)*repF*(S.up.facciata?1.06:1)*(S.up.bancone?1.04:1)*(1+.04*S.up.scaffali)*(S.up.tv?(isSunday(S.day)?1.1:1.05):1)*(S.up.virtuali?1.03:1)*(perk('traffic')?1.1:1)*(1+.08*S.up.insegna)*(wd(S.day)===5?1.1:1)*(isSunday(S.day)?.6:1);
@@ -1559,7 +1561,7 @@ function openDay(){
   save();
 }
 function closeDay(){
-  sfx('shutter');
+  sfx('shutter');RT.closing=true;RT.closeMsgs=[];
   const T=S.today;
   const left=S.queue.length+(S.counter?1:0);
   if(left){T.lost+=left;addRep(-.5*left);log(`Abbassi la saracinesca con ${left} clienti ancora dentro. Escono brontolando.`,'bad');}
@@ -1591,6 +1593,7 @@ function closeDay(){
   endOfDayExtras(r);
   const lose=S.debtDays>=30&&S.rep<=-50;
   if(lose)S.over=true;
+  RT.closing=false;{const seen=new Set();r.extra=[...(r.extra||[]),...RT.closeMsgs].filter(x=>{const k=x.replace(/[^a-zà-ù0-9]/gi,'').toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});}RT.closeMsgs=[];
   save();showReport(r,lose);
 }
 
@@ -2262,7 +2265,8 @@ function shopSVG(){
 function goalStart(){const old=S.people.filter(p=>p.id>=0&&p.debt>0).map(p=>p.id);S.today.goal=old.length>=2?{old,paid:[],need:2,done:false}:null;}
 function goalCred(p){S.credInc=(S.credInc||0)+1;const g=S.today&&S.today.goal;if(!g||g.done||!g.old.includes(p.id)||g.paid.includes(p.id))return;g.paid.push(p.id);
   if(g.paid.length>=g.need){g.done=true;addRep(1);log('Obiettivo del giorno: hai incassato due crediti vecchi. Reputazione +1.','good');toast('Obiettivo del giorno raggiunto: +1 reputazione.','good');}}
-function renderGoal(){const b=$('#dayGoal');if(!b)return;const g=S.phase==='open'&&S.today.goal;b.hidden=!g;if(!g)return;
+function renderGoal(){const b=$('#dayGoal');if(!b)return;const tip=S.day<=3&&S.today&&S.today.tip;const g=S.phase==='open'&&S.today.goal;b.hidden=!g&&!tip;if(!g&&!tip)return;
+  if(!g){if(b._sig!=='tip'+tip){b._sig='tip'+tip;b.innerHTML=`<h2>💡 Consiglio</h2><p style="margin:0;font-size:14px">${esc(tip)}</p>`;}return;}
   const sig=g.paid.length+'|'+g.done;if(b._sig===sig)return;b._sig=sig;
   b.innerHTML=`<h2>🎯 Obiettivo del giorno</h2><p style="margin:0;font-size:14px">${g.done?'<b style="color:var(--good)">Fatto!</b> ':''}Incassa due crediti vecchi: chiedi i soldi a chi ti deve qualcosa da prima di oggi. <b class="mono">${Math.min(g.paid.length,2)}/2</b></p><p class="muted" style="margin:4px 0 0;font-size:12.5px">Premio: +1 reputazione. Oggi ${g.old.length} clienti hanno un conto aperto.</p>`;}
 
@@ -2325,20 +2329,32 @@ function endOfDayExtras(r){const ex=r.extra=[];const d=S.day-1,dt=dateOf(d);
   // un mese con i clienti fissi contenti
   if(isLastOfMonth(d)){const f=S.fixM;if(f&&!f.fail&&f.n>=5){repFlat(3);S.fixWin=1;ex.push('Un mese senza deludere i clienti fissi: +3 reputazione');log('Per tutto il mese i clienti fissi sono usciti contenti. Reputazione +3.','good');}S.fixM={fail:false,n:0};}
   // premio Tabaccheria dell'anno
-  if(dt.getMonth()===11&&dt.getDate()===31){if(S.rep>=85){repFlat(5);(S.trofei=S.trofei||[]).push(dt.getFullYear());ex.push(`Tabaccheria dell'anno ${dt.getFullYear()}: +5 reputazione!`);log(`Premio «Tabaccheria dell'anno ${dt.getFullYear()}»: la targa va appesa dietro al banco. Reputazione +5.`,'good');toast('🏆 Tabaccheria dell\'anno!','good');}
+  if(dt.getMonth()===11&&dt.getDate()===31){if(S.rep>=85){repFlat(5);(S.trofei=S.trofei||[]).push(dt.getFullYear());log(`Premio «Tabaccheria dell'anno ${dt.getFullYear()}»: la targa va appesa dietro al banco. Reputazione +5.`,'good');toast(`🏆 Tabaccheria dell'anno ${dt.getFullYear()}: +5 reputazione!`,'good');}
     else log(`Il premio «Tabaccheria dell'anno» va a un'altra bottega: serviva chiudere l'anno con almeno 85 di reputazione (tu ${Math.round(S.rep)}).`,'info');}
   // domani si paga
   const due=billsFor(S.day).filter(b=>!/del giorno/.test(b.label));if(S.fido&&S.day>=S.fido.day+2)due.push({label:'Il grossista',amt:r2(S.fido.amt*1.1)});
   if(due.length){const t=due.map(b=>`${b.label.toLowerCase()} ${fmt(b.amt)}`).join(', ');ex.push(`Domani paghi: ${t}`);log(`Domani paghi: ${t}.`,'warn');}
   // stagione che comincia domani
   const se=seasonOf(S.day);if(se&&se!==seasonOf(d))log(SEASON_MSG[se],'info');
-  for(const t of medCheck(r))ex.push(`🏅 Medaglia: ${t}`);
+  medCheck(r);
 }
+
+/* consigli dei primi tre giorni: cosa sbloccare per primo */
+function startTip(){if(S.day>3)return null;
+  const P=[[1,['caramelle','snack','fumo'],'caramelle (10 €), snack (20 €), accendini, cartine e trinciati (50 €): costano poco e li chiedono in tanti.'],
+    [2,['licLot','treni','valori'],'la licenza del Lotto (100 €), la biglietteria treni e nave (150 €) e i valori bollati (80 €): portano clienti tutti i giorni.'],
+    [3,['licDel','licSup','licSvapo'],'il 10eLotto (180 €), il SuperEnalotto (250 €) e le sigarette elettroniche (400 €).']];
+  const miss=P.flatMap(([,ids])=>ids).filter(id=>!S.up[id]);const cur=P.find(([d])=>d===S.day);
+  const left=cur[1].filter(id=>!S.up[id]);
+  let t=left.length?`Consiglio: in Bottega sblocca subito ${cur[2]}`:(miss.length?`Consiglio: ti mancano ancora ${miss.map(id=>UPD[id].name.toLowerCase()).join(', ')}.`:'Hai già sbloccato le cose più richieste. Ottimo inizio.');
+  t+=S.day<3?' Nei primi tre giorni i clienti chiedono solo quello che hai già.':' Da domani i clienti chiederanno anche quello che non hai ancora: chi non lo trova se ne va scontento.';
+  log(t,'info');return t;}
 
 S=load();
 
 /* ===== finestre e avvisi ===== */
 function toast(msg,tone){
+  if(RT.closing){(RT.closeMsgs||(RT.closeMsgs=[])).push(String(msg));return;}
   if(typeof document==='undefined'||!document.body)return;
   const box=$('#toasts');if(!box)return;const t=el('div','toast '+(tone||''),esc(msg));box.appendChild(t);
   while(box.children.length>3)box.firstChild.remove();
