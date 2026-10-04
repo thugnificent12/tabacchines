@@ -1,6 +1,6 @@
 /* Il TabacchInes: funzionamento offline.
    Cambia VERSION a ogni nuova versione del gioco per aggiornare la cache. */
-const VERSION = 'tabacchines-b157';
+const VERSION = 'tabacchines-b158';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png'];
